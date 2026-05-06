@@ -1,7 +1,7 @@
 [project]
 name = "platform-backend"
 version = "0.1.0"
-description = "FastAPI backend for maintenance provider platform"
+description = "FastAPI backend for Wedaprovider platform"
 requires-python = ">=3.11"
 dependencies = [
   "fastapi>=0.115.0",

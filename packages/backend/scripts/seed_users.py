@@ -35,7 +35,7 @@ DEMO_USERS = [
         "role": "provider",
         "full_name": "Demo Provider",
         "phone": "+94 77 987 6543",
-        "business_name": "Demo Maintenance Co.",
+        "business_name": "Demo WedaCo.",
         "service_types": ["Plumbing", "Electrical"],
         "address": "123 Colombo Road, Colombo 03",
     },

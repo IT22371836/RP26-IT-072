@@ -4,12 +4,12 @@ import { useAuth } from "../../../auth/AuthContext";
 
 const customerNavItems = [
   { to: "/dashboard/customer", label: "Customer Dashboard" },
-  { to: "/maintenance", label: "Maintenance" },
+  { to: "/Weda", label: "Weda" },
 ];
 
 const providerNavItems = [
   { to: "/dashboard/provider", label: "Provider Dashboard" },
-  { to: "/maintenance", label: "Maintenance" },
+  { to: "/Weda", label: "Weda" },
 ];
 
 export function Sidebar() {

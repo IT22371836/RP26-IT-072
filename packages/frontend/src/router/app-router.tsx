@@ -6,7 +6,7 @@ import { LoginPage } from "../features/auth/pages/LoginPage";
 import { SignUpPage } from "../features/auth/pages/SignUpPage";
 import { CustomerDashboardPage } from "../features/customer-dashboard/pages/CustomerDashboardPage";
 import { ProviderDashboardPage } from "../features/provider-dashboard/pages/ProviderDashboardPage";
-import { WedaPage } from "../features/weda/pages/WedaPage";
+import { WedaPage } from "../features/Weda/pages/WedaPage";
 
 export const appRouter = createBrowserRouter([
   // Auth routes (public)
@@ -39,7 +39,7 @@ export const appRouter = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
-      { path: "maintenance", element: <WedaPage /> },
+      { path: "Weda", element: <WedaPage /> },
     ],
   },
 ]);

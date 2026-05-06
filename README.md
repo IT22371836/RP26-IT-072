@@ -1,4 +1,4 @@
-# AI/ML Driven WedaService Provider Platform (Sri Lanka)
+# AI/ML Driven Maintenance Service Provider Platform (Sri Lanka)
 
 Monorepo with React (TypeScript) frontend, FastAPI backend, and MongoDB 6.0+.
 

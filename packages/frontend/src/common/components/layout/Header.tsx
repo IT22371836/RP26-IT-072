@@ -4,7 +4,7 @@ export function Header() {
   return (
     <header style={styles.header}>
       <div>
-        <h1 style={styles.title}>WedaOperations</h1>
+        <h1 style={styles.title}>Maintenance Operations</h1>
         <p style={styles.subtitle}>Central view for service teams and coordinators</p>
       </div>
       <div style={styles.badge}>Live</div>

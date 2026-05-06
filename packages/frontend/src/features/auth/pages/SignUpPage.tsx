@@ -191,7 +191,7 @@ export function SignUpPage() {
           </h1>
           <p style={{ fontSize: "14px", color: "var(--text-secondary)" }}>
             {role === "customer"
-              ? "Get access to trusted Wedaservices"
+              ? "Get access to trusted maintenance services"
               : "Join our network of service professionals"}
           </p>
         </div>
@@ -280,7 +280,7 @@ export function SignUpPage() {
                     id="su-bizname"
                     className="auth-input provider"
                     type="text"
-                    placeholder="Perera WedaServices"
+                    placeholder="Perera Maintenance Services"
                     value={businessName}
                     onChange={(e) => setBusinessName(e.target.value)}
                   />

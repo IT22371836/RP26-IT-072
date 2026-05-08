@@ -50,7 +50,7 @@ export const appRouter: ReturnType<typeof createBrowserRouter> = createBrowserRo
   ],
   {
     future: {
-      v7_startTransition: true,
+      v7_relativeSplatPath: true,
     },
   }
 );

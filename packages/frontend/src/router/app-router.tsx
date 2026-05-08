@@ -49,8 +49,32 @@ export const appRouter: ReturnType<typeof createBrowserRouter> = createBrowserRo
     },
   ],
   {
-    future: {
-      v7_startTransition: true,
-    },
-  }
-);
+    path: "/",
+    element: (
+      <ProtectedRoute>
+        <LayoutShell />
+      </ProtectedRoute>
+    ),
+    children: [
+      { index: true, element: <DashboardHomeRedirect /> },
+      {
+        path: "dashboard/customer",
+        element: (
+          <ProtectedRoute allowedRoles={["customer"]}>
+            <CustomerDashboardPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "dashboard/provider",
+        element: (
+          <ProtectedRoute allowedRoles={["provider"]}>
+            <ProviderDashboardPage />
+          </ProtectedRoute>
+        ),
+      },
+      { path: "maintenance", element: <MaintenancePage /> },
+      { path: "component4/aspect-analysis", element: <AspectAnalysisPage /> },
+    ],
+  },
+]);

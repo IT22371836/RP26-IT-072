@@ -39,6 +39,9 @@ class Component4Paths:
     weights_path: Path
     config_path: Path
     vocab_path: Path
+    fraud_model_path: Path
+    provider_scores_path: Path
+    blend_config_path: Path
 
 
 def get_paths() -> Component4Paths:
@@ -53,5 +56,14 @@ def get_paths() -> Component4Paths:
         ),
         vocab_path=Path(
             os.getenv("COMPONENT4_VOCAB", str(model_dir / "vocab.pkl"))
+        ),
+        fraud_model_path=Path(
+            os.getenv("COMPONENT4_FRAUD_MODEL", str(model_dir / "isolation_forest.pkl"))
+        ),
+        provider_scores_path=Path(
+            os.getenv("COMPONENT4_PROVIDER_SCORES", str(model_dir / "provider_scores.parquet"))
+        ),
+        blend_config_path=Path(
+            os.getenv("COMPONENT4_BLEND_CONFIG", str(model_dir / "blend_config.json"))
         ),
     )

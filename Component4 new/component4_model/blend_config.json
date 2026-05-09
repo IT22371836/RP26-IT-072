@@ -1,0 +1,33 @@
+{
+  "W_CRED": 0.4,
+  "W_OVERALL": 0.35,
+  "W_FRAUD": 0.15,
+  "W_RECENCY": 0.1,
+  "TRUST_WEIGHTS": {
+    "Verified": 1.5,
+    "Unverified": 1.0,
+    "Suspicious": 0.7
+  },
+  "HALFLIFE_DAYS": 180,
+  "tier_thresholds": {
+    "Elite": 0.8,
+    "Trusted": 0.65,
+    "Verified": 0.0
+  },
+  "contamination": 0.1,
+  "feature_names": [
+    "word_count",
+    "unique_word_ratio",
+    "pronoun_count",
+    "adj_density",
+    "exclamation_count",
+    "caps_ratio",
+    "rating_text_mismatch",
+    "user_total_reviews",
+    "days_since_prev_review",
+    "user_provider_diversity",
+    "text_frequency",
+    "days_since_review",
+    "booking_status"
+  ]
+}

@@ -1,4 +1,9 @@
+from pathlib import Path
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+_ENV_PATH = Path(__file__).resolve().parents[2] / ".env"
 
 
 class Settings(BaseSettings):
@@ -17,7 +22,7 @@ class Settings(BaseSettings):
     jwt_access_token_expire_minutes: int = 60
     auth_password_pepper: str = "change-this-pepper-in-production"
 
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+    model_config = SettingsConfigDict(env_file=str(_ENV_PATH), env_file_encoding="utf-8", extra="ignore")
 
 
 settings = Settings()

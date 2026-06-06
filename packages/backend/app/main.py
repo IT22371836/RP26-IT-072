@@ -15,7 +15,11 @@ async def lifespan(_: FastAPI):
     await MongoConnection.connect()
     # Ensure unique email index exists
     db = MongoConnection.get_db()
-    await UserRepository(db).ensure_indexes()
+    try:
+        await UserRepository(db).ensure_indexes()
+    except Exception as e:
+        # Log error but don't fail startup
+        print(f"Warning: Failed to create indexes: {e}")
     yield
     await MongoConnection.disconnect()
 

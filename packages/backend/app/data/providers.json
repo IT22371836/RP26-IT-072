@@ -1,0 +1,202 @@
+[
+  {
+    "providerID": "P001",
+    "providerFirstName": "Amal",
+    "providerLastName": "Perera",
+    "providersWorkLocation": { "latitude": 6.9271, "longitude": 79.8612 },
+    "providersHomeAddress": "No. 15, Galle Road, Colombo 03",
+    "normalAvailableHours": "8am to 5pm",
+    "serviceType": "plumbing",
+    "workingDays": "whole week"
+  },
+  {
+    "providerID": "P002",
+    "providerFirstName": "Nimali",
+    "providerLastName": "Rathnayake",
+    "providersWorkLocation": { "latitude": 7.2906, "longitude": 80.6337 },
+    "providersHomeAddress": "45/2, Peradeniya Road, Kandy",
+    "normalAvailableHours": "9am to 6pm",
+    "serviceType": "electrical",
+    "workingDays": "weekdays only"
+  },
+  {
+    "providerID": "P003",
+    "providerFirstName": "Sunil",
+    "providerLastName": "Jayawardena",
+    "providersWorkLocation": { "latitude": 6.0328, "longitude": 80.2168 },
+    "providersHomeAddress": "77 Lighthouse Street, Galle",
+    "normalAvailableHours": "7am to 4pm",
+    "serviceType": "cleaning",
+    "workingDays": "weekends only"
+  },
+  {
+    "providerID": "P004",
+    "providerFirstName": "Kumari",
+    "providerLastName": "Bandara",
+    "providersWorkLocation": { "latitude": 9.6615, "longitude": 80.0255 },
+    "providersHomeAddress": "123, Hospital Road, Jaffna",
+    "normalAvailableHours": "8am to 5pm",
+    "serviceType": "carpentry",
+    "workingDays": "whole week"
+  },
+  {
+    "providerID": "P005",
+    "providerFirstName": "Ravi",
+    "providerLastName": "Fernando",
+    "providersWorkLocation": { "latitude": 7.9623, "longitude": 81.5368 },
+    "providersHomeAddress": "202, Main Street, Batticaloa",
+    "normalAvailableHours": "10am to 7pm",
+    "serviceType": "painting",
+    "workingDays": "weekdays only"
+  },
+  {
+    "providerID": "P006",
+    "providerFirstName": "Samantha",
+    "providerLastName": "Weerasinghe",
+    "providersWorkLocation": { "latitude": 6.8551, "longitude": 79.9023 },
+    "providersHomeAddress": "34/5, Duplication Road, Colombo 04",
+    "normalAvailableHours": "8am to 4pm",
+    "serviceType": "plumbing",
+    "workingDays": "weekends only"
+  },
+  {
+    "providerID": "P007",
+    "providerFirstName": "Priyanka",
+    "providerLastName": "Silva",
+    "providersWorkLocation": { "latitude": 7.1121, "longitude": 79.9941 },
+    "providersHomeAddress": "56, Negombo Road, Gampaha",
+    "normalAvailableHours": "9am to 5pm",
+    "serviceType": "electrical",
+    "workingDays": "whole week"
+  },
+  {
+    "providerID": "P008",
+    "providerFirstName": "Chamara",
+    "providerLastName": "Dissanayake",
+    "providersWorkLocation": { "latitude": 6.8731, "longitude": 79.8879 },
+    "providersHomeAddress": "102, Borupana Road, Ratmalana",
+    "normalAvailableHours": "8am to 6pm",
+    "serviceType": "cleaning",
+    "workingDays": "weekdays only"
+  },
+  {
+    "providerID": "P009",
+    "providerFirstName": "Lakshmi",
+    "providerLastName": "Rajapaksha",
+    "providersWorkLocation": { "latitude": 7.8705, "longitude": 80.6494 },
+    "providersHomeAddress": "18, Trincomalee Street, Dambulla",
+    "normalAvailableHours": "7am to 3pm",
+    "serviceType": "carpentry",
+    "workingDays": "weekends only"
+  },
+  {
+    "providerID": "P010",
+    "providerFirstName": "Nuwan",
+    "providerLastName": "Gunasekara",
+    "providersWorkLocation": { "latitude": 6.4965, "longitude": 81.6946 },
+    "providersHomeAddress": "89, Wellawaya Road, Hambantota",
+    "normalAvailableHours": "9am to 6pm",
+    "serviceType": "painting",
+    "workingDays": "whole week"
+  },
+  {
+    "providerID": "P011",
+    "providerFirstName": "Thilini",
+    "providerLastName": "Herath",
+    "providersWorkLocation": { "latitude": 7.5849, "longitude": 80.3491 },
+    "providersHomeAddress": "27, Kurunegala Road, Kuliyapitiya",
+    "normalAvailableHours": "8am to 5pm",
+    "serviceType": "plumbing",
+    "workingDays": "weekdays only"
+  },
+  {
+    "providerID": "P012",
+    "providerFirstName": "Pradeep",
+    "providerLastName": "Mendis",
+    "providersWorkLocation": { "latitude": 6.0946, "longitude": 80.2754 },
+    "providersHomeAddress": "60, Akmeemana Road, Galle",
+    "normalAvailableHours": "10am to 6pm",
+    "serviceType": "electrical",
+    "workingDays": "weekends only"
+  },
+  {
+    "providerID": "P013",
+    "providerFirstName": "Anoma",
+    "providerLastName": "Kumari",
+    "providersWorkLocation": { "latitude": 9.1471, "longitude": 79.9526 },
+    "providersHomeAddress": "11, KKS Road, Chavakachcheri",
+    "normalAvailableHours": "8am to 5pm",
+    "serviceType": "cleaning",
+    "workingDays": "whole week"
+  },
+  {
+    "providerID": "P014",
+    "providerFirstName": "Upul",
+    "providerLastName": "Wijesinghe",
+    "providersWorkLocation": { "latitude": 6.8767, "longitude": 79.9027 },
+    "providersHomeAddress": "204, Havelock Road, Colombo 05",
+    "normalAvailableHours": "9am to 5pm",
+    "serviceType": "carpentry",
+    "workingDays": "weekdays only"
+  },
+  {
+    "providerID": "P015",
+    "providerFirstName": "Dilani",
+    "providerLastName": "Abeysekara",
+    "providersWorkLocation": { "latitude": 7.2734, "longitude": 80.6669 },
+    "providersHomeAddress": "99, Ampitiya Road, Kandy",
+    "normalAvailableHours": "7am to 4pm",
+    "serviceType": "painting",
+    "workingDays": "weekends only"
+  },
+  {
+    "providerID": "P016",
+    "providerFirstName": "Ruwan",
+    "providerLastName": "Samarawickrama",
+    "providersWorkLocation": { "latitude": 6.2518, "longitude": 81.0988 },
+    "providersHomeAddress": "33, Tissa Road, Kataragama",
+    "normalAvailableHours": "8am to 6pm",
+    "serviceType": "plumbing",
+    "workingDays": "whole week"
+  },
+  {
+    "providerID": "P017",
+    "providerFirstName": "Shanthi",
+    "providerLastName": "Premarathna",
+    "providersWorkLocation": { "latitude": 7.8868, "longitude": 81.0036 },
+    "providersHomeAddress": "57, Polonnaruwa Road, Kaduruwela",
+    "normalAvailableHours": "9am to 7pm",
+    "serviceType": "electrical",
+    "workingDays": "weekdays only"
+  },
+  {
+    "providerID": "P018",
+    "providerFirstName": "Mahesh",
+    "providerLastName": "Liyanage",
+    "providersWorkLocation": { "latitude": 7.0421, "longitude": 80.2351 },
+    "providersHomeAddress": "14, Kegalle Town, Kegalle",
+    "normalAvailableHours": "8am to 5pm",
+    "serviceType": "cleaning",
+    "workingDays": "weekends only"
+  },
+  {
+    "providerID": "P019",
+    "providerFirstName": "Indika",
+    "providerLastName": "Wimalasena",
+    "providersWorkLocation": { "latitude": 6.1377, "longitude": 80.1218 },
+    "providersHomeAddress": "82, Hikkaduwa Road, Ambalangoda",
+    "normalAvailableHours": "7am to 3pm",
+    "serviceType": "carpentry",
+    "workingDays": "whole week"
+  },
+  {
+    "providerID": "P020",
+    "providerFirstName": "Chamila",
+    "providerLastName": "Jayasinghe",
+    "providersWorkLocation": { "latitude": 8.3474, "longitude": 81.2548 },
+    "providersHomeAddress": "46, Trincomalee Town, Trincomalee",
+    "normalAvailableHours": "10am to 5pm",
+    "serviceType": "painting",
+    "workingDays": "weekdays only"
+  }
+]

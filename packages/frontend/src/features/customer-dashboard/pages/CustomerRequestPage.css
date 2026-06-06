@@ -1,0 +1,575 @@
+/* Customer Request Page Styles */
+
+.customer-request-page {
+  padding: 16px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.customer-request-header {
+  text-align: center;
+  padding: 16px;
+  margin-bottom: 24px;
+  border-bottom: 2px solid var(--customer-500);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, transparent 100%);
+  border-radius: 8px;
+}
+
+.customer-request-header h1 {
+  font-size: clamp(24px, 6vw, 40px);
+  font-weight: 800;
+  color: var(--customer-400);
+  margin: 0 0 12px 0;
+  letter-spacing: -1px;
+  text-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+}
+
+.customer-request-header p {
+  font-size: clamp(14px, 4vw, 18px);
+  color: var(--text-primary);
+  margin: 0;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+.section-title {
+  font-size: clamp(16px, 5vw, 20px);
+  font-weight: 800;
+  color: var(--customer-400);
+  margin: 0 0 16px 0;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, var(--bg-surface) 0%, var(--bg-surface-hover) 100%);
+  border-left: 5px solid var(--customer-500);
+  border-radius: 8px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.form-label {
+  font-size: clamp(12px, 3vw, 14px);
+  font-weight: 700;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.form-input,
+.form-select {
+  font-size: clamp(13px, 3vw, 14px);
+  padding: 14px 16px;
+  border: 2px solid var(--border-default);
+  background-color: var(--bg-input);
+  color: var(--text-primary);
+  border-radius: 8px;
+  font-family: inherit;
+  transition: all 0.3s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.form-input:focus,
+.form-select:focus {
+  outline: none;
+  border-color: var(--customer-500);
+  background-color: var(--bg-input-focus);
+  box-shadow: 0 0 0 3px var(--customer-glow);
+}
+
+/* Improve dropdown option visibility */
+.form-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2334d399' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 20px;
+  padding-right: 40px;
+}
+
+.form-select option {
+  background-color: #1c2128;
+  color: #e6edf3;
+  font-size: 14px;
+  padding: 8px 12px;
+  font-weight: 500;
+}
+
+.form-select option:hover {
+  background-color: #10b981;
+  color: #ffffff;
+}
+
+.form-select option:checked {
+  background-color: #10b981;
+  color: #ffffff;
+}
+
+.map-container {
+  width: 100%;
+  min-height: 300px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  margin: 16px 0;
+}
+
+.coordinates-display {
+  padding: 16px;
+  margin: 12px 0;
+  background-color: var(--bg-surface);
+  border-left: 5px solid var(--customer-500);
+  border-radius: 8px;
+  border: 1px solid var(--border-default);
+}
+
+.coordinates-display p {
+  margin: 8px 0;
+  font-size: clamp(11px, 2.5vw, 13px);
+  color: var(--text-primary);
+  font-weight: 600;
+  word-break: break-word;
+}
+
+.checkbox-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 16px;
+  padding: 20px;
+  background-color: var(--bg-surface);
+  border-radius: 8px;
+  border: 1px solid var(--border-default);
+}
+
+.checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.checkbox-wrapper:hover {
+  background-color: var(--bg-input);
+}
+
+.checkbox-wrapper input[type="checkbox"] {
+  width: 22px;
+  height: 22px;
+  cursor: pointer;
+  accent-color: var(--customer-500);
+  flex-shrink: 0;
+}
+
+.checkbox-wrapper label {
+  font-size: clamp(13px, 3vw, 14px);
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+  margin: 0;
+}
+
+.search-form {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.search-input {
+  font-size: clamp(13px, 3vw, 14px);
+  padding: 12px 14px;
+  border: 2px solid var(--border-default);
+  background-color: var(--bg-input);
+  color: var(--text-primary);
+  border-radius: 8px;
+  font-family: inherit;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--customer-500);
+  box-shadow: 0 0 0 3px var(--customer-glow);
+}
+
+.search-btn {
+  padding: 12px 20px;
+  font-size: clamp(12px, 3vw, 14px);
+  font-weight: 700;
+  background-color: var(--customer-500);
+  color: var(--text-on-brand);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  box-shadow: 0 4px 8px rgba(16, 185, 129, 0.2);
+}
+
+.search-btn:hover {
+  background-color: var(--customer-400);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(16, 185, 129, 0.3);
+}
+
+.search-results {
+  max-height: 250px;
+  overflow-y: auto;
+  padding: 8px;
+  background-color: var(--bg-surface);
+  border-radius: 8px;
+  border: 1px solid var(--border-default);
+  margin-top: 8px;
+}
+
+.search-result-item {
+  padding: 12px 14px;
+  margin-bottom: 6px;
+  font-size: clamp(12px, 2.5vw, 13px);
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  font-weight: 500;
+  display: block;
+  width: 100%;
+  font-family: inherit;
+}
+
+.search-result-item:hover {
+  background-color: var(--customer-500);
+  color: var(--text-on-brand);
+  border-color: var(--customer-500);
+  transform: translateX(4px);
+}
+
+.submit-btn {
+  padding: clamp(14px, 3vw, 18px) clamp(24px, 5vw, 32px);
+  font-size: clamp(13px, 3vw, 15px);
+  font-weight: 800;
+  background-color: var(--customer-500);
+  color: var(--text-on-brand);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35);
+  min-height: 50px;
+  width: 100%;
+  font-family: inherit;
+}
+
+.submit-btn:hover:not(:disabled) {
+  background-color: var(--customer-400);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+}
+
+.submit-btn:disabled {
+  background-color: var(--border-subtle);
+  color: var(--text-muted);
+  cursor: not-allowed;
+  opacity: 0.5;
+  box-shadow: none;
+}
+
+.required-note {
+  font-size: clamp(11px, 2.5vw, 12px);
+  color: var(--text-secondary);
+  text-align: center;
+  margin: 12px 0 0 0;
+  font-weight: 600;
+}
+
+.submit-success-banner {
+  padding: 14px 18px;
+  background-color: rgba(16, 185, 129, 0.15);
+  border: 1px solid var(--customer-500);
+  border-radius: 8px;
+  color: #34d399;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.submit-error-banner {
+  padding: 14px 18px;
+  background-color: rgba(239, 68, 68, 0.12);
+  border: 1px solid #ef4444;
+  border-radius: 8px;
+  color: #f87171;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* Weather Result Card */
+.weather-result-card {
+  padding: 18px;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(99, 102, 241, 0.06) 100%);
+  border: 1px solid var(--customer-500);
+  border-radius: 12px;
+}
+
+.weather-result-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--customer-400);
+  margin: 0 0 14px 0;
+  letter-spacing: 0.3px;
+}
+
+.weather-result-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 10px;
+}
+
+.weather-result-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  background-color: var(--bg-input);
+  border-radius: 8px;
+  border: 1px solid var(--border-subtle);
+}
+
+.weather-result-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.weather-result-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.helperText {
+  font-size: clamp(11px, 2vw, 13px);
+  color: var(--text-secondary);
+  margin: 0 0 12px 0;
+  font-weight: 500;
+  display: block;
+}
+
+/* Leaflet Container Styling */
+.leaflet-container {
+  background: var(--bg-surface);
+  border-radius: 8px;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .customer-request-page {
+    padding: 12px;
+  }
+
+  .customer-request-header {
+    padding: 12px;
+    margin-bottom: 16px;
+  }
+
+  .search-form {
+    grid-template-columns: 1fr;
+  }
+
+  .search-btn {
+    width: 100%;
+  }
+
+  .map-container {
+    min-height: 250px;
+  }
+
+  .checkbox-container {
+    grid-template-columns: 1fr;
+    padding: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .customer-request-page {
+    padding: 8px;
+  }
+
+  .customer-request-header {
+    padding: 8px;
+    margin-bottom: 12px;
+  }
+
+  .map-container {
+    min-height: 200px;
+  }
+
+  .coordinates-display {
+    padding: 12px;
+  }
+
+  .submit-btn {
+    min-height: 45px;
+    padding: 12px 16px;
+  }
+}
+
+/* Scrollbar styling */
+.search-results::-webkit-scrollbar {
+  width: 6px;
+}
+
+.search-results::-webkit-scrollbar-track {
+  background: var(--bg-input);
+  border-radius: 3px;
+}
+
+.search-results::-webkit-scrollbar-thumb {
+  background: var(--customer-500);
+  border-radius: 3px;
+}
+
+.search-results::-webkit-scrollbar-thumb:hover {
+  background: var(--customer-400);
+}
+
+/* Map Container Wrapper - Full Width Layout */
+.map-wrapper-container {
+  width: 100%;
+  height: 460px;
+  border-radius: 12px;
+  border: 2px solid var(--customer-500);
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.2);
+  overflow: hidden;
+  position: relative;
+}
+
+.map-helper-text {
+  margin: 0 0 8px 0;
+  padding: 10px 14px;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  font-size: clamp(11px, 2vw, 12px);
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+/* Leaflet Map Styles */
+.leaflet-container {
+  border-radius: 12px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  font-family: inherit;
+  background-color: var(--bg-input) !important;
+}
+
+.leaflet-control-attribution {
+  background-color: rgba(0, 0, 0, 0.6) !important;
+  color: var(--text-primary) !important;
+  font-size: 10px !important;
+  padding: 4px 8px !important;
+  border-radius: 4px !important;
+}
+
+.leaflet-control-zoom {
+  border-radius: 8px !important;
+  overflow: hidden !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+.leaflet-control-zoom-in,
+.leaflet-control-zoom-out {
+  background-color: var(--bg-input) !important;
+  color: var(--text-primary) !important;
+  border: none !important;
+  font-weight: 700 !important;
+  font-size: 16px !important;
+  width: 40px !important;
+  height: 40px !important;
+  line-height: 40px !important;
+  text-align: center !important;
+  transition: all 0.3s ease !important;
+}
+
+.leaflet-control-zoom-in:hover,
+.leaflet-control-zoom-out:hover {
+  background-color: var(--customer-500) !important;
+  color: var(--text-on-brand) !important;
+}
+
+.leaflet-marker-icon {
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.4));
+}
+
+.leaflet-popup-content-wrapper {
+  background-color: var(--bg-surface) !important;
+  border-radius: 8px !important;
+  color: var(--text-primary) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+  border: 1px solid var(--border-default) !important;
+}
+
+.leaflet-popup-tip {
+  background-color: var(--bg-surface) !important;
+  border-color: var(--border-default) !important;
+}
+
+.leaflet-popup-content {
+  margin: 0 !important;
+  font-size: clamp(12px, 2.5vw, 14px) !important;
+  font-weight: 600 !important;
+}
+
+.leaflet-container a {
+  color: var(--customer-500) !important;
+}
+
+/* Search location styling improvements */
+.search-container {
+  display: grid;
+  gap: 12px;
+  padding: 0;
+}
+
+/* Improved search form spacing */
+.search-form {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+}
+
+@media (max-width: 768px) {
+  .search-form {
+    grid-template-columns: 1fr;
+  }
+
+  .search-btn {
+    width: 100%;
+  }
+}
+
+.coordinates-text {
+  font-size: clamp(11px, 2.5vw, 13px) !important;
+  color: var(--text-primary) !important;
+  margin: 0 !important;
+  font-family: monospace !important;
+  font-weight: 600 !important;
+  background-color: var(--bg-input) !important;
+  padding: 8px 10px !important;
+  border-radius: 4px !important;
+  word-break: break-word !important;
+}

@@ -7,13 +7,16 @@ import { SignUpPage } from "../features/auth/pages/SignUpPage";
 import { CustomerDashboardPage } from "../features/customer-dashboard/pages/CustomerDashboardPage";
 import { ProviderDashboardPage } from "../features/provider-dashboard/pages/ProviderDashboardPage";
 import { MaintenancePage } from "../features/maintenance/pages/MaintenancePage";
+import { CustomerRequestPage } from "../features/customer-dashboard/pages/CustomerRequestPage";
+import { ServiceRequestResultsPage } from "../features/customer-dashboard/pages/ServiceRequestResultsPage";
+
 
 export const appRouter = createBrowserRouter([
   // Auth routes (public)
   { path: "/login/:role", element: <LoginPage /> },
   { path: "/signup/:role", element: <SignUpPage /> },
-
-  // Protected app routes
+  { path: "/customer/check-provider", element: <CustomerRequestPage /> },
+  { path: "/customer/service-request-results", element: <ServiceRequestResultsPage /> },  // Protected app routes
   {
     path: "/",
     element: (

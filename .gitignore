@@ -5,8 +5,10 @@ pnpm-lock.yaml
 # Python
 __pycache__/
 *.py[cod]
+*.egg-info/
 .venv/
 .pytest_cache/
+.ruff_cache/
 
 # Local model caches and generated training outputs
 **/.cache/
@@ -18,11 +20,16 @@ ml/components/**/reports/*
 # Environment
 .env
 .env.*
+!.env.example
+!**/.env.example
 
 # Build outputs
 dist/
 build/
 *.tsbuildinfo
+
+# Legacy archive is never part of new implementation changes
+/old/
 
 # IDE
 .vscode/

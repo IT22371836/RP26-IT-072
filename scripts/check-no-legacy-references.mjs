@@ -24,6 +24,20 @@ const codeAndConfigExtensions = new Set([
   ".yml",
 ]);
 const specialConfigNames = new Set(["Dockerfile"]);
+const ignoredDirectoryNames = new Set([
+  ".git",
+  ".mypy_cache",
+  ".pytest_cache",
+  ".ruff_cache",
+  ".venv",
+  "__pycache__",
+  "dist",
+  "node_modules",
+]);
+
+function isGeneratedDirectory(name) {
+  return ignoredDirectoryNames.has(name) || name.endsWith(".egg-info");
+}
 
 // Match old/ and old\ path segments, including ../old/ and quoted imports.
 const legacyPathPattern = /(^|[\s'"`(=:[{,])(?:\.\.[/\\])*(?:\.[/\\])?old[/\\]/i;
@@ -44,6 +58,7 @@ async function collectFiles(relativePath) {
   for (const entry of entries) {
     const child = path.join(relativePath, entry.name);
     if (entry.isDirectory()) {
+      if (isGeneratedDirectory(entry.name)) continue;
       files.push(...(await collectFiles(child)));
       continue;
     }

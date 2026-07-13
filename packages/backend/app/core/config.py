@@ -1,7 +1,8 @@
 from functools import lru_cache
 from pathlib import Path
+from typing import Literal
 
-from pydantic import Field
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BACKEND_DIR = Path(__file__).resolve().parents[2]
@@ -25,6 +26,10 @@ class Settings(BaseSettings):
 
     cors_origins: str = "http://localhost:5173"
 
+    jwt_secret_key: str = Field(default="development-only-change-me-32-bytes", min_length=32)
+    jwt_algorithm: Literal["HS256"] = "HS256"
+    jwt_access_token_expire_minutes: int = Field(default=60, ge=5, le=10080)
+
     model_config = SettingsConfigDict(
         env_file=BACKEND_DIR / ".env",
         env_file_encoding="utf-8",
@@ -35,6 +40,14 @@ class Settings(BaseSettings):
     @property
     def cors_origin_list(self) -> list[str]:
         return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
+
+    @model_validator(mode="after")
+    def reject_development_secret_in_production(self) -> "Settings":
+        if self.app_env.lower() == "production" and self.jwt_secret_key.startswith(
+            "development-only"
+        ):
+            raise ValueError("JWT_SECRET_KEY must be configured for production")
+        return self
 
 
 @lru_cache

@@ -9,6 +9,8 @@ This file is the shared integration checkpoint for all four component owners. Fi
 - `provider_id`: provider identifier used unchanged across all components and MongoDB
 - `category`: normalized service category
 
+The canonical MongoDB collection fields and ownership rules are defined in [`core-data-contract.md`](core-data-contract.md).
+
 ## Component hand-offs
 
 ### Request to Component 1

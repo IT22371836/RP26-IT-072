@@ -64,6 +64,7 @@ Routes call services or component interfaces, never model implementations direct
 - Store deployable model files in `artifacts` with a manifest describing version, training data, metrics, and required runtime.
 - Never commit credentials or personal data. Local secrets belong in `.env` only.
 - `old/` is reference material and must not be imported by new code.
+- Run `npm run check:legacy` locally to enforce this boundary. CI runs the same check and fails when active application code or configuration references an `old/` path.
 
 ## Integration flow
 

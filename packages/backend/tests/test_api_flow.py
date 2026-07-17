@@ -4,6 +4,8 @@ from typing import Any
 from httpx import ASGITransport, AsyncClient
 
 from app.api.dependencies import (
+    get_customer_profile_repository,
+    get_interaction_repository,
     get_provider_repository,
     get_service_request_repository,
     get_user_repository,
@@ -70,6 +72,48 @@ class InMemoryServiceRequestRepository:
         return records[:limit]
 
 
+class InMemoryCustomerProfileRepository:
+    def __init__(self) -> None:
+        self.by_user_id: dict[str, dict[str, Any]] = {}
+
+    async def create(self, document: dict[str, Any]) -> dict[str, Any]:
+        self.by_user_id[document["user_id"]] = document
+        return document
+
+    async def find_by_user_id(self, user_id: str) -> dict[str, Any] | None:
+        return self.by_user_id.get(user_id)
+
+    async def update_by_user_id(
+        self, user_id: str, updates: dict[str, Any]
+    ) -> dict[str, Any] | None:
+        if user_id not in self.by_user_id:
+            return None
+        self.by_user_id[user_id].update(updates)
+        return self.by_user_id[user_id]
+
+
+class InMemoryInteractionRepository:
+    def __init__(self) -> None:
+        self.records: list[dict[str, Any]] = []
+
+    async def create(self, document: dict[str, Any]) -> dict[str, Any]:
+        self.records.append(document)
+        return document
+
+    async def create_many(self, documents: list[dict[str, Any]]) -> None:
+        self.records.extend(documents)
+
+    async def list_for_user(self, user_id: str, limit: int = 100) -> list[dict[str, Any]]:
+        return [record for record in self.records if record["user_id"] == user_id][:limit]
+
+    async def preferred_provider_ids(self, user_id: str, limit: int = 500) -> list[str]:
+        return [
+            record["provider_id"]
+            for record in self.records[:limit]
+            if record["user_id"] == user_id and record["interaction_type"] != "impression"
+        ]
+
+
 async def register_and_login(
     client: AsyncClient,
     role: str,
@@ -99,10 +143,14 @@ def test_customer_and_provider_authenticated_api_flow() -> None:
         users = InMemoryUserRepository()
         providers = InMemoryProviderRepository()
         requests = InMemoryServiceRequestRepository()
+        customers = InMemoryCustomerProfileRepository()
+        interactions = InMemoryInteractionRepository()
 
         app.dependency_overrides[get_user_repository] = lambda: users
         app.dependency_overrides[get_provider_repository] = lambda: providers
         app.dependency_overrides[get_service_request_repository] = lambda: requests
+        app.dependency_overrides[get_customer_profile_repository] = lambda: customers
+        app.dependency_overrides[get_interaction_repository] = lambda: interactions
 
         try:
             transport = ASGITransport(app=app)
@@ -114,6 +162,25 @@ def test_customer_and_provider_authenticated_api_flow() -> None:
                 me = await client.get("/api/v1/auth/me", headers=customer_headers)
                 assert me.status_code == 200
                 assert me.json()["user_id"] == customer["user_id"]
+
+                customer_profile = await client.get(
+                    "/api/v1/customers/me", headers=customer_headers
+                )
+                assert customer_profile.status_code == 200
+                assert customer_profile.json()["user_id"] == customer["user_id"]
+
+                updated_profile = await client.patch(
+                    "/api/v1/customers/me",
+                    headers=customer_headers,
+                    json={
+                        "phone": "+94771234567",
+                        "district": "Colombo",
+                        "city": "Kottawa",
+                        "preferred_language": "Sinhala",
+                    },
+                )
+                assert updated_profile.status_code == 200
+                assert updated_profile.json()["city"] == "Kottawa"
 
                 service_request = await client.post(
                     "/api/v1/service-requests",
@@ -128,6 +195,19 @@ def test_customer_and_provider_authenticated_api_flow() -> None:
                 )
                 assert service_request.status_code == 201
                 assert service_request.json()["request_id"].startswith("R")
+
+                interaction = await client.post(
+                    "/api/v1/interactions",
+                    headers=customer_headers,
+                    json={
+                        "request_id": service_request.json()["request_id"],
+                        "provider_id": "PTEST123",
+                        "category": "CCTV",
+                        "interaction_type": "click",
+                    },
+                )
+                assert interaction.status_code == 201
+                assert interaction.json()["interaction_id"].startswith("I")
 
                 customer_provider_attempt = await client.post(
                     "/api/v1/providers/me",

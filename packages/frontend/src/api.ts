@@ -2,6 +2,9 @@ import type {
   RecommendationResponse,
   ProviderProfile,
   ProviderProfileInput,
+  CustomerProfile,
+  CustomerProfileUpdate,
+  InteractionType,
   ServiceRequest,
   ServiceRequestInput,
   TokenResponse,
@@ -79,4 +82,21 @@ export const api = {
       { method: "POST", body: JSON.stringify(payload) },
       token,
     ),
+  getCustomerProfile: (token: string) => request<CustomerProfile>("/customers/me", {}, token),
+  updateCustomerProfile: (payload: CustomerProfileUpdate, token: string) =>
+    request<CustomerProfile>(
+      "/customers/me",
+      { method: "PATCH", body: JSON.stringify(payload) },
+      token,
+    ),
+  logInteraction: (
+    payload: {
+      request_id: string;
+      provider_id: string;
+      category: string;
+      interaction_type: InteractionType;
+    },
+    token: string,
+  ) =>
+    request("/interactions", { method: "POST", body: JSON.stringify(payload) }, token),
 };

@@ -175,11 +175,17 @@ class HybridRecommendationEngine:
             "provider_count": len(self.providers),
         }
 
-    def _cf_scores(self, user_id: str) -> np.ndarray:
+    def _cf_scores(
+        self, user_id: str, additional_preferences: list[str] | None = None
+    ) -> np.ndarray:
         if self.credibility_scores is None:
             raise ArtifactsUnavailableError("Component 1 artifacts are not loaded")
         scores = self.credibility_scores.astype(np.float32).copy()
-        for provider_id, count in Counter(self.user_preferences.get(user_id, [])).items():
+        preferences = [
+            *self.user_preferences.get(user_id, []),
+            *(additional_preferences or []),
+        ]
+        for provider_id, count in Counter(preferences).items():
             if (index := self._provider_index.get(provider_id)) is not None:
                 scores[index] *= 1.2**count
         return np.clip(np.nan_to_num(scores, nan=0.5), 0, 1)
@@ -199,6 +205,7 @@ class HybridRecommendationEngine:
         city: str | None = None,
         min_rating: float = 0.0,
         additional_providers: list[dict[str, Any]] | None = None,
+        additional_preferences: list[str] | None = None,
     ) -> list[ProviderRecommendation]:
         if not self.ready or self.provider_embeddings is None:
             raise ArtifactsUnavailableError("Component 1 artifacts are not loaded")
@@ -211,7 +218,7 @@ class HybridRecommendationEngine:
             normalize_embeddings=True,
         )[0]
         bert_raw = self.provider_embeddings @ query_embedding
-        cf_raw = self._cf_scores(user_id)
+        cf_raw = self._cf_scores(user_id, additional_preferences)
 
         providers = list(self.providers)
         known_provider_ids = {provider["provider_id"] for provider in providers}

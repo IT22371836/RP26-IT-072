@@ -2,8 +2,13 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.api.dependencies import get_current_user, get_user_repository
+from app.api.dependencies import (
+    get_current_user,
+    get_customer_profile_repository,
+    get_user_repository,
+)
 from app.core.config import Settings, get_settings
+from app.repositories.customers import CustomerProfileRepository
 from app.repositories.users import DuplicateEmailError, UserRepository
 from app.schemas.auth import (
     CustomerRegistration,
@@ -12,7 +17,7 @@ from app.schemas.auth import (
     TokenResponse,
     UserPublic,
 )
-from app.schemas.common import UserRole
+from app.schemas.common import UserRole, new_public_id, utc_now
 from app.services.auth import AuthService, InactiveUserError, InvalidCredentialsError
 
 router = APIRouter(prefix="/auth", tags=["authentication"])
@@ -47,8 +52,25 @@ async def register_user(
 async def register_customer(
     payload: CustomerRegistration,
     service: Annotated[AuthService, Depends(auth_service)],
+    profile_repository: Annotated[
+        CustomerProfileRepository, Depends(get_customer_profile_repository)
+    ],
 ) -> UserPublic:
-    return await register_user(payload, UserRole.CUSTOMER, service)
+    user = await register_user(payload, UserRole.CUSTOMER, service)
+    now = utc_now()
+    await profile_repository.create(
+        {
+            "customer_id": new_public_id("C"),
+            "user_id": user.user_id,
+            "phone": None,
+            "district": None,
+            "city": None,
+            "preferred_language": "English",
+            "created_at": now,
+            "updated_at": now,
+        }
+    )
+    return user
 
 
 @router.post(

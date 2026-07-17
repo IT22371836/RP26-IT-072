@@ -79,3 +79,25 @@ export interface ProviderProfile extends ProviderProfileInput {
   created_at: string;
   updated_at: string;
 }
+
+export interface CustomerProfileUpdate {
+  phone: string | null;
+  district: string | null;
+  city: string | null;
+  preferred_language: string;
+}
+
+export interface CustomerProfile extends CustomerProfileUpdate {
+  customer_id: string;
+  user_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export type InteractionType =
+  | "click"
+  | "selected"
+  | "booking_requested"
+  | "booking_completed"
+  | "booking_cancelled"
+  | "rated";

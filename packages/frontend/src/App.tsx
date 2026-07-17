@@ -19,6 +19,8 @@ import type {
   ProviderRecommendation,
   ProviderProfile,
   ProviderProfileInput,
+  CustomerProfile,
+  CustomerProfileUpdate,
   RecommendationResponse,
   ServiceRequestInput,
   User,
@@ -159,7 +161,7 @@ function ScoreBar({ label, value, tone }: { label: string; value: number; tone: 
   return <div className="score-item"><div><span>{label}</span><strong>{Math.round(value * 100)}</strong></div><div className="score-track"><i style={{ width: `${value * 100}%`, background: tone }} /></div></div>;
 }
 
-function ProviderCard({ provider, rank }: { provider: ProviderRecommendation; rank: number }) {
+function ProviderCard({ provider, rank, onSelect }: { provider: ProviderRecommendation; rank: number; onSelect: () => void }) {
   return (
     <article className="provider-card">
       <div className="rank">{String(rank).padStart(2, "0")}</div>
@@ -167,6 +169,7 @@ function ProviderCard({ provider, rank }: { provider: ProviderRecommendation; ra
         <div className="provider-title"><div><h3>{provider.provider_name}</h3><p><MapPin size={14} />{provider.city}, {provider.district}<span />{provider.category}</p></div><div className="match-pill"><Sparkles size={14} />{Math.round(provider.hybrid_score * 100)}% match</div></div>
         <p className="provider-description">{provider.description}</p>
         <div className="provider-meta"><span><Star size={15} fill="currentColor" />{provider.rating.toFixed(1)} <small>({provider.review_count})</small></span><span><Clock3 size={15} />{provider.experience_years} years</span><span><ShieldCheck size={15} />{Math.round(provider.booking_success_rate * 100)}% success</span></div>
+        <button className="select-provider" onClick={onSelect}>Select provider <ChevronRight size={14} /></button>
       </div>
       <div className="score-panel">
         <ScoreBar label="Semantic" value={provider.bert_score} tone="#0f766e" />
@@ -182,6 +185,18 @@ function CustomerDashboard({ session }: { session: Session }) {
   const [recommendations, setRecommendations] = useState<RecommendationResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [profile, setProfile] = useState<CustomerProfile | null>(null);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileForm, setProfileForm] = useState<CustomerProfileUpdate>({ phone: null, district: null, city: null, preferred_language: "English" });
+
+  useEffect(() => {
+    api.getCustomerProfile(session.token).then((value) => {
+      setProfile(value);
+      setProfileForm({ phone: value.phone, district: value.district, city: value.city, preferred_language: value.preferred_language });
+      setProfileOpen(!value.city || !value.phone);
+    }).catch(() => setError("Unable to load your customer profile."));
+  }, [session.token]);
 
   function update<K extends keyof ServiceRequestInput>(key: K, value: ServiceRequestInput[K]) { setForm((current) => ({ ...current, [key]: value })); }
 
@@ -196,12 +211,37 @@ function CustomerDashboard({ session }: { session: Session }) {
     } finally { setLoading(false); }
   }
 
+  async function saveProfile(event: FormEvent) {
+    event.preventDefault(); setProfileSaving(true); setError("");
+    try { setProfile(await api.updateCustomerProfile(profileForm, session.token)); setProfileOpen(false); }
+    catch (reason) { setError(reason instanceof ApiError ? reason.message : "Unable to save your profile."); }
+    finally { setProfileSaving(false); }
+  }
+
+  async function selectProvider(provider: ProviderRecommendation) {
+    if (!recommendations) return;
+    try {
+      await api.logInteraction({ request_id: recommendations.request_id, provider_id: provider.provider_id, category: provider.category, interaction_type: "selected" }, session.token);
+    } catch { setError("The provider was shown, but your selection could not be saved."); }
+  }
+
   return (
     <main className="dashboard">
       <section className="dashboard-intro">
         <div><div className="eyebrow"><Sparkles size={15} /> Component 1 · Hybrid recommendation engine</div><h1>What needs fixing today?</h1><p>Tell us about the job. We’ll compare content, meaning and service history to rank your best 20 providers.</p></div>
         <div className="engine-badge"><span className="pulse" /><div><strong>Recommendation engine</strong><small>Online · 10,000 providers</small></div></div>
       </section>
+      <section className="customer-profile-strip">
+        <div><CircleUserRound size={20} /><div><strong>{profile?.city ? `${profile.city}, ${profile.district}` : "Complete your customer profile"}</strong><span>{profile?.preferred_language ?? "English"} · Request and selection history enabled</span></div></div>
+        <button onClick={() => setProfileOpen((value) => !value)}>{profileOpen ? "Close" : "Edit profile"}</button>
+      </section>
+      {profileOpen && <section className="profile-editor"><form onSubmit={saveProfile}>
+        <label>Phone number<input required minLength={7} value={profileForm.phone ?? ""} onChange={(e) => setProfileForm((current) => ({ ...current, phone: e.target.value }))} placeholder="+94 77 123 4567" /></label>
+        <label>Home district<select value={profileForm.district ?? ""} onChange={(e) => setProfileForm((current) => ({ ...current, district: e.target.value }))}><option value="" disabled>Select district</option>{districts.map((item) => <option key={item}>{item}</option>)}</select></label>
+        <label>Home city<input required value={profileForm.city ?? ""} onChange={(e) => setProfileForm((current) => ({ ...current, city: e.target.value }))} placeholder="e.g. Kottawa" /></label>
+        <label>Preferred language<select value={profileForm.preferred_language} onChange={(e) => setProfileForm((current) => ({ ...current, preferred_language: e.target.value }))}><option>English</option><option>Sinhala</option><option>Tamil</option></select></label>
+        <button className="primary-button" disabled={profileSaving}>{profileSaving ? <LoaderCircle className="spin" size={17} /> : <Check size={17} />}Save profile</button>
+      </form></section>}
       <section className="request-panel">
         <form onSubmit={findProviders}>
           <label className="wide">Describe the work<textarea required minLength={10} value={form.request_text} onChange={(e) => update("request_text", e.target.value)} placeholder="e.g. My living room power sockets stopped working after last night's rain..." /></label>
@@ -217,7 +257,7 @@ function CustomerDashboard({ session }: { session: Session }) {
       {recommendations && (
         <section className="results-section">
           <div className="results-heading"><div><span className="result-count">{recommendations.results.length}</span><div><h2>Your strongest matches</h2><p>Ranked for request {recommendations.request_id}</p></div></div><span className="model-version">Model {recommendations.model_version}</span></div>
-          {recommendations.results.length ? <div className="provider-list">{recommendations.results.map((provider, index) => <ProviderCard key={provider.provider_id} provider={provider} rank={index + 1} />)}</div> : <div className="empty-state"><Search size={28} /><h3>No providers matched these filters</h3><p>Try a nearby city or broaden the category.</p></div>}
+          {recommendations.results.length ? <div className="provider-list">{recommendations.results.map((provider, index) => <ProviderCard key={provider.provider_id} provider={provider} rank={index + 1} onSelect={() => selectProvider(provider)} />)}</div> : <div className="empty-state"><Search size={28} /><h3>No providers matched these filters</h3><p>Try a nearby city or broaden the category.</p></div>}
         </section>
       )}
     </main>

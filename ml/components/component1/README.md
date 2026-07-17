@@ -9,4 +9,17 @@ Current supplied inputs:
 - 20,000 user request records
 - Google Colab training/evaluation notebook
 
-The notebook currently exports evaluation CSV and PNG files, but not all artifacts required by a backend inference service. Before integration it must export fitted TF-IDF state, provider vectors/embeddings, collaborative-filtering state, provider lookup data, weights, and an artifact manifest.
+The research notebook exports evaluation CSV and PNG files. The production artifact
+exporter recreates the validated notebook pipeline and writes the fitted TF-IDF state,
+provider embeddings, credibility state, user preferences, provider lookup data, and a
+checksummed manifest for the backend inference service.
+
+From `packages/backend`, after installing `requirements-dev.txt`, run:
+
+```powershell
+& .\.venv\Scripts\python.exe ..\..\ml\components\component1\src\export_artifacts.py
+```
+
+The generated artifacts are written to
+`packages/backend/app/components/component1/artifacts`. Binary model files are tracked
+with Git LFS.

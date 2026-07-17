@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "component_version": "1.0.0",
+  "model_version": "20260713182440",
+  "created_at": "2026-07-13T18:24:40.149493+00:00",
+  "semantic_model": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+  "provider_count": 10000,
+  "embedding_dimension": 384,
+  "weights": {
+    "tfidf": 0.3,
+    "bert": 0.35,
+    "cf": 0.35
+  },
+  "source_files": {
+    "providers": "SL_Provider_Dataset_10000_Research_Grade.json",
+    "interactions": "SL_User_Interaction_Dataset_100000.csv"
+  },
+  "checksums": {
+    "providers.json": "b83f0043b84d0a582bf28ffef325fa1b26352b8836e8f31f1c3cb268e95947e6",
+    "tfidf_vectorizer.joblib": "6b7bb0d2b727dc81fff9f1df38061548579f166328f1a831d1bbc2b9a36dc68e",
+    "tfidf_matrix.npz": "8dbb2694837dda99c90eedf065b3938d6d983c0f6184d3da54d185b6d46e4a8f",
+    "provider_embeddings.npy": "996f0876ee7e4dcbe1039c680c90219c2da79d02ee07e0e9348bd9a33bbe3f50",
+    "credibility_scores.npy": "7d641a5941aa1be6e3f3f0384e628db7d9e33e51ab128309e674e5d5ef178828",
+    "user_preferences.json": "bae5ae4cda4b160be347ecca886d3d2a6cc4b6b6f75a2bc84d1bca4b5c8e9acb",
+    "semantic_model/config.json": "004318094b93b75667491f9052e9026497ca2bd16cc0d7aa757feeecae875f91",
+    "semantic_model/config_sentence_transformers.json": "3d4a0c494209e707d859ea4413bf01ac7e4fe447b8d7dea7ab7614396b332c5f",
+    "semantic_model/model.safetensors": "7f4f89d628f87ade0e0b57c40affb6402cd77abc8110584d8d35dc86da514ee8",
+    "semantic_model/modules.json": "318d49f1092cad125a35af58d9795bcddce84bf7e7240bd8d95b9b6858f9476b",
+    "semantic_model/README.md": "90bc9c8da4ec9fad492fd04218f7f3eabaa4173c9e8eec9dc59b519a01751cbb",
+    "semantic_model/sentence_bert_config.json": "5fee3fcdc4a727fad422f0fed0c867b0921eefa9051de221521956ed42eb4c19",
+    "semantic_model/tokenizer.json": "cad551d5600a84242d0973327029452a1e3672ba6313c2a3c3d69c4310e12719",
+    "semantic_model/tokenizer_config.json": "f87d4952eab944ea4c51ca5121310724ea6d71e7114532c848d67bc32a0f388f",
+    "semantic_model/1_Pooling/config.json": "bb80272f7adad76ce93073c25e18113ee66be1e91f60bcdd72aa41d05b28247e"
+  }
+}

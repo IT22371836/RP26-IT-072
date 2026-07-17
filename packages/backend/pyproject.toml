@@ -14,6 +14,14 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+component1 = [
+  "joblib>=1.4,<2.0",
+  "numpy>=2.0,<3.0",
+  "pandas>=2.2,<4.0",
+  "scikit-learn>=1.6,<2.0",
+  "scipy>=1.14,<2.0",
+  "sentence-transformers>=3.4,<6.0",
+]
 dev = [
   "httpx>=0.28,<1.0",
   "pytest>=8.3,<9.0",

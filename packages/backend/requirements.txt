@@ -1,1 +1,1 @@
--e .
+-e .[component1]

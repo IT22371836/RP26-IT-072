@@ -24,6 +24,10 @@ class Settings(BaseSettings):
     mongodb_database: str = Field(default="weda_platform_renew_dev", min_length=1)
     mongodb_server_selection_timeout_ms: int = Field(default=5000, ge=1000, le=30000)
 
+    component1_artifact_dir: Path = (
+        BACKEND_DIR / "app" / "components" / "component1" / "artifacts"
+    )
+
     cors_origins: str = "http://localhost:5173"
 
     jwt_secret_key: str = Field(default="development-only-change-me-32-bytes", min_length=32)

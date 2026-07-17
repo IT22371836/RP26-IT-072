@@ -21,14 +21,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
-        with:
-          version: 10
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: pnpm
       - run: pnpm install
-      - run: pnpm --filter @platform/frontend lint
+      - run: pnpm --filter @weda/frontend lint
 
   backend:
     runs-on: ubuntu-latest
@@ -37,6 +35,10 @@ jobs:
         working-directory: packages/backend
     steps:
       - uses: actions/checkout@v4
+      - name: Fetch Component 1 contract datasets
+        run: >-
+          git -C ../.. lfs pull
+          --include="ml/components/component1/data/raw/SL_Provider_Dataset_10000_Research_Grade.json,ml/components/component1/data/raw/SL_User_Request_Dataset_20000.csv,ml/components/component1/data/raw/SL_User_Interaction_Dataset_100000.csv"
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"

@@ -61,19 +61,49 @@ class HybridRecommendationEngine:
         from scipy import sparse
         from sentence_transformers import SentenceTransformer
 
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        try:
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as error:
+            raise ArtifactValidationError("Component 1 manifest is not valid JSON") from error
         if manifest.get("schema_version") != 1:
             raise ArtifactValidationError("Unsupported Component 1 artifact schema")
-        for name, expected in manifest.get("checksums", {}).items():
+
+        required_files = {
+            "providers.json",
+            "tfidf_vectorizer.joblib",
+            "tfidf_matrix.npz",
+            "provider_embeddings.npy",
+            "credibility_scores.npy",
+            "user_preferences.json",
+            "semantic_model/config.json",
+        }
+        checksums = manifest.get("checksums")
+        if not isinstance(checksums, dict) or not required_files.issubset(checksums):
+            raise ArtifactValidationError("Component 1 manifest has incomplete checksums")
+        for name, expected in checksums.items():
+            if not isinstance(name, str) or not isinstance(expected, str):
+                raise ArtifactValidationError("Component 1 manifest has invalid checksums")
             path = self.artifact_dir / name
             if not path.exists() or self._sha256(path) != expected:
                 raise ArtifactValidationError(f"Artifact checksum failed: {name}")
 
-        providers = json.loads((self.artifact_dir / "providers.json").read_text("utf-8"))
-        tfidf_matrix = sparse.load_npz(self.artifact_dir / "tfidf_matrix.npz")
-        embeddings = np.load(self.artifact_dir / "provider_embeddings.npy")
-        credibility = np.load(self.artifact_dir / "credibility_scores.npy")
-        expected_count = int(manifest["provider_count"])
+        weights = manifest.get("weights")
+        if (
+            not isinstance(weights, dict)
+            or set(weights) != {"tfidf", "bert", "cf"}
+            or any(not isinstance(value, (int, float)) or value < 0 for value in weights.values())
+            or not np.isclose(sum(weights.values()), 1.0)
+        ):
+            raise ArtifactValidationError("Component 1 manifest has invalid hybrid weights")
+
+        try:
+            providers = json.loads((self.artifact_dir / "providers.json").read_text("utf-8"))
+            tfidf_matrix = sparse.load_npz(self.artifact_dir / "tfidf_matrix.npz")
+            embeddings = np.load(self.artifact_dir / "provider_embeddings.npy")
+            credibility = np.load(self.artifact_dir / "credibility_scores.npy")
+            expected_count = int(manifest["provider_count"])
+        except (OSError, ValueError, KeyError, json.JSONDecodeError) as error:
+            raise ArtifactValidationError("Component 1 artifacts could not be decoded") from error
         if not (
             len(providers)
             == tfidf_matrix.shape[0]
@@ -82,17 +112,45 @@ class HybridRecommendationEngine:
             == expected_count
         ):
             raise ArtifactValidationError("Component 1 artifact row counts do not match")
+        required_provider_fields = set(ProviderRecommendation.model_fields) - {
+            "hybrid_score",
+            "tfidf_score",
+            "bert_score",
+            "cf_score",
+        }
+        if not isinstance(providers, list) or any(
+            not isinstance(provider, dict) or not required_provider_fields.issubset(provider)
+            for provider in providers
+        ):
+            raise ArtifactValidationError("Component 1 provider records are invalid")
+        provider_ids = [provider["provider_id"] for provider in providers]
+        if len(set(provider_ids)) != len(provider_ids):
+            raise ArtifactValidationError("Component 1 provider IDs are not unique")
+        if embeddings.ndim != 2 or embeddings.shape[1] != manifest.get("embedding_dimension"):
+            raise ArtifactValidationError("Component 1 embedding dimensions do not match")
+        if credibility.ndim != 1 or not np.isfinite(credibility).all():
+            raise ArtifactValidationError("Component 1 credibility scores are invalid")
+        if not sparse.isspmatrix(tfidf_matrix) or not np.isfinite(tfidf_matrix.data).all():
+            raise ArtifactValidationError("Component 1 TF-IDF matrix is invalid")
+
+        try:
+            vectorizer = joblib.load(self.artifact_dir / "tfidf_vectorizer.joblib")
+            self.user_preferences = json.loads(
+                (self.artifact_dir / "user_preferences.json").read_text("utf-8")
+            )
+            semantic_model = SentenceTransformer(str(self.artifact_dir / "semantic_model"))
+        except Exception as error:
+            raise ArtifactValidationError("Component 1 model state could not be loaded") from error
+        if not isinstance(self.user_preferences, dict):
+            raise ArtifactValidationError("Component 1 user preferences are invalid")
 
         self.manifest = manifest
         self.providers = providers
-        self.vectorizer = joblib.load(self.artifact_dir / "tfidf_vectorizer.joblib")
+        self.vectorizer = vectorizer
         self.tfidf_matrix = tfidf_matrix
         self.provider_embeddings = embeddings
         self.credibility_scores = credibility
-        self.user_preferences = json.loads(
-            (self.artifact_dir / "user_preferences.json").read_text("utf-8")
-        )
-        self.semantic_model = SentenceTransformer(str(self.artifact_dir / "semantic_model"))
+        self.semantic_model = semantic_model
         self._provider_index = {
             provider["provider_id"]: index for index, provider in enumerate(providers)
         }
@@ -186,6 +244,6 @@ def get_recommendation_engine(artifact_dir: Path) -> HybridRecommendationEngine:
         _engine = HybridRecommendationEngine(artifact_dir)
         try:
             _engine.load()
-        except ArtifactsUnavailableError:
+        except (ArtifactsUnavailableError, ArtifactValidationError):
             pass
     return _engine

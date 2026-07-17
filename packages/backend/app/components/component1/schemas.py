@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field, field_validator
 
 
 class RecommendationRequest(BaseModel):
+    request_id: str = Field(pattern=r"^R[A-Z0-9]+$", min_length=2, max_length=64)
     query: str = Field(min_length=3, max_length=2000)
     category: str | None = Field(default=None, min_length=2, max_length=100)
     district: str | None = Field(default=None, min_length=2, max_length=100)
@@ -12,7 +13,10 @@ class RecommendationRequest(BaseModel):
     @field_validator("query")
     @classmethod
     def normalize_query(cls, value: str) -> str:
-        return " ".join(value.split())
+        normalized = " ".join(value.split())
+        if len(normalized) < 3:
+            raise ValueError("query must contain at least 3 non-whitespace characters")
+        return normalized
 
 
 class ProviderRecommendation(BaseModel):
@@ -37,6 +41,7 @@ class ProviderRecommendation(BaseModel):
 class RecommendationResponse(BaseModel):
     component_version: str
     model_version: str
+    request_id: str
     query: str
     user_id: str
     results: list[ProviderRecommendation]

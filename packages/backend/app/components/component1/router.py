@@ -59,6 +59,7 @@ async def recommend(
     return RecommendationResponse(
         component_version=engine.manifest["component_version"],
         model_version=engine.manifest["model_version"],
+        request_id=payload.request_id,
         query=payload.query,
         user_id=current_user.user_id,
         results=results,

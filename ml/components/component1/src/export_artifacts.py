@@ -44,7 +44,9 @@ def sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
-def load_and_prepare(provider_path: Path, interaction_path: Path) -> tuple[pd.DataFrame, dict]:
+def load_and_prepare(
+    provider_path: Path, interaction_path: Path
+) -> tuple[pd.DataFrame, dict]:
     providers = pd.read_json(provider_path)
     interactions = pd.read_csv(interaction_path)
 
@@ -101,7 +103,9 @@ def load_and_prepare(provider_path: Path, interaction_path: Path) -> tuple[pd.Da
     providers = providers.merge(metrics, on="provider_id", how="left")
     providers["avg_rating"] = providers["avg_rating"].fillna(providers["rating"])
     providers["interaction_count"] = providers["derived_interaction_count"].fillna(0)
-    providers["booking_success_rate"] = providers["derived_booking_success_rate"].fillna(0)
+    providers["booking_success_rate"] = providers[
+        "derived_booking_success_rate"
+    ].fillna(0)
     providers = providers.drop(
         columns=["derived_interaction_count", "derived_booking_success_rate"]
     )

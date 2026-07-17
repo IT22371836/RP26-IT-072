@@ -6,6 +6,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 
 from app.components.component1.service import (
     ArtifactsUnavailableError,
+    ArtifactValidationError,
     HybridRecommendationEngine,
 )
 
@@ -51,9 +52,7 @@ def build_engine() -> HybridRecommendationEngine:
         ["electrician wiring repair", "plumber water pipe repair"]
     )
     engine.tfidf_matrix = sparse.csr_matrix(
-        engine.vectorizer.transform(
-            ["electrician wiring repair", "plumber water pipe repair"]
-        )
+        engine.vectorizer.transform(["electrician wiring repair", "plumber water pipe repair"])
     )
     engine.provider_embeddings = np.array([[1.0, 0.0], [0.0, 1.0]], dtype=np.float32)
     engine.credibility_scores = np.array([0.9, 0.5], dtype=np.float32)
@@ -96,3 +95,27 @@ def test_missing_artifacts_fail_explicitly() -> None:
         assert "not loaded" in str(error)
     else:
         raise AssertionError("Missing artifacts must not produce fallback recommendations")
+
+
+def test_load_rejects_manifest_without_required_checksums(tmp_path: Path) -> None:
+    (tmp_path / "manifest.json").write_text(
+        '{"schema_version": 1, "checksums": {}}', encoding="utf-8"
+    )
+
+    try:
+        HybridRecommendationEngine(tmp_path).load()
+    except ArtifactValidationError as error:
+        assert "incomplete checksums" in str(error)
+    else:
+        raise AssertionError("Incomplete artifacts must fail manifest validation")
+
+
+def test_load_rejects_invalid_manifest_json(tmp_path: Path) -> None:
+    (tmp_path / "manifest.json").write_text("not-json", encoding="utf-8")
+
+    try:
+        HybridRecommendationEngine(tmp_path).load()
+    except ArtifactValidationError as error:
+        assert "not valid JSON" in str(error)
+    else:
+        raise AssertionError("Invalid manifest JSON must fail validation")

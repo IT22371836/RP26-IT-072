@@ -19,7 +19,7 @@ The canonical MongoDB collection fields and ownership rules are defined in [`cor
 
 ### Component 1 to Component 2
 
-Top-20 providers with `provider_id`, provider metadata, `tfidf_score`, `bert_score`, `cf_score`, and `hybrid_score`.
+`request_id`, `user_id`, `component_version`, `model_version`, and Top-20 providers with `provider_id`, provider metadata, `tfidf_score`, `bert_score`, `cf_score`, and `hybrid_score`.
 
 ### Component 2 to Component 3
 

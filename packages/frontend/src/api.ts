@@ -1,5 +1,7 @@
 import type {
   RecommendationResponse,
+  ProviderProfile,
+  ProviderProfileInput,
   ServiceRequest,
   ServiceRequestInput,
   TokenResponse,
@@ -68,6 +70,13 @@ export const api = {
           top_k: 20,
         }),
       },
+      token,
+    ),
+  getProviderProfile: (token: string) => request<ProviderProfile>("/providers/me", {}, token),
+  createProviderProfile: (payload: ProviderProfileInput, token: string) =>
+    request<ProviderProfile>(
+      "/providers/me",
+      { method: "POST", body: JSON.stringify(payload) },
       token,
     ),
 };

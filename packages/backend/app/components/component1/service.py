@@ -198,6 +198,7 @@ class HybridRecommendationEngine:
         district: str | None = None,
         city: str | None = None,
         min_rating: float = 0.0,
+        additional_providers: list[dict[str, Any]] | None = None,
     ) -> list[ProviderRecommendation]:
         if not self.ready or self.provider_embeddings is None:
             raise ArtifactsUnavailableError("Component 1 artifacts are not loaded")
@@ -211,6 +212,56 @@ class HybridRecommendationEngine:
         )[0]
         bert_raw = self.provider_embeddings @ query_embedding
         cf_raw = self._cf_scores(user_id)
+
+        providers = list(self.providers)
+        known_provider_ids = {provider["provider_id"] for provider in providers}
+        live_providers = [
+            provider
+            for provider in (additional_providers or [])
+            if provider.get("provider_id") not in known_provider_ids
+        ]
+        if live_providers:
+            live_text = [
+                " ".join(
+                    (
+                        str(provider.get("category", "")),
+                        " ".join(provider.get("skills", [])),
+                        str(provider.get("description", "")),
+                    )
+                ).lower()
+                for provider in live_providers
+            ]
+            live_tfidf_matrix = self.vectorizer.transform(live_text)
+            live_tfidf = (live_tfidf_matrix @ query_vector.T).toarray().ravel()
+            live_embeddings = self.semantic_model.encode(
+                live_text,
+                convert_to_numpy=True,
+                normalize_embeddings=True,
+            )
+            live_bert = live_embeddings @ query_embedding
+            live_cf = np.array(
+                [
+                    0.5
+                    if int(provider.get("interaction_count", 0)) == 0
+                    else (
+                        float(provider.get("rating", 0)) / 5.0 * 0.50
+                        + float(provider.get("booking_success_rate", 0)) * 0.30
+                        + np.tanh(float(provider.get("interaction_count", 0)) / 100.0) * 0.20
+                    )
+                    for provider in live_providers
+                ],
+                dtype=np.float32,
+            )
+            tfidf_raw = np.concatenate((tfidf_raw, live_tfidf))
+            bert_raw = np.concatenate((bert_raw, live_bert))
+            cf_raw = np.concatenate((cf_raw, live_cf))
+            providers.extend(
+                {
+                    **provider,
+                    "skills": ", ".join(provider.get("skills", [])),
+                }
+                for provider in live_providers
+            )
 
         tfidf = self.normalize(tfidf_raw)
         bert = self.normalize(bert_raw)
@@ -227,12 +278,12 @@ class HybridRecommendationEngine:
         city_key = city.lower().strip() if city else None
         eligible = [
             index
-            for index, provider in enumerate(self.providers)
+            for index, provider in enumerate(providers)
             if float(provider["rating"]) >= min_rating
         ]
 
         def matches(index: int, *, use_category: bool, use_district: bool, use_city: bool) -> bool:
-            provider = self.providers[index]
+            provider = providers[index]
             return (
                 (
                     not use_category
@@ -276,7 +327,7 @@ class HybridRecommendationEngine:
         for index in candidates[:top_k]:
             results.append(
                 ProviderRecommendation(
-                    **self.providers[index],
+                    **providers[index],
                     hybrid_score=float(hybrid[index]),
                     tfidf_score=float(tfidf[index]),
                     bert_score=float(bert[index]),

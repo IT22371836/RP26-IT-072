@@ -12,8 +12,8 @@ from app.components.component1.service import (
 
 
 class FakeSemanticModel:
-    def encode(self, *_args, **_kwargs) -> np.ndarray:
-        return np.array([[1.0, 0.0]], dtype=np.float32)
+    def encode(self, texts, **_kwargs) -> np.ndarray:
+        return np.array([[1.0, 0.0] for _ in texts], dtype=np.float32)
 
 
 def build_engine() -> HybridRecommendationEngine:
@@ -98,6 +98,35 @@ def test_recommend_broadens_location_to_preserve_candidate_handoff() -> None:
 
     assert results[0].provider_id == "P001"
     assert len(results) == 2
+
+
+def test_recommend_scores_newly_registered_provider_with_static_pool() -> None:
+    live_provider = {
+        "provider_id": "P003",
+        "provider_name": "Kottawa Electrical Care",
+        "category": "Electricians",
+        "district": "Colombo",
+        "city": "Kottawa",
+        "skills": ["wiring", "socket repair"],
+        "description": "Electrical wiring specialist in Kottawa",
+        "experience_years": 4,
+        "rating": 0.0,
+        "review_count": 0,
+        "booking_success_rate": 0.0,
+        "interaction_count": 0,
+    }
+
+    results = build_engine().recommend(
+        query="electrician wiring",
+        user_id="U001",
+        category="Electricians",
+        district="Colombo",
+        city="Kottawa",
+        top_k=2,
+        additional_providers=[live_provider],
+    )
+
+    assert "P003" in [provider.provider_id for provider in results]
 
 
 def test_missing_artifacts_fail_explicitly() -> None:

@@ -2,7 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.api.dependencies import require_role
+from app.api.dependencies import get_provider_repository, require_role
 from app.components.component1.schemas import (
     ComponentStatusResponse,
     RecommendationRequest,
@@ -15,6 +15,7 @@ from app.components.component1.service import (
     get_recommendation_engine,
 )
 from app.core.config import Settings, get_settings
+from app.repositories.providers import ProviderRepository
 from app.schemas.auth import UserPublic
 from app.schemas.common import UserRole
 
@@ -40,8 +41,10 @@ async def recommend(
     payload: RecommendationRequest,
     current_user: Annotated[UserPublic, Depends(customer_user)],
     engine: Annotated[HybridRecommendationEngine, Depends(engine_dependency)],
+    provider_repository: Annotated[ProviderRepository, Depends(get_provider_repository)],
 ) -> RecommendationResponse:
     try:
+        live_providers = await provider_repository.list_all()
         results = engine.recommend(
             query=payload.query,
             user_id=current_user.user_id,
@@ -50,6 +53,7 @@ async def recommend(
             district=payload.district,
             city=payload.city,
             min_rating=payload.min_rating,
+            additional_providers=live_providers,
         )
     except (ArtifactsUnavailableError, ArtifactValidationError) as error:
         raise HTTPException(

@@ -31,3 +31,6 @@ class ProviderRepository:
 
     async def find_by_user_id(self, user_id: str) -> dict[str, Any] | None:
         return await self.collection.find_one({"user_id": user_id})
+
+    async def list_all(self, limit: int = 10_000) -> list[dict[str, Any]]:
+        return await self.collection.find({}).limit(limit).to_list(length=limit)

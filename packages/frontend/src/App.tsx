@@ -17,6 +17,8 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { ApiError, api } from "./api";
 import type {
   ProviderRecommendation,
+  ProviderProfile,
+  ProviderProfileInput,
   RecommendationResponse,
   ServiceRequestInput,
   User,
@@ -222,8 +224,76 @@ function CustomerDashboard({ session }: { session: Session }) {
   );
 }
 
-function ProviderDashboard() {
-  return <main className="dashboard"><section className="provider-welcome"><span><Wrench size={28} /></span><h1>Provider workspace is ready</h1><p>Your account is active. Provider profile management will be connected in the next frontend slice.</p></section></main>;
+function ProviderDashboard({ session }: { session: Session }) {
+  const [profile, setProfile] = useState<ProviderProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [form, setForm] = useState<ProviderProfileInput>({
+    provider_name: "",
+    category: "Electricians",
+    district: "Colombo",
+    city: "",
+    experience_years: 0,
+    skills: [],
+    description: "",
+  });
+  const [skillsText, setSkillsText] = useState("");
+
+  useEffect(() => {
+    api.getProviderProfile(session.token)
+      .then(setProfile)
+      .catch((reason) => {
+        if (!(reason instanceof ApiError) || reason.status !== 404) {
+          setError(reason instanceof ApiError ? reason.message : "Unable to load your profile.");
+        }
+      })
+      .finally(() => setLoading(false));
+  }, [session.token]);
+
+  function update<K extends keyof ProviderProfileInput>(key: K, value: ProviderProfileInput[K]) {
+    setForm((current) => ({ ...current, [key]: value }));
+  }
+
+  async function createProfile(event: FormEvent) {
+    event.preventDefault();
+    setSaving(true); setError("");
+    try {
+      const skills = skillsText.split(",").map((skill) => skill.trim()).filter(Boolean);
+      setProfile(await api.createProviderProfile({ ...form, skills }, session.token));
+    } catch (reason) {
+      setError(reason instanceof ApiError ? reason.message : "Unable to create your profile.");
+    } finally { setSaving(false); }
+  }
+
+  if (loading) return <main className="dashboard"><section className="loading-panel"><LoaderCircle className="spin" /><h2>Loading provider workspace</h2></section></main>;
+  if (profile) return (
+    <main className="dashboard">
+      <section className="provider-profile-card">
+        <div className="profile-check"><Check size={24} /></div>
+        <div><div className="eyebrow"><ShieldCheck size={15} /> Live in Component 1</div><h1>{profile.provider_name}</h1><p>{profile.description}</p>
+          <div className="profile-tags"><span>{profile.category}</span><span><MapPin size={13} />{profile.city}, {profile.district}</span><span><Clock3 size={13} />{profile.experience_years} years</span></div>
+          <div className="profile-index-note"><Sparkles size={17} /><div><strong>Your profile is recommendation-ready</strong><small>It is scored live alongside the 10,000 research providers. New profiles use a neutral history score until interactions are recorded.</small></div></div>
+        </div>
+      </section>
+    </main>
+  );
+
+  return (
+    <main className="dashboard">
+      <section className="dashboard-intro"><div><div className="eyebrow"><Wrench size={15} /> Provider onboarding</div><h1>Build your service profile.</h1><p>These details are indexed by Component 1 so relevant customers can discover your business in their Top-20 results.</p></div></section>
+      <section className="request-panel provider-form"><form onSubmit={createProfile}>
+        <label>Business or display name<input required minLength={2} value={form.provider_name} onChange={(e) => update("provider_name", e.target.value)} placeholder="e.g. Nimali Electrical Care" /></label>
+        <label>Service category<select value={form.category} onChange={(e) => update("category", e.target.value)}>{categories.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
+        <label>District<select value={form.district} onChange={(e) => update("district", e.target.value)}>{districts.map((item) => <option key={item}>{item}</option>)}</select></label>
+        <label>City<input required value={form.city} onChange={(e) => update("city", e.target.value)} placeholder="e.g. Kottawa" /></label>
+        <label>Experience in years<input required type="number" min={0} max={80} value={form.experience_years} onChange={(e) => update("experience_years", Number(e.target.value))} /></label>
+        <label className="skills-field">Skills, separated by commas<input required value={skillsText} onChange={(e) => setSkillsText(e.target.value)} placeholder="house wiring, socket repair, safety inspection" /></label>
+        <label className="wide">About your service<textarea required minLength={10} value={form.description} onChange={(e) => update("description", e.target.value)} placeholder="Describe the work you specialise in and the areas you serve..." /></label>
+        <button className="find-button" disabled={saving}>{saving ? <LoaderCircle className="spin" size={19} /> : <Sparkles size={19} />}{saving ? "Creating profile..." : "Create and index my profile"}<ChevronRight size={19} /></button>
+      </form>{error && <div className="notice error request-error">{error}</div>}</section>
+    </main>
+  );
 }
 
 export default function App() {
@@ -242,5 +312,5 @@ export default function App() {
   function logout() { localStorage.removeItem(SESSION_KEY); setSession(null); }
 
   if (checking) return <div className="app-loading"><Logo /><LoaderCircle className="spin" /></div>;
-  return <div className="app-shell"><Header session={session} onLogout={logout} />{!session ? <AuthScreen onAuthenticated={authenticated} /> : session.user.role === "customer" ? <CustomerDashboard session={session} /> : <ProviderDashboard />}</div>;
+  return <div className="app-shell"><Header session={session} onLogout={logout} />{!session ? <AuthScreen onAuthenticated={authenticated} /> : session.user.role === "customer" ? <CustomerDashboard session={session} /> : <ProviderDashboard session={session} />}</div>;
 }

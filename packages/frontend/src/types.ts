@@ -58,3 +58,24 @@ export interface RecommendationResponse {
   user_id: string;
   results: ProviderRecommendation[];
 }
+
+export interface ProviderProfileInput {
+  provider_name: string;
+  category: string;
+  district: string;
+  city: string;
+  experience_years: number;
+  skills: string[];
+  description: string;
+}
+
+export interface ProviderProfile extends ProviderProfileInput {
+  provider_id: string;
+  user_id: string;
+  rating: number;
+  review_count: number;
+  booking_success_rate: number;
+  interaction_count: number;
+  created_at: string;
+  updated_at: string;
+}

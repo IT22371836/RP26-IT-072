@@ -50,6 +50,9 @@ class InMemoryProviderRepository:
     async def find_by_user_id(self, user_id: str) -> dict[str, Any] | None:
         return self.by_user_id.get(user_id)
 
+    async def list_all(self, limit: int = 10_000) -> list[dict[str, Any]]:
+        return list(self.by_id.values())[:limit]
+
 
 class InMemoryServiceRequestRepository:
     def __init__(self) -> None:

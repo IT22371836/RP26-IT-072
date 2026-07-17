@@ -2,7 +2,11 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.api.dependencies import require_role
+from app.api.dependencies import (
+    get_interaction_repository,
+    get_provider_repository,
+    require_role,
+)
 from app.components.component1.schemas import (
     ComponentStatusResponse,
     RecommendationRequest,
@@ -15,8 +19,10 @@ from app.components.component1.service import (
     get_recommendation_engine,
 )
 from app.core.config import Settings, get_settings
+from app.repositories.interactions import InteractionRepository
+from app.repositories.providers import ProviderRepository
 from app.schemas.auth import UserPublic
-from app.schemas.common import UserRole
+from app.schemas.common import UserRole, new_public_id, utc_now
 
 router = APIRouter(prefix="/component1", tags=["component 1"])
 customer_user = require_role(UserRole.CUSTOMER)
@@ -40,8 +46,12 @@ async def recommend(
     payload: RecommendationRequest,
     current_user: Annotated[UserPublic, Depends(customer_user)],
     engine: Annotated[HybridRecommendationEngine, Depends(engine_dependency)],
+    provider_repository: Annotated[ProviderRepository, Depends(get_provider_repository)],
+    interaction_repository: Annotated[InteractionRepository, Depends(get_interaction_repository)],
 ) -> RecommendationResponse:
     try:
+        live_providers = await provider_repository.list_all()
+        live_preferences = await interaction_repository.preferred_provider_ids(current_user.user_id)
         results = engine.recommend(
             query=payload.query,
             user_id=current_user.user_id,
@@ -50,12 +60,31 @@ async def recommend(
             district=payload.district,
             city=payload.city,
             min_rating=payload.min_rating,
+            additional_providers=live_providers,
+            additional_preferences=live_preferences,
         )
     except (ArtifactsUnavailableError, ArtifactValidationError) as error:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=str(error),
         ) from error
+    now = utc_now()
+    await interaction_repository.create_many(
+        [
+            {
+                "interaction_id": new_public_id("I"),
+                "request_id": payload.request_id,
+                "user_id": current_user.user_id,
+                "provider_id": result.provider_id,
+                "provider_name": result.provider_name,
+                "category": result.category,
+                "interaction_type": "impression",
+                "rating": None,
+                "timestamp": now,
+            }
+            for result in results
+        ]
+    )
     return RecommendationResponse(
         component_version=engine.manifest["component_version"],
         model_version=engine.manifest["model_version"],

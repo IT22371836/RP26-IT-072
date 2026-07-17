@@ -1,6 +1,6 @@
 from typing import Any
 
-from pymongo import ASCENDING
+from pymongo import ASCENDING, DESCENDING
 from pymongo.errors import DuplicateKeyError
 
 
@@ -28,3 +28,14 @@ class UserRepository:
 
     async def find_by_id(self, user_id: str) -> dict[str, Any] | None:
         return await self.collection.find_one({"user_id": user_id})
+
+    async def list_all(self, limit: int = 500) -> list[dict[str, Any]]:
+        return await self.collection.find({}).sort("created_at", DESCENDING).to_list(length=limit)
+
+    async def count(self) -> int:
+        return await self.collection.count_documents({})
+
+    async def set_active(self, user_id: str, is_active: bool) -> dict[str, Any] | None:
+        return await self.collection.find_one_and_update(
+            {"user_id": user_id}, {"$set": {"is_active": is_active}}, return_document=True
+        )

@@ -3,6 +3,7 @@ from datetime import UTC, datetime
 
 from httpx import ASGITransport, AsyncClient
 
+from app.api.dependencies import get_interaction_repository, get_provider_repository
 from app.components.component1.router import customer_user, engine_dependency
 from app.main import app
 from app.schemas.auth import UserPublic
@@ -25,6 +26,19 @@ class ReadyEngine:
         return []
 
 
+class EmptyProviderRepository:
+    async def list_all(self) -> list[object]:
+        return []
+
+
+class EmptyInteractionRepository:
+    async def preferred_provider_ids(self, _user_id: str) -> list[str]:
+        return []
+
+    async def create_many(self, _documents: list[object]) -> None:
+        return None
+
+
 def test_recommendation_api_preserves_pipeline_identifiers() -> None:
     async def run_test() -> None:
         customer = UserPublic(
@@ -37,6 +51,8 @@ def test_recommendation_api_preserves_pipeline_identifiers() -> None:
         )
         app.dependency_overrides[customer_user] = lambda: customer
         app.dependency_overrides[engine_dependency] = ReadyEngine
+        app.dependency_overrides[get_provider_repository] = EmptyProviderRepository
+        app.dependency_overrides[get_interaction_repository] = EmptyInteractionRepository
 
         try:
             transport = ASGITransport(app=app)

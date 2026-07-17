@@ -3,6 +3,8 @@ from typing import Any
 from pymongo import ASCENDING
 from pymongo.errors import DuplicateKeyError
 
+from app.schemas.common import utc_now
+
 
 class ProviderProfileExistsError(Exception):
     pass
@@ -31,3 +33,18 @@ class ProviderRepository:
 
     async def find_by_user_id(self, user_id: str) -> dict[str, Any] | None:
         return await self.collection.find_one({"user_id": user_id})
+
+    async def list_all(self, limit: int = 10_000) -> list[dict[str, Any]]:
+        return await self.collection.find({}).limit(limit).to_list(length=limit)
+
+    async def count(self) -> int:
+        return await self.collection.count_documents({})
+
+    async def update_statistics(
+        self, provider_id: str, statistics: dict[str, int | float]
+    ) -> dict[str, Any] | None:
+        return await self.collection.find_one_and_update(
+            {"provider_id": provider_id},
+            {"$set": {**statistics, "updated_at": utc_now()}},
+            return_document=True,
+        )

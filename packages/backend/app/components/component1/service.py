@@ -20,6 +20,15 @@ class ArtifactValidationError(Exception):
 
 
 class HybridRecommendationEngine:
+    CATEGORY_ALIASES = {
+        "electrician": "electricians",
+        "plumber": "plumbers",
+        "ac repair": "a/c",
+        "air conditioning": "a/c",
+        "carpenter": "carpenters",
+        "painter": "painters",
+    }
+
     def __init__(self, artifact_dir: Path) -> None:
         self.artifact_dir = artifact_dir
         self.ready = False
@@ -166,14 +175,25 @@ class HybridRecommendationEngine:
             "provider_count": len(self.providers),
         }
 
-    def _cf_scores(self, user_id: str) -> np.ndarray:
+    def _cf_scores(
+        self, user_id: str, additional_preferences: list[str] | None = None
+    ) -> np.ndarray:
         if self.credibility_scores is None:
             raise ArtifactsUnavailableError("Component 1 artifacts are not loaded")
         scores = self.credibility_scores.astype(np.float32).copy()
-        for provider_id, count in Counter(self.user_preferences.get(user_id, [])).items():
+        preferences = [
+            *self.user_preferences.get(user_id, []),
+            *(additional_preferences or []),
+        ]
+        for provider_id, count in Counter(preferences).items():
             if (index := self._provider_index.get(provider_id)) is not None:
                 scores[index] *= 1.2**count
         return np.clip(np.nan_to_num(scores, nan=0.5), 0, 1)
+
+    @classmethod
+    def _category_key(cls, value: str) -> str:
+        normalized = value.lower().strip()
+        return cls.CATEGORY_ALIASES.get(normalized, normalized)
 
     def recommend(
         self,
@@ -184,6 +204,8 @@ class HybridRecommendationEngine:
         district: str | None = None,
         city: str | None = None,
         min_rating: float = 0.0,
+        additional_providers: list[dict[str, Any]] | None = None,
+        additional_preferences: list[str] | None = None,
     ) -> list[ProviderRecommendation]:
         if not self.ready or self.provider_embeddings is None:
             raise ArtifactsUnavailableError("Component 1 artifacts are not loaded")
@@ -196,7 +218,57 @@ class HybridRecommendationEngine:
             normalize_embeddings=True,
         )[0]
         bert_raw = self.provider_embeddings @ query_embedding
-        cf_raw = self._cf_scores(user_id)
+        cf_raw = self._cf_scores(user_id, additional_preferences)
+
+        providers = list(self.providers)
+        known_provider_ids = {provider["provider_id"] for provider in providers}
+        live_providers = [
+            provider
+            for provider in (additional_providers or [])
+            if provider.get("provider_id") not in known_provider_ids
+        ]
+        if live_providers:
+            live_text = [
+                " ".join(
+                    (
+                        str(provider.get("category", "")),
+                        " ".join(provider.get("skills", [])),
+                        str(provider.get("description", "")),
+                    )
+                ).lower()
+                for provider in live_providers
+            ]
+            live_tfidf_matrix = self.vectorizer.transform(live_text)
+            live_tfidf = (live_tfidf_matrix @ query_vector.T).toarray().ravel()
+            live_embeddings = self.semantic_model.encode(
+                live_text,
+                convert_to_numpy=True,
+                normalize_embeddings=True,
+            )
+            live_bert = live_embeddings @ query_embedding
+            live_cf = np.array(
+                [
+                    0.5
+                    if int(provider.get("interaction_count", 0)) == 0
+                    else (
+                        float(provider.get("rating", 0)) / 5.0 * 0.50
+                        + float(provider.get("booking_success_rate", 0)) * 0.30
+                        + np.tanh(float(provider.get("interaction_count", 0)) / 100.0) * 0.20
+                    )
+                    for provider in live_providers
+                ],
+                dtype=np.float32,
+            )
+            tfidf_raw = np.concatenate((tfidf_raw, live_tfidf))
+            bert_raw = np.concatenate((bert_raw, live_bert))
+            cf_raw = np.concatenate((cf_raw, live_cf))
+            providers.extend(
+                {
+                    **provider,
+                    "skills": ", ".join(provider.get("skills", [])),
+                }
+                for provider in live_providers
+            )
 
         tfidf = self.normalize(tfidf_raw)
         bert = self.normalize(bert_raw)
@@ -208,24 +280,61 @@ class HybridRecommendationEngine:
             1,
         )
 
+        category_key = self._category_key(category) if category else None
+        district_key = district.lower().strip() if district else None
+        city_key = city.lower().strip() if city else None
+        eligible = [
+            index
+            for index, provider in enumerate(providers)
+            if float(provider["rating"]) >= min_rating
+        ]
+
+        def matches(index: int, *, use_category: bool, use_district: bool, use_city: bool) -> bool:
+            provider = providers[index]
+            return (
+                (
+                    not use_category
+                    or not category_key
+                    or self._category_key(provider["category"]) == category_key
+                )
+                and (
+                    not use_district
+                    or not district_key
+                    or provider["district"].lower() == district_key
+                )
+                and (not use_city or not city_key or provider["city"].lower() == city_key)
+            )
+
         candidates: list[int] = []
-        for index, provider in enumerate(self.providers):
-            if category and provider["category"].lower() != category.lower():
-                continue
-            if district and provider["district"].lower() != district.lower():
-                continue
-            if city and provider["city"].lower() != city.lower():
-                continue
-            if float(provider["rating"]) < min_rating:
-                continue
-            candidates.append(index)
-        candidates.sort(key=lambda index: float(hybrid[index]), reverse=True)
+        selected: set[int] = set()
+        for use_category, use_district, use_city in (
+            (True, True, True),
+            (True, True, False),
+            (True, False, False),
+            (False, False, False),
+        ):
+            tier = [
+                index
+                for index in eligible
+                if index not in selected
+                and matches(
+                    index,
+                    use_category=use_category,
+                    use_district=use_district,
+                    use_city=use_city,
+                )
+            ]
+            tier.sort(key=lambda index: float(hybrid[index]), reverse=True)
+            candidates.extend(tier[: top_k - len(candidates)])
+            selected.update(tier)
+            if len(candidates) == top_k:
+                break
 
         results = []
         for index in candidates[:top_k]:
             results.append(
                 ProviderRecommendation(
-                    **self.providers[index],
+                    **providers[index],
                     hybrid_score=float(hybrid[index]),
                     tfidf_score=float(tfidf[index]),
                     bert_score=float(bert[index]),
@@ -242,6 +351,7 @@ def get_recommendation_engine(artifact_dir: Path) -> HybridRecommendationEngine:
     global _engine
     if _engine is None or _engine.artifact_dir != artifact_dir:
         _engine = HybridRecommendationEngine(artifact_dir)
+    if not _engine.ready:
         try:
             _engine.load()
         except (ArtifactsUnavailableError, ArtifactValidationError):

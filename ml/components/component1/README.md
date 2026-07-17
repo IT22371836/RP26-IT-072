@@ -49,3 +49,9 @@ other result count are rejected so the shared pipeline always receives Top-20 ca
 The service validates every tracked artifact checksum, manifest schema, hybrid weights,
 row count, embedding shape, provider identifier, and numeric matrix before serving
 recommendations. Missing or invalid artifacts never fall back to random providers.
+
+New provider profiles stored in MongoDB are scored at request time and merged with the
+research artifact pool. Their TF-IDF and semantic features use the same fitted models;
+providers without interaction history receive a neutral collaborative-filtering score
+until real bookings and ratings are recorded. This makes a newly completed provider
+profile eligible for the Top-20 without rebuilding the 10,000-provider baseline.

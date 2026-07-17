@@ -28,7 +28,7 @@
     "semantic_model/modules.json": "318d49f1092cad125a35af58d9795bcddce84bf7e7240bd8d95b9b6858f9476b",
     "semantic_model/README.md": "90bc9c8da4ec9fad492fd04218f7f3eabaa4173c9e8eec9dc59b519a01751cbb",
     "semantic_model/sentence_bert_config.json": "5fee3fcdc4a727fad422f0fed0c867b0921eefa9051de221521956ed42eb4c19",
-    "semantic_model/tokenizer.json": "cad551d5600a84242d0973327029452a1e3672ba6313c2a3c3d69c4310e12719",
+    "semantic_model/tokenizer.json": "a1883b3c653a9676f4d5634b947ce70e500052eab254abc784fba64ca821abd9",
     "semantic_model/tokenizer_config.json": "f87d4952eab944ea4c51ca5121310724ea6d71e7114532c848d67bc32a0f388f",
     "semantic_model/1_Pooling/config.json": "bb80272f7adad76ce93073c25e18113ee66be1e91f60bcdd72aa41d05b28247e"
   }

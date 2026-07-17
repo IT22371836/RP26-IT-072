@@ -24,3 +24,9 @@ class ServiceRequestRepository:
     async def list_for_user(self, user_id: str, limit: int = 50) -> list[dict[str, Any]]:
         cursor = self.collection.find({"user_id": user_id}).sort("created_at", DESCENDING)
         return await cursor.to_list(length=limit)
+
+    async def list_all(self, limit: int = 500) -> list[dict[str, Any]]:
+        return await self.collection.find({}).sort("created_at", DESCENDING).to_list(length=limit)
+
+    async def count(self) -> int:
+        return await self.collection.count_documents({})

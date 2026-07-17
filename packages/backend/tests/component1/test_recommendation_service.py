@@ -86,6 +86,20 @@ def test_recommend_ranks_relevant_provider_and_applies_filters() -> None:
     assert 0 <= results[0].hybrid_score <= 1
 
 
+def test_recommend_broadens_location_to_preserve_candidate_handoff() -> None:
+    results = build_engine().recommend(
+        query="electrician wiring",
+        user_id="U001",
+        category="Electricians",
+        district="Colombo",
+        city="Kottawa",
+        top_k=2,
+    )
+
+    assert results[0].provider_id == "P001"
+    assert len(results) == 2
+
+
 def test_missing_artifacts_fail_explicitly() -> None:
     engine = HybridRecommendationEngine(Path("missing"))
 

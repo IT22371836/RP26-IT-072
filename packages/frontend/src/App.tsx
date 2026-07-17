@@ -24,7 +24,14 @@ import type {
 } from "./types";
 
 const SESSION_KEY = "weda-session";
-const categories = ["Electrician", "Plumber", "AC Repair", "CCTV", "Carpenter", "Painter"];
+const categories = [
+  { label: "Electrician", value: "Electricians" },
+  { label: "Plumber", value: "Plumbers" },
+  { label: "AC Repair", value: "A/C" },
+  { label: "CCTV", value: "CCTV" },
+  { label: "Carpenter", value: "Carpenters" },
+  { label: "Painter", value: "Painters" },
+];
 const districts = ["Colombo", "Gampaha", "Kalutara", "Galle", "Kandy", "Kurunegala"];
 
 interface Session {
@@ -169,7 +176,7 @@ function ProviderCard({ provider, rank }: { provider: ProviderRecommendation; ra
 }
 
 function CustomerDashboard({ session }: { session: Session }) {
-  const [form, setForm] = useState<ServiceRequestInput>({ request_text: "", category: "Electrician", district: "Colombo", city: "", urgency: "normal" });
+  const [form, setForm] = useState<ServiceRequestInput>({ request_text: "", category: "Electricians", district: "Colombo", city: "", urgency: "normal" });
   const [recommendations, setRecommendations] = useState<RecommendationResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -196,7 +203,7 @@ function CustomerDashboard({ session }: { session: Session }) {
       <section className="request-panel">
         <form onSubmit={findProviders}>
           <label className="wide">Describe the work<textarea required minLength={10} value={form.request_text} onChange={(e) => update("request_text", e.target.value)} placeholder="e.g. My living room power sockets stopped working after last night's rain..." /></label>
-          <label>Service category<select value={form.category} onChange={(e) => update("category", e.target.value)}>{categories.map((item) => <option key={item}>{item}</option>)}</select></label>
+          <label>Service category<select value={form.category} onChange={(e) => update("category", e.target.value)}>{categories.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
           <label>District<select value={form.district} onChange={(e) => update("district", e.target.value)}>{districts.map((item) => <option key={item}>{item}</option>)}</select></label>
           <label>City<input required value={form.city} onChange={(e) => update("city", e.target.value)} placeholder="e.g. Kottawa" /></label>
           <label>Urgency<select value={form.urgency} onChange={(e) => update("urgency", e.target.value as ServiceRequestInput["urgency"])}><option value="normal">Normal</option><option value="urgent">Urgent</option><option value="emergency">Emergency</option></select></label>

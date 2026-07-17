@@ -20,6 +20,15 @@ class ArtifactValidationError(Exception):
 
 
 class HybridRecommendationEngine:
+    CATEGORY_ALIASES = {
+        "electrician": "electricians",
+        "plumber": "plumbers",
+        "ac repair": "a/c",
+        "air conditioning": "a/c",
+        "carpenter": "carpenters",
+        "painter": "painters",
+    }
+
     def __init__(self, artifact_dir: Path) -> None:
         self.artifact_dir = artifact_dir
         self.ready = False
@@ -175,6 +184,11 @@ class HybridRecommendationEngine:
                 scores[index] *= 1.2**count
         return np.clip(np.nan_to_num(scores, nan=0.5), 0, 1)
 
+    @classmethod
+    def _category_key(cls, value: str) -> str:
+        normalized = value.lower().strip()
+        return cls.CATEGORY_ALIASES.get(normalized, normalized)
+
     def recommend(
         self,
         query: str,
@@ -208,18 +222,55 @@ class HybridRecommendationEngine:
             1,
         )
 
+        category_key = self._category_key(category) if category else None
+        district_key = district.lower().strip() if district else None
+        city_key = city.lower().strip() if city else None
+        eligible = [
+            index
+            for index, provider in enumerate(self.providers)
+            if float(provider["rating"]) >= min_rating
+        ]
+
+        def matches(index: int, *, use_category: bool, use_district: bool, use_city: bool) -> bool:
+            provider = self.providers[index]
+            return (
+                (
+                    not use_category
+                    or not category_key
+                    or self._category_key(provider["category"]) == category_key
+                )
+                and (
+                    not use_district
+                    or not district_key
+                    or provider["district"].lower() == district_key
+                )
+                and (not use_city or not city_key or provider["city"].lower() == city_key)
+            )
+
         candidates: list[int] = []
-        for index, provider in enumerate(self.providers):
-            if category and provider["category"].lower() != category.lower():
-                continue
-            if district and provider["district"].lower() != district.lower():
-                continue
-            if city and provider["city"].lower() != city.lower():
-                continue
-            if float(provider["rating"]) < min_rating:
-                continue
-            candidates.append(index)
-        candidates.sort(key=lambda index: float(hybrid[index]), reverse=True)
+        selected: set[int] = set()
+        for use_category, use_district, use_city in (
+            (True, True, True),
+            (True, True, False),
+            (True, False, False),
+            (False, False, False),
+        ):
+            tier = [
+                index
+                for index in eligible
+                if index not in selected
+                and matches(
+                    index,
+                    use_category=use_category,
+                    use_district=use_district,
+                    use_city=use_city,
+                )
+            ]
+            tier.sort(key=lambda index: float(hybrid[index]), reverse=True)
+            candidates.extend(tier[: top_k - len(candidates)])
+            selected.update(tier)
+            if len(candidates) == top_k:
+                break
 
         results = []
         for index in candidates[:top_k]:

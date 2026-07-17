@@ -24,3 +24,8 @@ def test_recommendation_request_rejects_effectively_empty_query(query: str) -> N
 def test_recommendation_request_rejects_noncanonical_request_id() -> None:
     with pytest.raises(ValidationError):
         RecommendationRequest(request_id="123", query="electrician")
+
+
+def test_recommendation_request_enforces_top_20_pipeline_output() -> None:
+    with pytest.raises(ValidationError):
+        RecommendationRequest(request_id="RABC123", query="electrician", top_k=3)

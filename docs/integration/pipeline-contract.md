@@ -19,7 +19,7 @@ The canonical MongoDB collection fields and ownership rules are defined in [`cor
 
 ### Component 1 to Component 2
 
-`request_id`, `user_id`, `component_version`, `model_version`, and Top-20 providers with `provider_id`, provider metadata, `tfidf_score`, `bert_score`, `cf_score`, and `hybrid_score`.
+`request_id`, `user_id`, `component_version`, `model_version`, and exactly Top-20 providers (when at least 20 match the supplied filters) with `provider_id`, provider metadata, `tfidf_score`, `bert_score`, `cf_score`, and `hybrid_score`. The pipeline request fixes `top_k` at `20`.
 
 ### Component 2 to Component 3
 

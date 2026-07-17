@@ -1,3 +1,5 @@
+from typing import Literal
+
 from pydantic import BaseModel, Field, field_validator
 
 
@@ -8,7 +10,7 @@ class RecommendationRequest(BaseModel):
     district: str | None = Field(default=None, min_length=2, max_length=100)
     city: str | None = Field(default=None, min_length=2, max_length=100)
     min_rating: float = Field(default=0.0, ge=0, le=5)
-    top_k: int = Field(default=20, ge=1, le=20)
+    top_k: Literal[20] = 20
 
     @field_validator("query")
     @classmethod

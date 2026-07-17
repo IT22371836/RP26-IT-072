@@ -43,6 +43,9 @@ normalized TF-IDF, BERT, CF, and hybrid scores.
 }
 ```
 
+`top_k` is fixed at 20 for the Component 1 to Component 2 hand-off. Requests for any
+other result count are rejected so the shared pipeline always receives Top-20 candidates.
+
 The service validates every tracked artifact checksum, manifest schema, hybrid weights,
 row count, embedding shape, provider identifier, and numeric matrix before serving
 recommendations. Missing or invalid artifacts never fall back to random providers.

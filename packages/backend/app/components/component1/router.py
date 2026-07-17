@@ -76,6 +76,7 @@ async def recommend(
                 "request_id": payload.request_id,
                 "user_id": current_user.user_id,
                 "provider_id": result.provider_id,
+                "provider_name": result.provider_name,
                 "category": result.category,
                 "interaction_type": "impression",
                 "rating": None,

@@ -5,6 +5,7 @@ import type {
   CustomerProfile,
   CustomerProfileUpdate,
   InteractionType,
+  Interaction,
   ServiceRequest,
   ServiceRequestInput,
   TokenResponse,
@@ -58,6 +59,7 @@ export const api = {
       { method: "POST", body: JSON.stringify(payload) },
       token,
     ),
+  listServiceRequests: (token: string) => request<ServiceRequest[]>("/service-requests/me", {}, token),
   recommend: (serviceRequest: ServiceRequest, token: string) =>
     request<RecommendationResponse>(
       "/component1/recommend",
@@ -93,10 +95,13 @@ export const api = {
     payload: {
       request_id: string;
       provider_id: string;
+      provider_name?: string;
       category: string;
       interaction_type: InteractionType;
+      rating?: number;
     },
     token: string,
   ) =>
     request("/interactions", { method: "POST", body: JSON.stringify(payload) }, token),
+  listInteractions: (token: string) => request<Interaction[]>("/interactions/me?limit=500", {}, token),
 };

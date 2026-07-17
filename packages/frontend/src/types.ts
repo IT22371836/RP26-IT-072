@@ -95,9 +95,22 @@ export interface CustomerProfile extends CustomerProfileUpdate {
 }
 
 export type InteractionType =
+  | "impression"
   | "click"
   | "selected"
   | "booking_requested"
   | "booking_completed"
   | "booking_cancelled"
   | "rated";
+
+export interface Interaction {
+  interaction_id: string;
+  request_id: string;
+  user_id: string;
+  provider_id: string;
+  provider_name: string | null;
+  category: string;
+  interaction_type: InteractionType;
+  rating: number | null;
+  timestamp: string;
+}

@@ -1,19 +1,25 @@
 import {
   ArrowRight,
+  BarChart3,
+  CalendarCheck,
   Check,
   ChevronRight,
   CircleUserRound,
   Clock3,
   LoaderCircle,
   LogOut,
+  ClipboardList,
+  Heart,
+  MessageSquare,
   MapPin,
   Search,
   ShieldCheck,
+  UserRound,
   Sparkles,
   Star,
   Wrench,
 } from "lucide-react";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { ApiError, api } from "./api";
 import type {
   ProviderRecommendation,
@@ -21,6 +27,8 @@ import type {
   ProviderProfileInput,
   CustomerProfile,
   CustomerProfileUpdate,
+  Interaction,
+  ServiceRequest,
   RecommendationResponse,
   ServiceRequestInput,
   User,
@@ -180,7 +188,22 @@ function ProviderCard({ provider, rank, onSelect }: { provider: ProviderRecommen
   );
 }
 
+function HistoryPage({ title, subtitle, icon, empty, children }: { title: string; subtitle: string; icon: ReactNode; empty: string; children: ReactNode }) {
+  const hasChildren = Array.isArray(children) ? children.length > 0 : Boolean(children);
+  return <section className="history-page"><div className="page-heading"><span>{icon}</span><div><h1>{title}</h1><p>{subtitle}</p></div></div>{hasChildren ? <div className="history-list">{children}</div> : <div className="empty-state"><ClipboardList size={28} /><h3>{empty}</h3></div>}</section>;
+}
+
+function HistoryCard({ title, meta, status, date, action }: { title: string; meta: string; status: string; date: string; action?: ReactNode }) {
+  return <article className="history-card"><div><h3>{title}</h3><p>{meta}</p><time>{new Date(date).toLocaleString()}</time></div><div className="history-card-side"><span className={`status-tag ${status}`}>{status.replaceAll("_", " ")}</span>{action}</div></article>;
+}
+
+function InteractionPage({ title, subtitle, interactions, empty, onAction, actionLabel }: { title: string; subtitle: string; interactions: Interaction[]; empty: string; onAction?: (item: Interaction) => Promise<void>; actionLabel?: string }) {
+  return <HistoryPage title={title} subtitle={subtitle} icon={<Heart size={24} />} empty={empty}>{interactions.map((item) => <HistoryCard key={item.interaction_id} title={item.provider_name ?? item.provider_id} meta={`${item.category} · Request ${item.request_id}`} status={item.interaction_type} date={item.timestamp} action={onAction && <button className="small-action" onClick={() => onAction(item)}>{actionLabel}<ChevronRight size={13} /></button>} />)}</HistoryPage>;
+}
+
 function CustomerDashboard({ session }: { session: Session }) {
+  type CustomerSection = "find" | "requests" | "selected" | "bookings" | "ratings" | "profile";
+  const [section, setSection] = useState<CustomerSection>("find");
   const [form, setForm] = useState<ServiceRequestInput>({ request_text: "", category: "Electricians", district: "Colombo", city: "", urgency: "normal" });
   const [recommendations, setRecommendations] = useState<RecommendationResponse | null>(null);
   const [loading, setLoading] = useState(false);
@@ -189,6 +212,17 @@ function CustomerDashboard({ session }: { session: Session }) {
   const [profileOpen, setProfileOpen] = useState(false);
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileForm, setProfileForm] = useState<CustomerProfileUpdate>({ phone: null, district: null, city: null, preferred_language: "English" });
+  const [requests, setRequests] = useState<ServiceRequest[]>([]);
+  const [interactions, setInteractions] = useState<Interaction[]>([]);
+
+  const refreshHistory = useCallback(async () => {
+    const [requestHistory, interactionHistory] = await Promise.all([
+      api.listServiceRequests(session.token),
+      api.listInteractions(session.token),
+    ]);
+    setRequests(requestHistory);
+    setInteractions(interactionHistory);
+  }, [session.token]);
 
   useEffect(() => {
     api.getCustomerProfile(session.token).then((value) => {
@@ -198,6 +232,8 @@ function CustomerDashboard({ session }: { session: Session }) {
     }).catch(() => setError("Unable to load your customer profile."));
   }, [session.token]);
 
+  useEffect(() => { refreshHistory().catch(() => setError("Unable to load account history.")); }, [refreshHistory]);
+
   function update<K extends keyof ServiceRequestInput>(key: K, value: ServiceRequestInput[K]) { setForm((current) => ({ ...current, [key]: value })); }
 
   async function findProviders(event: FormEvent) {
@@ -206,6 +242,7 @@ function CustomerDashboard({ session }: { session: Session }) {
     try {
       const created = await api.createServiceRequest(form, session.token);
       setRecommendations(await api.recommend(created, session.token));
+      await refreshHistory();
     } catch (reason) {
       setError(reason instanceof ApiError ? reason.message : "Unable to generate recommendations.");
     } finally { setLoading(false); }
@@ -221,12 +258,26 @@ function CustomerDashboard({ session }: { session: Session }) {
   async function selectProvider(provider: ProviderRecommendation) {
     if (!recommendations) return;
     try {
-      await api.logInteraction({ request_id: recommendations.request_id, provider_id: provider.provider_id, category: provider.category, interaction_type: "selected" }, session.token);
+      await api.logInteraction({ request_id: recommendations.request_id, provider_id: provider.provider_id, provider_name: provider.provider_name, category: provider.category, interaction_type: "selected" }, session.token);
+      await refreshHistory();
     } catch { setError("The provider was shown, but your selection could not be saved."); }
   }
 
   return (
-    <main className="dashboard">
+    <main className="workspace">
+      <aside className="workspace-sidebar">
+        <div><small>Customer workspace</small><h2>{session.user.full_name}</h2></div>
+        <nav>
+          {([
+            ["find", Search, "Find Providers"], ["requests", ClipboardList, "My Requests"],
+            ["selected", Heart, "Selected Providers"], ["bookings", CalendarCheck, "My Bookings"],
+            ["ratings", MessageSquare, "Ratings & Reviews"], ["profile", UserRound, "My Profile"],
+          ] as const).map(([key, Icon, label]) => <button key={key} className={section === key ? "active" : ""} onClick={() => setSection(key)}><Icon size={17} />{label}</button>)}
+        </nav>
+        <div className="sidebar-engine"><span className="live-dot" /><div><strong>Component 1 online</strong><small>Top-20 matching</small></div></div>
+      </aside>
+      <div className="workspace-content">
+      {section === "find" && <>
       <section className="dashboard-intro">
         <div><div className="eyebrow"><Sparkles size={15} /> Component 1 · Hybrid recommendation engine</div><h1>What needs fixing today?</h1><p>Tell us about the job. We’ll compare content, meaning and service history to rank your best 20 providers.</p></div>
         <div className="engine-badge"><span className="pulse" /><div><strong>Recommendation engine</strong><small>Online · 10,000 providers</small></div></div>
@@ -260,11 +311,19 @@ function CustomerDashboard({ session }: { session: Session }) {
           {recommendations.results.length ? <div className="provider-list">{recommendations.results.map((provider, index) => <ProviderCard key={provider.provider_id} provider={provider} rank={index + 1} onSelect={() => selectProvider(provider)} />)}</div> : <div className="empty-state"><Search size={28} /><h3>No providers matched these filters</h3><p>Try a nearby city or broaden the category.</p></div>}
         </section>
       )}
+      </>}
+      {section === "requests" && <HistoryPage title="My Requests" subtitle="Every service request you have submitted." icon={<ClipboardList size={24} />} empty="No service requests yet.">{requests.map((request) => <HistoryCard key={request.request_id} title={request.request_text} meta={`${request.category} · ${request.city}, ${request.district}`} status={request.urgency} date={request.created_at} />)}</HistoryPage>}
+      {section === "selected" && <InteractionPage title="Selected Providers" subtitle="Providers you shortlisted from recommendation results." interactions={interactions.filter((item) => item.interaction_type === "selected")} empty="You have not selected a provider yet." onAction={async (item) => { await api.logInteraction({ request_id: item.request_id, provider_id: item.provider_id, provider_name: item.provider_name ?? undefined, category: item.category, interaction_type: "booking_requested" }, session.token); await refreshHistory(); setSection("bookings"); }} actionLabel="Request booking" />}
+      {section === "bookings" && <InteractionPage title="My Bookings" subtitle="Track booking requests and completed service history." interactions={interactions.filter((item) => item.interaction_type.startsWith("booking_"))} empty="No booking activity yet." />}
+      {section === "ratings" && <InteractionPage title="Ratings & Reviews" subtitle="Your provider feedback history." interactions={interactions.filter((item) => item.interaction_type === "rated")} empty="You have not rated a provider yet." />}
+      {section === "profile" && <HistoryPage title="My Profile" subtitle="Contact and location preferences used across your requests." icon={<UserRound size={24} />} empty=""><section className="profile-editor standalone"><form onSubmit={saveProfile}><label>Phone number<input required minLength={7} value={profileForm.phone ?? ""} onChange={(e) => setProfileForm((current) => ({ ...current, phone: e.target.value }))} /></label><label>District<select value={profileForm.district ?? ""} onChange={(e) => setProfileForm((current) => ({ ...current, district: e.target.value }))}>{districts.map((item) => <option key={item}>{item}</option>)}</select></label><label>City<input required value={profileForm.city ?? ""} onChange={(e) => setProfileForm((current) => ({ ...current, city: e.target.value }))} /></label><label>Language<select value={profileForm.preferred_language} onChange={(e) => setProfileForm((current) => ({ ...current, preferred_language: e.target.value }))}><option>English</option><option>Sinhala</option><option>Tamil</option></select></label><button className="primary-button" disabled={profileSaving}>Save profile</button></form></section></HistoryPage>}
+      {error && section !== "find" && <div className="notice error request-error">{error}</div>}
+      </div>
     </main>
   );
 }
 
-function ProviderDashboard({ session }: { session: Session }) {
+function ProviderProfilePage({ session }: { session: Session }) {
   const [profile, setProfile] = useState<ProviderProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -336,6 +395,17 @@ function ProviderDashboard({ session }: { session: Session }) {
   );
 }
 
+function ProviderDashboard({ session }: { session: Session }) {
+  const [section, setSection] = useState("profile");
+  const items = [["overview", BarChart3, "Overview"], ["jobs", ClipboardList, "Job Offers"], ["bookings", CalendarCheck, "My Bookings"], ["reviews", MessageSquare, "Reviews & Ratings"], ["profile", UserRound, "Provider Profile"]] as const;
+  return <main className="workspace"><aside className="workspace-sidebar"><div><small>Provider workspace</small><h2>{session.user.full_name}</h2></div><nav>{items.map(([key, Icon, label]) => <button key={key} className={section === key ? "active" : ""} onClick={() => setSection(key)}><Icon size={17} />{label}</button>)}</nav></aside><div className="workspace-content">{section === "profile" ? <ProviderProfilePage session={session} /> : <HistoryPage title={items.find(([key]) => key === section)?.[2] ?? "Provider"} subtitle="This workspace is ready for the shared booking and review pipeline." icon={<Wrench size={24} />} empty="No activity has been assigned yet.">{[]}</HistoryPage>}</div></main>;
+}
+
+function AdminDashboard({ session }: { session: Session }) {
+  const items = [[BarChart3, "Platform Overview"], [CircleUserRound, "Manage Customers"], [Wrench, "Manage Providers"], [ShieldCheck, "Provider Verification"], [ClipboardList, "Service Requests"], [MessageSquare, "Reviews & Fraud"]] as const;
+  return <main className="workspace"><aside className="workspace-sidebar admin"><div><small>Admin workspace</small><h2>{session.user.full_name}</h2></div><nav>{items.map(([Icon, label], index) => <button key={label} className={index === 0 ? "active" : ""}><Icon size={17} />{label}</button>)}</nav></aside><div className="workspace-content"><HistoryPage title="Platform Overview" subtitle="Administrative monitoring and moderation workspace." icon={<ShieldCheck size={24} />} empty="Admin metrics will appear as platform activity grows.">{[]}</HistoryPage></div></main>;
+}
+
 export default function App() {
   const [session, setSession] = useState<Session | null>(() => getStoredSession());
   const [checking, setChecking] = useState(Boolean(session));
@@ -352,5 +422,5 @@ export default function App() {
   function logout() { localStorage.removeItem(SESSION_KEY); setSession(null); }
 
   if (checking) return <div className="app-loading"><Logo /><LoaderCircle className="spin" /></div>;
-  return <div className="app-shell"><Header session={session} onLogout={logout} />{!session ? <AuthScreen onAuthenticated={authenticated} /> : session.user.role === "customer" ? <CustomerDashboard session={session} /> : <ProviderDashboard session={session} />}</div>;
+  return <div className="app-shell"><Header session={session} onLogout={logout} />{!session ? <AuthScreen onAuthenticated={authenticated} /> : session.user.role === "customer" ? <CustomerDashboard session={session} /> : session.user.role === "provider" ? <ProviderDashboard session={session} /> : <AdminDashboard session={session} />}</div>;
 }

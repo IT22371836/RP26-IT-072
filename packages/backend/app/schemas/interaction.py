@@ -18,6 +18,7 @@ class InteractionCreate(BaseModel):
     request_id: str
     provider_id: str
     category: str
+    provider_name: str | None = None
     interaction_type: InteractionType
     rating: int | None = Field(default=None, ge=1, le=5)
 

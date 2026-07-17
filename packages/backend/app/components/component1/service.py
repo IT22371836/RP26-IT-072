@@ -242,6 +242,7 @@ def get_recommendation_engine(artifact_dir: Path) -> HybridRecommendationEngine:
     global _engine
     if _engine is None or _engine.artifact_dir != artifact_dir:
         _engine = HybridRecommendationEngine(artifact_dir)
+    if not _engine.ready:
         try:
             _engine.load()
         except (ArtifactsUnavailableError, ArtifactValidationError):

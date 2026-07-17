@@ -34,3 +34,6 @@ class ProviderRepository:
 
     async def list_all(self, limit: int = 10_000) -> list[dict[str, Any]]:
         return await self.collection.find({}).limit(limit).to_list(length=limit)
+
+    async def count(self) -> int:
+        return await self.collection.count_documents({})

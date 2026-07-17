@@ -11,6 +11,7 @@ import type {
   TokenResponse,
   User,
   UserRole,
+  AdminOverview,
 } from "./types";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000/api/v1";
@@ -104,4 +105,27 @@ export const api = {
   ) =>
     request("/interactions", { method: "POST", body: JSON.stringify(payload) }, token),
   listInteractions: (token: string) => request<Interaction[]>("/interactions/me?limit=500", {}, token),
+  listProviderInteractions: (token: string) =>
+    request<Interaction[]>("/interactions/provider/me?limit=500", {}, token),
+  completeBooking: (interactionId: string, token: string) =>
+    request<Interaction>(`/interactions/${interactionId}/complete`, { method: "POST" }, token),
+  cancelBooking: (interactionId: string, token: string) =>
+    request<Interaction>(`/interactions/${interactionId}/cancel`, { method: "POST" }, token),
+  rateBooking: (interactionId: string, rating: number, token: string) =>
+    request<Interaction>(
+      `/interactions/${interactionId}/rate`,
+      { method: "POST", body: JSON.stringify({ rating }) },
+      token,
+    ),
+  getAdminOverview: (token: string) => request<AdminOverview>("/admin/overview", {}, token),
+  listAdminUsers: (token: string) => request<User[]>("/admin/users", {}, token),
+  setUserActive: (userId: string, isActive: boolean, token: string) =>
+    request<User>(
+      `/admin/users/${userId}/status`,
+      { method: "PATCH", body: JSON.stringify({ is_active: isActive }) },
+      token,
+    ),
+  listAdminProviders: (token: string) => request<ProviderProfile[]>("/admin/providers", {}, token),
+  listAdminRequests: (token: string) =>
+    request<ServiceRequest[]>("/admin/service-requests", {}, token),
 };

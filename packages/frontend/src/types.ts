@@ -114,3 +114,10 @@ export interface Interaction {
   rating: number | null;
   timestamp: string;
 }
+
+export interface AdminOverview {
+  users: number;
+  providers: number;
+  service_requests: number;
+  interactions: number;
+}

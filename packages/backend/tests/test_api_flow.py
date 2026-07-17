@@ -106,6 +106,25 @@ class InMemoryInteractionRepository:
     async def list_for_user(self, user_id: str, limit: int = 100) -> list[dict[str, Any]]:
         return [record for record in self.records if record["user_id"] == user_id][:limit]
 
+    async def list_for_provider(self, provider_id: str, limit: int = 100) -> list[dict[str, Any]]:
+        return [record for record in self.records if record["provider_id"] == provider_id][:limit]
+
+    async def find_by_id(self, interaction_id: str) -> dict[str, Any] | None:
+        return next(
+            (record for record in self.records if record["interaction_id"] == interaction_id), None
+        )
+
+    async def has_event(
+        self, user_id: str, request_id: str, provider_id: str, interaction_type: Any
+    ) -> bool:
+        return any(
+            record["user_id"] == user_id
+            and record["request_id"] == request_id
+            and record["provider_id"] == provider_id
+            and record["interaction_type"] == interaction_type.value
+            for record in self.records
+        )
+
     async def preferred_provider_ids(self, user_id: str, limit: int = 500) -> list[str]:
         return [
             record["provider_id"]
@@ -246,6 +265,47 @@ def test_customer_and_provider_authenticated_api_flow() -> None:
                 )
                 assert provider_profile.status_code == 201
                 assert provider_profile.json()["provider_id"].startswith("P")
+
+                booking = await client.post(
+                    "/api/v1/interactions",
+                    headers=customer_headers,
+                    json={
+                        "request_id": service_request.json()["request_id"],
+                        "provider_id": provider_profile.json()["provider_id"],
+                        "provider_name": provider_profile.json()["provider_name"],
+                        "category": "CCTV",
+                        "interaction_type": "booking_requested",
+                    },
+                )
+                assert booking.status_code == 201
+
+                provider_jobs = await client.get(
+                    "/api/v1/interactions/provider/me", headers=provider_headers
+                )
+                assert provider_jobs.status_code == 200
+                assert provider_jobs.json()[0]["interaction_type"] == "booking_requested"
+
+                completed = await client.post(
+                    f"/api/v1/interactions/{booking.json()['interaction_id']}/complete",
+                    headers=provider_headers,
+                )
+                assert completed.status_code == 200
+                assert completed.json()["interaction_type"] == "booking_completed"
+
+                rating = await client.post(
+                    f"/api/v1/interactions/{completed.json()['interaction_id']}/rate",
+                    headers=customer_headers,
+                    json={"rating": 5},
+                )
+                assert rating.status_code == 200
+                assert rating.json()["rating"] == 5
+
+                duplicate_rating = await client.post(
+                    f"/api/v1/interactions/{completed.json()['interaction_id']}/rate",
+                    headers=customer_headers,
+                    json={"rating": 4},
+                )
+                assert duplicate_rating.status_code == 409
 
                 provider_request_attempt = await client.post(
                     "/api/v1/service-requests",

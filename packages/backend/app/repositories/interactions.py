@@ -30,6 +30,48 @@ class InteractionRepository:
             .to_list(length=limit)
         )
 
+    async def list_for_provider(self, provider_id: str, limit: int = 100) -> list[dict[str, Any]]:
+        return (
+            await self.collection.find(
+                {
+                    "provider_id": provider_id,
+                    "interaction_type": {
+                        "$in": [
+                            InteractionType.BOOKING_REQUESTED.value,
+                            InteractionType.BOOKING_COMPLETED.value,
+                            InteractionType.BOOKING_CANCELLED.value,
+                            InteractionType.RATED.value,
+                        ]
+                    },
+                }
+            )
+            .sort("timestamp", DESCENDING)
+            .limit(limit)
+            .to_list(length=limit)
+        )
+
+    async def find_by_id(self, interaction_id: str) -> dict[str, Any] | None:
+        return await self.collection.find_one({"interaction_id": interaction_id})
+
+    async def has_event(
+        self, user_id: str, request_id: str, provider_id: str, interaction_type: InteractionType
+    ) -> bool:
+        return (
+            await self.collection.find_one(
+                {
+                    "user_id": user_id,
+                    "request_id": request_id,
+                    "provider_id": provider_id,
+                    "interaction_type": interaction_type.value,
+                },
+                {"_id": 1},
+            )
+            is not None
+        )
+
+    async def count(self) -> int:
+        return await self.collection.count_documents({})
+
     async def preferred_provider_ids(self, user_id: str, limit: int = 500) -> list[str]:
         preference_events = [
             InteractionType.CLICK.value,

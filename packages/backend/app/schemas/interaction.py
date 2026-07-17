@@ -31,6 +31,10 @@ class InteractionPublic(InteractionCreate):
     timestamp: datetime
 
 
+class RatingCreate(BaseModel):
+    rating: int = Field(ge=1, le=5)
+
+
 class InteractionDatasetRecord(BaseModel):
     """Exact contract of the Component 1 interaction research dataset."""
 

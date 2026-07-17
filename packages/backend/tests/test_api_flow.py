@@ -55,6 +55,14 @@ class InMemoryProviderRepository:
     async def list_all(self, limit: int = 10_000) -> list[dict[str, Any]]:
         return list(self.by_id.values())[:limit]
 
+    async def update_statistics(
+        self, provider_id: str, statistics: dict[str, int | float]
+    ) -> dict[str, Any] | None:
+        provider = self.by_id.get(provider_id)
+        if provider is not None:
+            provider.update(statistics)
+        return provider
+
 
 class InMemoryServiceRequestRepository:
     def __init__(self) -> None:
@@ -124,6 +132,21 @@ class InMemoryInteractionRepository:
             and record["interaction_type"] == interaction_type.value
             for record in self.records
         )
+
+    async def provider_statistics(self, provider_id: str) -> dict[str, int | float]:
+        records = [record for record in self.records if record["provider_id"] == provider_id]
+        completed = sum(record["interaction_type"] == "booking_completed" for record in records)
+        cancelled = sum(record["interaction_type"] == "booking_cancelled" for record in records)
+        ratings = [record["rating"] for record in records if record["interaction_type"] == "rated"]
+        closed = completed + cancelled
+        return {
+            "rating": sum(ratings) / len(ratings) if ratings else 0.0,
+            "review_count": len(ratings),
+            "booking_success_rate": completed / closed if closed else 0.0,
+            "interaction_count": sum(
+                record["interaction_type"] != "impression" for record in records
+            ),
+        }
 
     async def preferred_provider_ids(self, user_id: str, limit: int = 500) -> list[str]:
         return [
@@ -299,6 +322,12 @@ def test_customer_and_provider_authenticated_api_flow() -> None:
                 )
                 assert rating.status_code == 200
                 assert rating.json()["rating"] == 5
+                refreshed_provider = await client.get(
+                    "/api/v1/providers/me", headers=provider_headers
+                )
+                assert refreshed_provider.json()["rating"] == 5
+                assert refreshed_provider.json()["review_count"] == 1
+                assert refreshed_provider.json()["booking_success_rate"] == 1
 
                 duplicate_rating = await client.post(
                     f"/api/v1/interactions/{completed.json()['interaction_id']}/rate",

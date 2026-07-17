@@ -170,7 +170,7 @@ function ScoreBar({ label, value, tone }: { label: string; value: number; tone: 
   return <div className="score-item"><div><span>{label}</span><strong>{Math.round(value * 100)}</strong></div><div className="score-track"><i style={{ width: `${value * 100}%`, background: tone }} /></div></div>;
 }
 
-function ProviderCard({ provider, rank, onSelect }: { provider: ProviderRecommendation; rank: number; onSelect: () => void }) {
+function ProviderCard({ provider, rank }: { provider: ProviderRecommendation; rank: number }) {
   return (
     <article className="provider-card">
       <div className="rank">{String(rank).padStart(2, "0")}</div>
@@ -178,7 +178,7 @@ function ProviderCard({ provider, rank, onSelect }: { provider: ProviderRecommen
         <div className="provider-title"><div><h3>{provider.provider_name}</h3><p><MapPin size={14} />{provider.city}, {provider.district}<span />{provider.category}</p></div><div className="match-pill"><Sparkles size={14} />{Math.round(provider.hybrid_score * 100)}% match</div></div>
         <p className="provider-description">{provider.description}</p>
         <div className="provider-meta"><span><Star size={15} fill="currentColor" />{provider.rating.toFixed(1)} <small>({provider.review_count})</small></span><span><Clock3 size={15} />{provider.experience_years} years</span><span><ShieldCheck size={15} />{Math.round(provider.booking_success_rate * 100)}% success</span></div>
-        <button className="select-provider" onClick={onSelect}>Select provider <ChevronRight size={14} /></button>
+        <span className="preview-only"><ShieldCheck size={13} />Component 1 preview only</span>
       </div>
       <div className="score-panel">
         <ScoreBar label="Semantic" value={provider.bert_score} tone="#0f766e" />
@@ -262,14 +262,6 @@ function CustomerDashboard({ session }: { session: Session }) {
     finally { setProfileSaving(false); }
   }
 
-  async function selectProvider(provider: ProviderRecommendation) {
-    if (!recommendations) return;
-    try {
-      await api.logInteraction({ request_id: recommendations.request_id, provider_id: provider.provider_id, provider_name: provider.provider_name, category: provider.category, interaction_type: "selected" }, session.token);
-      await refreshHistory();
-    } catch { setError("The provider was shown, but your selection could not be saved."); }
-  }
-
   return (
     <main className="workspace">
       <aside className="workspace-sidebar">
@@ -314,13 +306,14 @@ function CustomerDashboard({ session }: { session: Session }) {
       {loading && <section className="loading-panel"><div className="loader-orbit"><Sparkles size={25} /></div><h2>Building your Top 20</h2><p>Comparing semantic relevance, content signals and your service history…</p></section>}
       {recommendations && (
         <section className="results-section">
+          <div className="pipeline-preview"><Sparkles size={17} /><div><strong>Component 1 Top-20 preview</strong><small>These candidates continue through Components 2–4. Selection is enabled only for the final Top-5.</small></div></div>
           <div className="results-heading"><div><span className="result-count">{recommendations.results.length}</span><div><h2>Your strongest matches</h2><p>Ranked for request {recommendations.request_id}</p></div></div><span className="model-version">Model {recommendations.model_version}</span></div>
-          {recommendations.results.length ? <div className="provider-list">{recommendations.results.map((provider, index) => <ProviderCard key={provider.provider_id} provider={provider} rank={index + 1} onSelect={() => selectProvider(provider)} />)}</div> : <div className="empty-state"><Search size={28} /><h3>No providers matched these filters</h3><p>Try a nearby city or broaden the category.</p></div>}
+          {recommendations.results.length ? <div className="provider-list">{recommendations.results.map((provider, index) => <ProviderCard key={provider.provider_id} provider={provider} rank={index + 1} />)}</div> : <div className="empty-state"><Search size={28} /><h3>No providers matched these filters</h3><p>Try a nearby city or broaden the category.</p></div>}
         </section>
       )}
       </>}
       {section === "requests" && <HistoryPage title="My Requests" subtitle="Every service request you have submitted." icon={<ClipboardList size={24} />} empty="No service requests yet.">{requests.map((request) => <HistoryCard key={request.request_id} title={request.request_text} meta={`${request.category} · ${request.city}, ${request.district}`} status={request.urgency} date={request.created_at} />)}</HistoryPage>}
-      {section === "selected" && <InteractionPage title="Selected Providers" subtitle="Providers you shortlisted from recommendation results." interactions={interactions.filter((item) => item.interaction_type === "selected")} empty="You have not selected a provider yet." onAction={async (item) => { await api.logInteraction({ request_id: item.request_id, provider_id: item.provider_id, provider_name: item.provider_name ?? undefined, category: item.category, interaction_type: "booking_requested" }, session.token); await refreshHistory(); setSection("bookings"); }} actionLabel="Request booking" />}
+      {section === "selected" && <InteractionPage title="Selected Providers" subtitle="Provider selection starts after Component 4 returns the final Top-5." interactions={interactions.filter((item) => item.interaction_type === "selected")} empty="No final Top-5 provider has been selected yet." />}
       {section === "bookings" && <InteractionPage title="My Bookings" subtitle="Track booking requests and completed service history." interactions={interactions.filter((item) => item.interaction_type.startsWith("booking_"))} empty="No booking activity yet." renderAction={(item) => item.interaction_type === "booking_completed" && !interactions.some((event) => event.interaction_type === "rated" && event.request_id === item.request_id && event.provider_id === item.provider_id) ? <RatingAction interaction={item} token={session.token} onSaved={refreshHistory} /> : undefined} />}
       {section === "ratings" && <InteractionPage title="Ratings & Reviews" subtitle="Your provider feedback history." interactions={interactions.filter((item) => item.interaction_type === "rated")} empty="You have not rated a provider yet." />}
       {section === "profile" && <HistoryPage title="My Profile" subtitle="Contact and location preferences used across your requests." icon={<UserRound size={24} />} empty=""><section className="profile-editor standalone"><form onSubmit={saveProfile}><label>Phone number<input required minLength={7} value={profileForm.phone ?? ""} onChange={(e) => setProfileForm((current) => ({ ...current, phone: e.target.value }))} /></label><label>District<select value={profileForm.district ?? ""} onChange={(e) => setProfileForm((current) => ({ ...current, district: e.target.value }))}>{districts.map((item) => <option key={item}>{item}</option>)}</select></label><label>City<input required value={profileForm.city ?? ""} onChange={(e) => setProfileForm((current) => ({ ...current, city: e.target.value }))} /></label><label>Language<select value={profileForm.preferred_language} onChange={(e) => setProfileForm((current) => ({ ...current, preferred_language: e.target.value }))}><option>English</option><option>Sinhala</option><option>Tamil</option></select></label><button className="primary-button" disabled={profileSaving}>Save profile</button></form></section></HistoryPage>}

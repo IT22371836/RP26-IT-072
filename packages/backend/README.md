@@ -50,3 +50,12 @@ Verify the configured MongoDB connection and required indexes without starting t
 ```powershell
 python scripts/verify_database.py
 ```
+
+Create an administrator account (the password is requested securely and is not echoed):
+
+```powershell
+python scripts/seed_admin.py --email admin@example.com --full-name "Platform Admin"
+```
+
+Running the same command again refreshes an existing admin account. It will never convert an
+existing customer or provider account into an administrator.

@@ -65,6 +65,14 @@ async def reject_closed_booking(repository: InteractionRepository, source: dict)
             )
 
 
+async def refresh_provider_statistics(
+    interactions: InteractionRepository, providers: ProviderRepository, provider_id: str
+) -> None:
+    await providers.update_statistics(
+        provider_id, await interactions.provider_statistics(provider_id)
+    )
+
+
 @router.post("", response_model=InteractionPublic, status_code=status.HTTP_201_CREATED)
 async def create_interaction(
     payload: InteractionCreate,
@@ -124,6 +132,7 @@ async def complete_booking(
     await reject_closed_booking(repository, source)
     document = next_interaction(source, InteractionType.BOOKING_COMPLETED)
     await repository.create(document)
+    await refresh_provider_statistics(repository, providers, source["provider_id"])
     return InteractionPublic.model_validate(document)
 
 
@@ -146,6 +155,7 @@ async def cancel_booking(
     await reject_closed_booking(repository, source)
     document = next_interaction(source, InteractionType.BOOKING_CANCELLED)
     await repository.create(document)
+    await refresh_provider_statistics(repository, providers, source["provider_id"])
     return InteractionPublic.model_validate(document)
 
 
@@ -155,6 +165,7 @@ async def rate_completed_booking(
     payload: RatingCreate,
     current_user: Annotated[UserPublic, Depends(customer_user)],
     repository: Annotated[InteractionRepository, Depends(get_interaction_repository)],
+    providers: Annotated[ProviderRepository, Depends(get_provider_repository)],
 ) -> InteractionPublic:
     source = await repository.find_by_id(interaction_id)
     if (
@@ -168,4 +179,5 @@ async def rate_completed_booking(
     await reject_duplicate_transition(repository, source, InteractionType.RATED)
     document = next_interaction(source, InteractionType.RATED, payload.rating)
     await repository.create(document)
+    await refresh_provider_statistics(repository, providers, source["provider_id"])
     return InteractionPublic.model_validate(document)

@@ -72,6 +72,40 @@ class InteractionRepository:
     async def count(self) -> int:
         return await self.collection.count_documents({})
 
+    async def provider_statistics(self, provider_id: str) -> dict[str, int | float]:
+        completed = await self.collection.count_documents(
+            {
+                "provider_id": provider_id,
+                "interaction_type": InteractionType.BOOKING_COMPLETED.value,
+            }
+        )
+        cancelled = await self.collection.count_documents(
+            {
+                "provider_id": provider_id,
+                "interaction_type": InteractionType.BOOKING_CANCELLED.value,
+            }
+        )
+        interaction_count = await self.collection.count_documents(
+            {"provider_id": provider_id, "interaction_type": {"$ne": "impression"}}
+        )
+        ratings = await self.collection.find(
+            {"provider_id": provider_id, "interaction_type": InteractionType.RATED.value},
+            {"rating": 1},
+        ).to_list(length=100_000)
+        review_count = len(ratings)
+        rating = (
+            sum(float(record["rating"]) for record in ratings) / review_count
+            if review_count
+            else 0.0
+        )
+        closed = completed + cancelled
+        return {
+            "rating": rating,
+            "review_count": review_count,
+            "booking_success_rate": completed / closed if closed else 0.0,
+            "interaction_count": interaction_count,
+        }
+
     async def preferred_provider_ids(self, user_id: str, limit: int = 500) -> list[str]:
         preference_events = [
             InteractionType.CLICK.value,

@@ -10,6 +10,7 @@ from app.schemas.service_request import (
     ServiceRequestCreate,
     ServiceRequestResponse,
     WeatherInfoSchema,
+    WeatherRiskSchema,
 )
 from app.services.service_request_service import ServiceRequestService
 
@@ -36,7 +37,7 @@ async def create_service_request(
 
     repo = ServiceRequestRepository(db)
     service = ServiceRequestService(repo)
-    result, weather, matched_providers = await service.create_request(payload)
+    result, weather, matched_providers, weather_risk = await service.create_request(payload)
 
     weather_schema: WeatherInfoSchema | None = None
     if weather:
@@ -50,6 +51,16 @@ async def create_service_request(
     else:
         logger.info("[ServiceRequest] No weather data (indoor request or fetch failed)")
 
+    weather_risk_schema: WeatherRiskSchema | None = None
+    if weather_risk:
+        weather_risk_schema = WeatherRiskSchema(**weather_risk.to_dict())
+        logger.info(
+            "[ServiceRequest] Weather risk attached | level=%s score=%.1f windows=%d",
+            weather_risk.risk_level,
+            weather_risk.risk_score,
+            len(weather_risk.suggested_windows),
+        )
+
     provider_schemas = [MatchedProviderSchema(**p) for p in matched_providers]
     logger.info(
         "[ServiceRequest] Returning %d matched provider(s) | id=%s",
@@ -61,5 +72,6 @@ async def create_service_request(
         id=str(result["_id"]),
         message="Service request submitted successfully",
         weather=weather_schema,
+        weather_risk=weather_risk_schema,
         matched_providers=provider_schemas,
     )

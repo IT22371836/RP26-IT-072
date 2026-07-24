@@ -469,3 +469,271 @@
   padding: 80px 24px;
   color: var(--text-secondary);
 }
+
+/* ── Weather Risk Advisory Card ──────────────────────────── */
+.results-card--risk {
+  border-radius: 12px;
+  border: 1px solid;
+}
+
+.risk-badge {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  margin-bottom: 12px;
+}
+
+.risk-badge__icon {
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.risk-badge__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.risk-badge__label {
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.risk-badge__score {
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0.85;
+}
+
+.risk-score-bar {
+  height: 6px;
+  background: var(--border-default);
+  border-radius: 99px;
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+
+.risk-score-bar__fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.6s ease;
+}
+
+.risk-reasons {
+  list-style: none;
+  margin: 0 0 14px 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.risk-reason-item {
+  font-size: 13px;
+  color: var(--text-secondary);
+  padding: 6px 10px;
+  border-left: 3px solid;
+  background: var(--bg-surface-hover, rgba(255,255,255,0.03));
+  border-radius: 0 6px 6px 0;
+  line-height: 1.4;
+}
+
+.risk-recommendation {
+  font-size: 13px;
+  color: var(--text-primary);
+  font-style: italic;
+  margin: 0 0 14px 0;
+  padding: 10px 12px;
+  background: var(--bg-surface-hover, rgba(255,255,255,0.03));
+  border-radius: 8px;
+  border: 1px solid var(--border-default);
+  line-height: 1.5;
+}
+
+/* ── Suggested Safer Windows ─────────────────────────────── */
+.risk-windows {
+  margin-top: 4px;
+}
+
+.risk-windows__title {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-secondary);
+  margin: 0 0 10px 0;
+}
+
+.risk-window-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  background: var(--bg-surface);
+  flex-wrap: wrap;
+  transition: border-color 0.2s ease;
+}
+
+.risk-window-item--active {
+  background: var(--bg-surface-hover, rgba(255,255,255,0.04));
+}
+
+.risk-window-item:last-child {
+  margin-bottom: 0;
+}
+
+.risk-window-item__left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.risk-window-item__meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+.risk-window-item__date {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.risk-window-item__time {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.risk-window-item__condition {
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.risk-window-item__rain {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.risk-window-item__badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  white-space: nowrap;
+}
+
+/* ── Window Search Button ─────────────────────────────────── */
+.risk-window-search-btn {
+  flex-shrink: 0;
+  padding: 7px 14px;
+  border-radius: 8px;
+  border: 2px solid;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.risk-window-search-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.risk-window-search-btn__spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Providers header row (title + reset btn) ─────────────── */
+.results-providers-title-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.results-reset-btn {
+  background: transparent;
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.2s ease, color 0.2s ease;
+  white-space: nowrap;
+}
+
+.results-reset-btn:hover {
+  border-color: var(--customer-500);
+  color: var(--customer-400);
+}
+
+.results-providers-hint--alt {
+  color: var(--customer-400);
+  font-weight: 600;
+}
+
+.results-providers-error {
+  font-size: 13px;
+  color: #ef4444;
+  margin: 4px 0 0 0;
+}
+
+/* ── Providers loading state ─────────────────────────────── */
+.results-providers-loading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 48px 24px;
+  justify-content: center;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.results-providers-loading__spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid var(--border-default);
+  border-top-color: var(--customer-500);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}

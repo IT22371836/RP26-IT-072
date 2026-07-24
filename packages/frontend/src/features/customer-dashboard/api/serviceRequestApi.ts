@@ -51,10 +51,28 @@ export type MatchedProvider = {
   distance_km: number;
 };
 
+export type SuggestedWindow = {
+  date: string;
+  time: string;
+  condition: string;
+  temperature_c: number;
+  precipitation_probability: number;
+  risk_level: "SAFE" | "MODERATE" | "HIGH" | "EXTREME";
+};
+
+export type WeatherRisk = {
+  risk_level: "SAFE" | "MODERATE" | "HIGH" | "EXTREME";
+  risk_score: number;
+  risk_reasons: string[];
+  recommendation: string;
+  suggested_windows: SuggestedWindow[];
+};
+
 export type ServiceRequestResponse = {
   id: string;
   message: string;
   weather: WeatherInfo | null;
+  weather_risk: WeatherRisk | null;
   matched_providers: MatchedProvider[];
 };
 

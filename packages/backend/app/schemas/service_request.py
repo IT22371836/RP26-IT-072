@@ -41,8 +41,26 @@ class MatchedProviderSchema(BaseModel):
     distance_km: float
 
 
+class SuggestedWindowSchema(BaseModel):
+    date: str
+    time: str
+    condition: str
+    temperature_c: float
+    precipitation_probability: int
+    risk_level: str
+
+
+class WeatherRiskSchema(BaseModel):
+    risk_level: str
+    risk_score: float
+    risk_reasons: list[str]
+    recommendation: str
+    suggested_windows: list[SuggestedWindowSchema] = []
+
+
 class ServiceRequestResponse(BaseModel):
     id: str
     message: str
     weather: WeatherInfoSchema | None = None
+    weather_risk: WeatherRiskSchema | None = None
     matched_providers: list[MatchedProviderSchema] = []

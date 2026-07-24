@@ -176,3 +176,59 @@ async def get_weather_for_service(
         condition=WMO_CODES.get(weather_code, "Unknown"),
         weather_code=weather_code,
     )
+
+
+async def get_hourly_forecast_range(
+    latitude: float,
+    longitude: float,
+    start_date: str,
+    end_date: str,
+) -> list[dict]:
+    """
+    Fetches all hourly weather data between start_date and end_date (inclusive).
+    Returns a list of dicts: [{"date": "YYYY-MM-DD", "hour": int, "weather": WeatherInfo}]
+    Returns an empty list on any failure.
+    """
+    params = {
+        "latitude": latitude,
+        "longitude": longitude,
+        "hourly": "temperature_2m,precipitation,precipitation_probability,weathercode,windspeed_10m",
+        "start_date": start_date,
+        "end_date": end_date,
+        "timezone": "Asia/Colombo",
+    }
+
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.get(OPEN_METEO_URL, params=params)
+            response.raise_for_status()
+            data = response.json()
+    except Exception as exc:
+        logger.error("[WeatherService] get_hourly_forecast_range error: %s", exc)
+        return []
+
+    hourly = data.get("hourly", {})
+    times: list[str] = hourly.get("time", [])
+    results: list[dict] = []
+
+    for i, time_str in enumerate(times):
+        try:
+            date_part, time_part = time_str.split("T")
+            hour = int(time_part.split(":")[0])
+            weather_code = int(hourly["weathercode"][i])
+            results.append({
+                "date": date_part,
+                "hour": hour,
+                "weather": WeatherInfo(
+                    temperature_c=float(hourly["temperature_2m"][i]),
+                    wind_speed_kmh=float(hourly["windspeed_10m"][i]),
+                    precipitation_mm=float(hourly["precipitation"][i]),
+                    precipitation_probability=int(hourly["precipitation_probability"][i]),
+                    condition=WMO_CODES.get(weather_code, "Unknown"),
+                    weather_code=weather_code,
+                ),
+            })
+        except (KeyError, ValueError, IndexError):
+            continue
+
+    return results

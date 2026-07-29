@@ -1,0 +1,1 @@
+-e .[component1,dev]

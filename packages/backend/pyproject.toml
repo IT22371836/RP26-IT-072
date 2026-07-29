@@ -1,0 +1,41 @@
+[project]
+name = "weda-platform-backend"
+version = "0.1.0"
+description = "FastAPI backend for the weda.lk maintenance provider platform"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.115,<1.0",
+  "email-validator>=2.2,<3.0",
+  "pydantic-settings>=2.7,<3.0",
+  "pwdlib[argon2]>=0.2,<1.0",
+  "pyjwt>=2.10,<3.0",
+  "pymongo>=4.13,<5.0",
+  "uvicorn[standard]>=0.34,<1.0",
+]
+
+[project.optional-dependencies]
+component1 = [
+  "joblib>=1.4,<2.0",
+  "numpy>=2.0,<3.0",
+  "pandas>=2.2,<4.0",
+  "scikit-learn>=1.6,<2.0",
+  "scipy>=1.14,<2.0",
+  "sentence-transformers>=3.4,<6.0",
+]
+dev = [
+  "httpx>=0.28,<1.0",
+  "pytest>=8.3,<9.0",
+  "ruff>=0.11,<1.0",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+addopts = ["-p", "no:asyncio"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "ASYNC"]

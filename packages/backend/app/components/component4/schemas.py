@@ -77,7 +77,9 @@ class Component4ModelsResponse(BaseModel):
     provider_score_count: int = Field(ge=0)
     versions: Component4Versions
     weight_validation_status: str
+    evaluation_version: str | None
     ranking_ground_truth_validation: str
+    production_ground_truth_validation: str
 
 
 class Component4WeightResponse(BaseModel):

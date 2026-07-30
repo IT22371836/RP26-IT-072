@@ -17,7 +17,17 @@ from app.components.component4.schemas import (
 from app.repositories.component4 import Component4Repository
 from app.schemas.common import utc_now
 
-COMPONENT_VERSION = "component4-phase6"
+REPOSITORY_ROOT = Path(__file__).resolve().parents[5]
+DEFAULT_EVALUATION_MANIFEST = (
+    REPOSITORY_ROOT
+    / "ml"
+    / "components"
+    / "component4"
+    / "artifacts"
+    / "evaluation-v1"
+    / "manifest.json"
+)
+COMPONENT_VERSION = "component4-phase8"
 
 
 class ArtifactsUnavailableError(Exception):
@@ -57,17 +67,26 @@ def finite_float(value: Any, field: str) -> float:
 
 
 class Component4RankingEngine:
-    """Immutable in-memory CATF score snapshot used by the Phase 6 API."""
+    """Immutable CATF snapshot with optional Phase 8 evaluation metadata."""
 
-    def __init__(self, artifact_dir: Path, category_priors_path: Path) -> None:
+    def __init__(
+        self,
+        artifact_dir: Path,
+        category_priors_path: Path,
+        evaluation_manifest_path: Path | None = None,
+    ) -> None:
         self.artifact_dir = artifact_dir.resolve()
         self.category_priors_path = category_priors_path.resolve()
+        self.evaluation_manifest_path = (
+            evaluation_manifest_path or DEFAULT_EVALUATION_MANIFEST
+        ).resolve()
         self.ready = False
         self.manifest: dict[str, Any] = {}
         self.config: dict[str, Any] = {}
         self.weight_profiles: dict[str, Any] = {}
         self.category_priors: dict[str, Any] = {}
         self.provider_scores: dict[str, dict[str, Any]] = {}
+        self.evaluation: dict[str, Any] = {}
 
     @property
     def versions(self) -> dict[str, str]:
@@ -100,6 +119,50 @@ class Component4RankingEngine:
         require(isinstance(expected_bytes, int), f"Manifest byte count is missing for {label}")
         require(path.stat().st_size == expected_bytes, f"Artifact byte count failed: {label}")
         require(sha256_file(path) == expected_hash, f"Artifact checksum failed: {label}")
+
+    def _load_evaluation(self, phase5_manifest_path: Path) -> dict[str, Any]:
+        if not self.evaluation_manifest_path.is_file():
+            return {}
+        evaluation = self._load_json(
+            self.evaluation_manifest_path,
+            "Phase 8 evaluation manifest",
+        )
+        require(
+            evaluation.get("evaluation_version") == "ranking-evaluation-v1",
+            "Phase 8 evaluation version mismatch",
+        )
+        require(evaluation.get("status") == "passed", "Phase 8 evaluation did not pass")
+        require(
+            evaluation.get("validation_scope")
+            == "held_out_proxy_not_production_ground_truth",
+            "Phase 8 evaluation scope is not explicit",
+        )
+        inputs = evaluation.get("inputs")
+        reports = evaluation.get("reports")
+        require(isinstance(inputs, dict), "Phase 8 input metadata is missing")
+        require(isinstance(reports, dict), "Phase 8 report metadata is missing")
+        self._verify_file(
+            phase5_manifest_path,
+            inputs.get("phase5_manifest"),
+            "Phase 8 Phase 5 manifest input",
+        )
+        audit_metadata = reports.get("ranking_evaluation")
+        require(isinstance(audit_metadata, dict), "Phase 8 audit metadata is missing")
+        audit_path = REPOSITORY_ROOT / str(audit_metadata.get("path", ""))
+        self._verify_file(audit_path, audit_metadata, "Phase 8 ranking evaluation")
+        audit = self._load_json(audit_path, "Phase 8 ranking evaluation")
+        require(audit.get("status") == "passed", "Phase 8 ranking evaluation did not pass")
+        require(
+            audit.get("ranking_ground_truth_validation")
+            == evaluation.get("ranking_ground_truth_validation"),
+            "Phase 8 validation status mismatch",
+        )
+        require(
+            audit.get("production_ground_truth_validation")
+            == evaluation.get("production_ground_truth_validation"),
+            "Phase 8 production limitation mismatch",
+        )
+        return evaluation
 
     def load(self) -> None:
         manifest_path = self.artifact_dir / "manifest.json"
@@ -240,12 +303,14 @@ class Component4RankingEngine:
             len(provider_scores) == int(manifest["preservation"]["component1_providers"]),
             "Provider score count differs from the manifest",
         )
+        evaluation = self._load_evaluation(manifest_path)
 
         self.manifest = manifest
         self.config = config
         self.weight_profiles = profiles
         self.category_priors = priors
         self.provider_scores = provider_scores
+        self.evaluation = evaluation
         self.ready = True
 
     def status(self) -> dict[str, Any]:
@@ -256,7 +321,15 @@ class Component4RankingEngine:
             "provider_score_count": len(self.provider_scores),
             "versions": self.versions,
             "weight_validation_status": self.weight_profiles["validation_status"],
-            "ranking_ground_truth_validation": "pending_phase8",
+            "evaluation_version": self.evaluation.get("evaluation_version"),
+            "ranking_ground_truth_validation": self.evaluation.get(
+                "ranking_ground_truth_validation",
+                "pending_phase8",
+            ),
+            "production_ground_truth_validation": self.evaluation.get(
+                "production_ground_truth_validation",
+                "pending_real_component2_and_independent_relevance_judgements",
+            ),
         }
 
     def weight_profile(self, category: str) -> dict[str, Any]:

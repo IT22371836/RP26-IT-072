@@ -277,6 +277,15 @@ def test_model_weight_and_health_endpoints() -> None:
 
         assert models.status_code == 200
         assert models.json()["provider_score_count"] == 10_000
+        assert models.json()["evaluation_version"] == "ranking-evaluation-v1"
+        assert (
+            models.json()["ranking_ground_truth_validation"]
+            == "held_out_proxy_validated_phase8"
+        )
+        assert (
+            models.json()["production_ground_truth_validation"]
+            == "pending_real_component2_and_independent_relevance_judgements"
+        )
         assert weights.status_code == 200
         assert sum(weights.json()["weights"].values()) == 1.0
         assert health.status_code == 200

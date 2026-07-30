@@ -317,3 +317,53 @@ Phase 7 automated tests cover the exact ten-ID request, five-result rendering, f
 disclosure, aspect/evidence presentation, authenticated API request, and selected-provider
 history. Production evaluation and removal of the temporary handoff depend on the real
 Component 2 implementation.
+
+## Phase 8 - Held-out proxy ranking evaluation
+
+Phase 8 evaluates the CATF Top-5 ordering without leaking evaluation targets into ranking
+evidence. Train and validation review predictions are the only ranking evidence. The test
+split is used only to create an independent provider-level proxy relevance target:
+
+```text
+review proxy relevance = (rating / 5) * actual credibility score
+provider proxy relevance = mean(review proxy relevance over held-out test reviews)
+```
+
+This target does not use ABSA predictions, CATF scores, or ranking positions. Providers are
+placed into deterministic category-consistent groups of ten using a versioned SHA-256 seed.
+The groups are offline evaluation fixtures and are explicitly not Component 2 output. The
+last group in each category wraps from the beginning only as needed so all held-out providers
+receive one primary assignment while every query still has exactly ten unique candidates.
+
+Run Phase 8 after the Phase 5 review-fusion output has been generated:
+
+```powershell
+py -3.12 -m pip install -r ml\components\component4\requirements-phase8.txt
+py -3.12 ml\components\component4\src\evaluate_ranking.py
+```
+
+Phase 8 compares CATF with average rating, CATF without credibility weighting, and CATF with
+uniform aspect weights. It reports `NDCG@5`, `Precision@5`, `Recall@5`, and `MAP@5`, including
+per-query and per-category breakdowns:
+
+- `artifacts/evaluation-v1/evaluation_config.json` - frozen split, proxy, fixture, method,
+  and metric contracts.
+- `artifacts/evaluation-v1/manifest.json` - byte counts and SHA-256 hashes for every input
+  and tracked output.
+- `reports/evaluation-v1/ranking_evaluation.json` - audit, aggregate metrics, paired CATF
+  deltas, and explicit limitations.
+- `reports/evaluation-v1/proxy_ground_truth.csv` and `evaluation_queries.csv` - auditable
+  proxy providers and deterministic candidate membership.
+- `reports/evaluation-v1/query_metrics.csv`, `method_metrics.csv`, and
+  `category_metrics.csv`.
+- `reports/evaluation-v1/ranking_method_comparison.png` and `category_ndcg_at_5.png`.
+
+The current run uses 21,004 train/validation reviews as ranking evidence and 3,996 held-out
+test reviews as the proxy target, with zero split overlap. It covers 2,731 held-out providers
+in 278 ten-candidate queries across all 14 categories.
+
+CATF improves over the average-rating baseline on the current held-out proxy. The uniform
+weight ablation is marginally higher than category-adaptive weights on some aggregate
+metrics, so Phase 8 does not claim that the PDF-guided category weights are empirically
+superior. The proxy is not human or production ground truth. Final production validation
+still requires real Component 2 candidates and independent relevance judgements.

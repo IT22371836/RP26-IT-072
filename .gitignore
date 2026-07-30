@@ -42,6 +42,16 @@ ml/components/component4/reports/catf-v1/*
 !ml/components/component4/reports/catf-v1/provider_score_distribution.png
 !ml/components/component4/reports/catf-v1/reliability_curve.png
 !ml/components/component4/reports/catf-v1/demo_top5_ranking.png
+!ml/components/component4/reports/evaluation-v1/
+ml/components/component4/reports/evaluation-v1/*
+!ml/components/component4/reports/evaluation-v1/ranking_evaluation.json
+!ml/components/component4/reports/evaluation-v1/proxy_ground_truth.csv
+!ml/components/component4/reports/evaluation-v1/evaluation_queries.csv
+!ml/components/component4/reports/evaluation-v1/query_metrics.csv
+!ml/components/component4/reports/evaluation-v1/method_metrics.csv
+!ml/components/component4/reports/evaluation-v1/category_metrics.csv
+!ml/components/component4/reports/evaluation-v1/ranking_method_comparison.png
+!ml/components/component4/reports/evaluation-v1/category_ndcg_at_5.png
 
 # Environment
 .env

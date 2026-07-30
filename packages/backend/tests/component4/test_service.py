@@ -36,6 +36,12 @@ def test_engine_loads_versioned_phase5_snapshot(engine: Component4RankingEngine)
         "absa_model_version": "absa-v1",
         "credibility_model_version": "credibility-v1",
     }
+    assert status["component_version"] == "component4-phase8"
+    assert status["evaluation_version"] == "ranking-evaluation-v1"
+    assert status["ranking_ground_truth_validation"] == "held_out_proxy_validated_phase8"
+    assert status["production_ground_truth_validation"] == (
+        "pending_real_component2_and_independent_relevance_judgements"
+    )
 
 
 def test_engine_rejects_a_tampered_artifact(

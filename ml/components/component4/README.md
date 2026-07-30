@@ -50,3 +50,39 @@ from the frozen raw files. Their manifest and audit report remain tracked.
 
 Do not begin provider-ID mapping, MongoDB seeding, model training, CATF implementation, or API
 integration until Phase 1 verification has passed and Phase 2 has been explicitly approved.
+
+## Phase 2 - Deterministic provider mapping
+
+Phase 2 maps every Component 4 research provider to a real Component 1 research-provider ID
+without modifying either source dataset. Mapping is a category-scoped, sorted one-to-one
+bijection. Given the same frozen inputs, every source provider always receives the same target
+provider ID.
+
+Run Phase 2 after Phase 1:
+
+```powershell
+packages\backend\.venv\Scripts\python.exe ml\components\component4\src\map_providers.py
+```
+
+Tracked Phase 2 contracts and reports:
+
+- `data/processed/provider_id_map.csv` - frozen source-to-target mapping.
+- `data/processed/category_priors.json` - category-prior fallback configuration.
+- `data/processed/phase2_manifest.json` - input/output hashes and algorithm version.
+- `reports/phase2_mapping_audit.json` - mapping, preservation, and fallback validation.
+
+Reproducible generated files (Git-ignored):
+
+- `data/processed/customer_reviews_mapped.csv`
+- `data/processed/provider_review_summary_mapped.csv`
+- `data/processed/provider_no_review_fallbacks.csv`
+
+Mapped review and provider-summary rows retain the original Component 4 provider ID as
+`source_provider_id`. Only the processed `provider_id` value is replaced; review text, labels,
+ratings, credibility features, review counts, and original source files remain unchanged.
+
+The fallback configuration uses the empirical mean `trust_sentiment_score` of reviewed source
+providers in each category. Any Component 1 provider without mapped reviews receives its
+category prior, zero effective reviews, zero reliability, and `insufficient` evidence status.
+
+Phase 2 does not seed MongoDB, train models, implement CATF, or change Component 1 artifacts.

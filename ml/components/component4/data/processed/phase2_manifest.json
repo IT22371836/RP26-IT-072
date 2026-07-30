@@ -1,0 +1,210 @@
+{
+  "phase": 2,
+  "mapping_version": "provider-map-v1",
+  "mapping_algorithm": "category-sorted-bijection-v1",
+  "category_prior_version": "category-priors-v1",
+  "inputs": {
+    "component1_providers": {
+      "path": "packages/backend/app/components/component1/artifacts/providers.json",
+      "bytes": 4258187,
+      "sha256": "b83f0043b84d0a582bf28ffef325fa1b26352b8836e8f31f1c3cb268e95947e6",
+      "rows": 10000,
+      "columns": [
+        "provider_id",
+        "provider_name",
+        "category",
+        "district",
+        "city",
+        "skills",
+        "description",
+        "experience_years",
+        "rating",
+        "review_count",
+        "booking_success_rate",
+        "interaction_count"
+      ]
+    },
+    "phase1_manifest": {
+      "path": "ml/components/component4/data/processed/manifest.json",
+      "bytes": 3408,
+      "sha256": "0bfc6016b66c0fa6b7e25d7830ad092109d72ea40d0757ecd9de6658be3dae1f"
+    },
+    "phase1_reviews": {
+      "path": "ml/components/component4/data/processed/customer_reviews_clean.csv",
+      "bytes": 6057508,
+      "sha256": "c4f83d0ff055413081d77c8b2856642aaa25a3b30521f4f626db05379d75bacf",
+      "rows": 25000,
+      "columns": [
+        "review_id",
+        "booking_id",
+        "source_booking_id",
+        "provider_id",
+        "user_id",
+        "service_type",
+        "source_service_type",
+        "district",
+        "rating",
+        "review_text",
+        "review_text_group_id",
+        "review_date",
+        "verified_booking",
+        "source_dataset_split",
+        "dataset_split"
+      ]
+    },
+    "phase1_labels": {
+      "path": "ml/components/component4/data/processed/aspect_sentiment_labels_clean.csv",
+      "bytes": 1259521,
+      "sha256": "a64ec84dea7e0583c7e136459456d290d07a219bc42691e077a978899a9de1fc",
+      "rows": 25000,
+      "columns": [
+        "review_id",
+        "quality_label",
+        "punctuality_label",
+        "communication_label",
+        "professionalism_label",
+        "overall_sentiment_label"
+      ]
+    },
+    "phase1_credibility": {
+      "path": "ml/components/component4/data/processed/review_credibility_clean.csv",
+      "bytes": 976835,
+      "sha256": "3ea82f7d1e2f13523e1f4470a6b47053006fc2305160744472eefb53a99bcc3e",
+      "rows": 25000,
+      "columns": [
+        "review_id",
+        "word_count",
+        "exclamation_count",
+        "caps_word_count",
+        "repeated_char_count",
+        "unique_word_ratio",
+        "url_count",
+        "duplicate_pattern",
+        "extreme_rating",
+        "verified_booking",
+        "reviewer_review_count_24h",
+        "is_fake_review",
+        "credibility_score"
+      ]
+    },
+    "phase1_providers": {
+      "path": "ml/components/component4/data/processed/provider_review_summary_clean.csv",
+      "bytes": 472645,
+      "sha256": "7336836bfcdd066aa3f615e7337d3a82e73c7bcdfdc8063c29418d128b76224c",
+      "rows": 4998,
+      "columns": [
+        "provider_id",
+        "service_type",
+        "source_service_type",
+        "district",
+        "total_reviews",
+        "average_rating",
+        "quality_score",
+        "punctuality_score",
+        "communication_score",
+        "professionalism_score",
+        "fake_review_ratio",
+        "average_credibility_score",
+        "trust_sentiment_score",
+        "provider_tier"
+      ]
+    }
+  },
+  "outputs": {
+    "provider_mapping": {
+      "path": "ml/components/component4/data/processed/provider_id_map.csv",
+      "bytes": 478269,
+      "sha256": "f9cef3be8de1bcbebeda250ce6b082a80cf427028e3de63a908e0054c5cb491b",
+      "rows": 4998,
+      "columns": [
+        "source_provider_id",
+        "provider_id",
+        "source_category",
+        "category",
+        "source_district",
+        "mapped_district",
+        "mapping_algorithm",
+        "mapping_version"
+      ]
+    },
+    "mapped_reviews": {
+      "path": "ml/components/component4/data/processed/customer_reviews_mapped.csv",
+      "bytes": 6232527,
+      "sha256": "5ea61c1a34c43a51edceea217362fc87ffdc1712a5f09c86f3afa7de5b515017",
+      "rows": 25000,
+      "columns": [
+        "review_id",
+        "booking_id",
+        "source_booking_id",
+        "provider_id",
+        "source_provider_id",
+        "user_id",
+        "service_type",
+        "source_service_type",
+        "district",
+        "rating",
+        "review_text",
+        "review_text_group_id",
+        "review_date",
+        "verified_booking",
+        "source_dataset_split",
+        "dataset_split"
+      ]
+    },
+    "mapped_provider_summary": {
+      "path": "ml/components/component4/data/processed/provider_review_summary_mapped.csv",
+      "bytes": 507650,
+      "sha256": "b3308a2343e966b4217a7d105375d00d2a0fd414105e992956af2333d9b354c6",
+      "rows": 4998,
+      "columns": [
+        "provider_id",
+        "source_provider_id",
+        "service_type",
+        "source_service_type",
+        "district",
+        "total_reviews",
+        "average_rating",
+        "quality_score",
+        "punctuality_score",
+        "communication_score",
+        "professionalism_score",
+        "fake_review_ratio",
+        "average_credibility_score",
+        "trust_sentiment_score",
+        "provider_tier"
+      ]
+    },
+    "provider_no_review_fallbacks": {
+      "path": "ml/components/component4/data/processed/provider_no_review_fallbacks.csv",
+      "bytes": 483253,
+      "sha256": "d4262b6f3bcc5178fa73455c9a386415e97a92ae6aac42e71807f617c1c57ee7",
+      "rows": 5024,
+      "columns": [
+        "provider_id",
+        "category",
+        "quality_score",
+        "punctuality_score",
+        "communication_score",
+        "professionalism_score",
+        "effective_review_count",
+        "reliability_factor",
+        "final_score",
+        "evidence_status",
+        "score_source",
+        "prior_version"
+      ]
+    },
+    "category_priors": {
+      "path": "ml/components/component4/data/processed/category_priors.json",
+      "bytes": 1919,
+      "sha256": "e37a1343bfe5af59818aa397384dddc09c6173644e9723a68a6d7f20c2a5b1d9"
+    },
+    "audit": {
+      "path": "ml/components/component4/reports/phase2_mapping_audit.json",
+      "bytes": 2169,
+      "sha256": "217ef73b1e485b87ac5ad8d69db5741d31d8a7786c119eca8d4bcbde1b34dddd"
+    }
+  },
+  "component1_source_unchanged": true,
+  "phase3_not_started": true
+}

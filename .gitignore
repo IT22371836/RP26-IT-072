@@ -16,7 +16,11 @@ ml/components/**/data/processed/*
 ml/components/**/reports/*
 !ml/components/**/reports/.gitkeep
 !ml/components/component4/data/processed/manifest.json
+!ml/components/component4/data/processed/provider_id_map.csv
+!ml/components/component4/data/processed/category_priors.json
+!ml/components/component4/data/processed/phase2_manifest.json
 !ml/components/component4/reports/phase1_audit.json
+!ml/components/component4/reports/phase2_mapping_audit.json
 
 # Environment
 .env

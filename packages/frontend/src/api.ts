@@ -1,5 +1,6 @@
 import type {
   RecommendationResponse,
+  Component4RankResponse,
   ProviderProfile,
   ProviderProfileInput,
   CustomerProfile,
@@ -74,6 +75,20 @@ export const api = {
           city: serviceRequest.city,
           min_rating: 0,
           top_k: 20,
+        }),
+      },
+      token,
+    ),
+  rankComponent4: (requestId: string, providerIds: string[], token: string) =>
+    request<Component4RankResponse>(
+      "/component4/rank",
+      {
+        method: "POST",
+        body: JSON.stringify({
+          request_id: requestId,
+          provider_ids: providerIds,
+          top_k: 5,
+          force_recalculate: false,
         }),
       },
       token,

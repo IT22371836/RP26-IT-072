@@ -21,7 +21,13 @@ import {
 } from "lucide-react";
 import { FormEvent, ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { ApiError, api } from "./api";
+import {
+  COMPONENT2_HANDOFF_MODE,
+  buildComponent2IntegrationFixture,
+} from "./component2-handoff";
 import type {
+  Component4RankedProvider,
+  Component4RankResponse,
   ProviderRecommendation,
   ProviderProfile,
   ProviderProfileInput,
@@ -122,11 +128,11 @@ function AuthScreen({ onAuthenticated }: { onAuthenticated: (session: Session) =
       <section className="auth-story">
         <div className="eyebrow"><Sparkles size={15} /> AI-powered matching for Sri Lanka</div>
         <h1>The right professional.<br /><em>Right when you need them.</em></h1>
-        <p>Describe the job once. Our hybrid recommendation engine evaluates thousands of providers and gives you the 20 strongest matches.</p>
+        <p>Describe the job once. Our relevance and review-intelligence pipeline evaluates thousands of providers and returns five trust-aware matches.</p>
         <div className="trust-row">
           <div><strong>10K+</strong><span>providers analysed</span></div>
           <div><strong>3-way</strong><span>intelligent scoring</span></div>
-          <div><strong>Top 20</strong><span>tailored matches</span></div>
+          <div><strong>Top 5</strong><span>trust-aware matches</span></div>
         </div>
         <div className="story-card">
           <div className="mini-avatar">RK</div>
@@ -189,6 +195,68 @@ function ProviderCard({ provider, rank }: { provider: ProviderRecommendation; ra
   );
 }
 
+function TrustProviderCard({
+  provider,
+  selected,
+  selecting,
+  onSelect,
+}: {
+  provider: Component4RankedProvider;
+  selected: boolean;
+  selecting: boolean;
+  onSelect: () => Promise<void>;
+}) {
+  const aspectValues = [
+    ["Quality", provider.aspect_scores.quality, "#0f766e"],
+    ["Punctuality", provider.aspect_scores.punctuality, "#d97706"],
+    ["Communication", provider.aspect_scores.communication, "#2563eb"],
+    ["Professionalism", provider.aspect_scores.professionalism, "#7c3aed"],
+  ] as const;
+
+  return (
+    <article className="provider-card trust-provider-card">
+      <div className="rank">{String(provider.rank).padStart(2, "0")}</div>
+      <div className="provider-main">
+        <div className="provider-title">
+          <div>
+            <h3>{provider.provider_name}</h3>
+            <p><MapPin size={14} />{provider.city}, {provider.district}<span />{provider.category}</p>
+          </div>
+          <div className="match-pill trust-pill"><ShieldCheck size={14} />{Math.round(provider.final_score * 100)}% trust</div>
+        </div>
+        <div className="provider-meta trust-meta">
+          <span><Star size={15} fill="currentColor" />{provider.platform_rating.toFixed(1)} <small>({provider.platform_review_count})</small></span>
+          <span><ShieldCheck size={15} />{Math.round(provider.mean_credibility * 100)}% review credibility</span>
+          <span>{provider.review_count} analysed reviews</span>
+        </div>
+        <div className="evidence-row">
+          <span className={`evidence-pill ${provider.evidence_status}`}>{provider.evidence_status} evidence</span>
+          <small>Effective reviews {provider.effective_review_count.toFixed(1)} · Reliability {Math.round(provider.reliability_factor * 100)}%</small>
+        </div>
+        <button
+          type="button"
+          className="select-provider"
+          disabled={selected || selecting}
+          onClick={onSelect}
+        >
+          {selected ? <Check size={14} /> : selecting ? <LoaderCircle className="spin" size={14} /> : <Heart size={14} />}
+          {selected ? "Selected" : selecting ? "Saving..." : "Select this provider"}
+        </button>
+      </div>
+      <div className="score-panel trust-score-panel">
+        {aspectValues.map(([label, value, tone]) => (
+          <ScoreBar
+            key={label}
+            label={label}
+            value={(value + 1) / 2}
+            tone={tone}
+          />
+        ))}
+      </div>
+    </article>
+  );
+}
+
 function HistoryPage({ title, subtitle, icon, empty, children }: { title: string; subtitle: string; icon: ReactNode; empty: string; children: ReactNode }) {
   const hasChildren = Array.isArray(children) ? children.length > 0 : Boolean(children);
   return <section className="history-page"><div className="page-heading"><span>{icon}</span><div><h1>{title}</h1><p>{subtitle}</p></div></div>{hasChildren ? <div className="history-list">{children}</div> : <div className="empty-state"><ClipboardList size={28} /><h3>{empty}</h3></div>}</section>;
@@ -213,7 +281,10 @@ function CustomerDashboard({ session }: { session: Session }) {
   const [section, setSection] = useState<CustomerSection>("find");
   const [form, setForm] = useState<ServiceRequestInput>({ request_text: "", category: "Electricians", district: "Colombo", city: "", urgency: "normal" });
   const [recommendations, setRecommendations] = useState<RecommendationResponse | null>(null);
+  const [finalRanking, setFinalRanking] = useState<Component4RankResponse | null>(null);
   const [loading, setLoading] = useState(false);
+  const [loadingStage, setLoadingStage] = useState<"component1" | "component4">("component1");
+  const [selectingProviderId, setSelectingProviderId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [profile, setProfile] = useState<CustomerProfile | null>(null);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -245,14 +316,47 @@ function CustomerDashboard({ session }: { session: Session }) {
 
   async function findProviders(event: FormEvent) {
     event.preventDefault();
-    setLoading(true); setError(""); setRecommendations(null);
+    setLoading(true); setLoadingStage("component1"); setError(""); setRecommendations(null); setFinalRanking(null);
     try {
       const created = await api.createServiceRequest(form, session.token);
-      setRecommendations(await api.recommend(created, session.token));
+      const component1Result = await api.recommend(created, session.token);
+      setRecommendations(component1Result);
+      const candidateIds = buildComponent2IntegrationFixture(component1Result);
+      if (!candidateIds.length) return;
+      if (COMPONENT2_HANDOFF_MODE !== "component1-top10-fixture") {
+        throw new Error("Component 2 Top-10 handoff is not connected.");
+      }
+      setLoadingStage("component4");
+      setFinalRanking(
+        await api.rankComponent4(created.request_id, candidateIds, session.token),
+      );
       await refreshHistory();
     } catch (reason) {
       setError(reason instanceof ApiError ? reason.message : "Unable to generate recommendations.");
     } finally { setLoading(false); }
+  }
+
+  async function selectProvider(provider: Component4RankedProvider) {
+    if (!finalRanking) return;
+    setSelectingProviderId(provider.provider_id);
+    setError("");
+    try {
+      await api.logInteraction(
+        {
+          request_id: finalRanking.request_id,
+          provider_id: provider.provider_id,
+          provider_name: provider.provider_name,
+          category: provider.category,
+          interaction_type: "selected",
+        },
+        session.token,
+      );
+      await refreshHistory();
+    } catch (reason) {
+      setError(reason instanceof ApiError ? reason.message : "Unable to save provider selection.");
+    } finally {
+      setSelectingProviderId(null);
+    }
   }
 
   async function saveProfile(event: FormEvent) {
@@ -273,12 +377,12 @@ function CustomerDashboard({ session }: { session: Session }) {
             ["ratings", MessageSquare, "Ratings & Reviews"], ["profile", UserRound, "My Profile"],
           ] as const).map(([key, Icon, label]) => <button key={key} className={section === key ? "active" : ""} onClick={() => setSection(key)}><Icon size={17} />{label}</button>)}
         </nav>
-        <div className="sidebar-engine"><span className="live-dot" /><div><strong>Component 1 online</strong><small>Top-20 matching</small></div></div>
+        <div className="sidebar-engine"><span className="live-dot" /><div><strong>Trust ranking online</strong><small>Top-20 → fixture Top-10 → final Top-5</small></div></div>
       </aside>
       <div className="workspace-content">
       {section === "find" && <>
       <section className="dashboard-intro">
-        <div><div className="eyebrow"><Sparkles size={15} /> Component 1 · Hybrid recommendation engine</div><h1>What needs fixing today?</h1><p>Tell us about the job. We’ll compare content, meaning and service history to rank your best 20 providers.</p></div>
+        <div><div className="eyebrow"><Sparkles size={15} /> Components 1 + 4 · Relevance and trust ranking</div><h1>What needs fixing today?</h1><p>Tell us about the job. We’ll find relevant providers, then apply review intelligence to return the final five.</p></div>
         <div className="engine-badge"><span className="pulse" /><div><strong>Recommendation engine</strong><small>Online · 10,000 providers</small></div></div>
       </section>
       <section className="customer-profile-strip">
@@ -303,13 +407,35 @@ function CustomerDashboard({ session }: { session: Session }) {
         </form>
         {error && <div className="notice error request-error">{error}</div>}
       </section>
-      {loading && <section className="loading-panel"><div className="loader-orbit"><Sparkles size={25} /></div><h2>Building your Top 20</h2><p>Comparing semantic relevance, content signals and your service history…</p></section>}
-      {recommendations && (
+      {loading && <section className="loading-panel"><div className="loader-orbit"><Sparkles size={25} /></div><h2>{loadingStage === "component1" ? "Finding relevant providers" : "Building your trust-aware Top 5"}</h2><p>{loadingStage === "component1" ? "Comparing semantic relevance, content signals and your service history…" : "Fusing aspect sentiment, review credibility and evidence reliability…"}</p></section>}
+      {finalRanking && (
         <section className="results-section">
-          <div className="pipeline-preview"><Sparkles size={17} /><div><strong>Component 1 Top-20 preview</strong><small>These candidates continue through Components 2–4. Selection is enabled only for the final Top-5.</small></div></div>
-          <div className="results-heading"><div><span className="result-count">{recommendations.results.length}</span><div><h2>Your strongest matches</h2><p>Ranked for request {recommendations.request_id}</p></div></div><span className="model-version">Model {recommendations.model_version}</span></div>
-          {recommendations.results.length ? <div className="provider-list">{recommendations.results.map((provider, index) => <ProviderCard key={provider.provider_id} provider={provider} rank={index + 1} />)}</div> : <div className="empty-state"><Search size={28} /><h3>No providers matched these filters</h3><p>Try a nearby city or broaden the category.</p></div>}
+          <div className="pipeline-preview fixture"><Sparkles size={17} /><div><strong>Component 2 integration fixture</strong><small>Component 2 is not merged yet. This development handoff passes the first 10 unique Component 1 IDs to the real Component 4 CATF ranker; it is not presented as Component 2 output.</small></div></div>
+          <div className="results-heading"><div><span className="result-count">{finalRanking.output_count}</span><div><h2>Your trust-aware final matches</h2><p>CATF-ranked for request {finalRanking.request_id} · Run {finalRanking.run_id}</p></div></div><span className="model-version">CATF {finalRanking.versions.catf_version}</span></div>
+          <div className="provider-list">
+            {finalRanking.providers.map((provider) => (
+              <TrustProviderCard
+                key={provider.provider_id}
+                provider={provider}
+                selected={interactions.some(
+                  (item) =>
+                    item.request_id === finalRanking.request_id
+                    && item.provider_id === provider.provider_id
+                    && item.interaction_type === "selected",
+                )}
+                selecting={selectingProviderId === provider.provider_id}
+                onSelect={() => selectProvider(provider)}
+              />
+            ))}
+          </div>
         </section>
+      )}
+      {recommendations && (
+        <details className="component1-details" open={!finalRanking}>
+          <summary>Inspect Component 1 candidates ({recommendations.results.length})</summary>
+          <div className="pipeline-preview"><Sparkles size={17} /><div><strong>Component 1 Top-20 preview</strong><small>These are relevance candidates. Only the Component 4 results above are the final selectable providers.</small></div></div>
+          {recommendations.results.length ? <div className="provider-list">{recommendations.results.map((provider, index) => <ProviderCard key={provider.provider_id} provider={provider} rank={index + 1} />)}</div> : <div className="empty-state"><Search size={28} /><h3>No providers matched these filters</h3><p>Try a nearby city or broaden the category.</p></div>}
+        </details>
       )}
       </>}
       {section === "requests" && <HistoryPage title="My Requests" subtitle="Every service request you have submitted." icon={<ClipboardList size={24} />} empty="No service requests yet.">{requests.map((request) => <HistoryCard key={request.request_id} title={request.request_text} meta={`${request.category} · ${request.city}, ${request.district}`} status={request.urgency} date={request.created_at} />)}</HistoryPage>}

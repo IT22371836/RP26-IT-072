@@ -288,3 +288,32 @@ Component 2 is not implemented in the active repository yet. Therefore, Phase 6 
 strict candidate handoff contract but does not fabricate Component 2 output. Connecting the
 previous stage and replacing the current Component 1 Top-20 frontend result with the final
 Top-5 display remains the Phase 7 boundary.
+
+## Phase 7 - Previous-stage handoff and frontend Top-5
+
+Phase 7 connects the active React customer search flow to the Phase 6 Component 4 API. The
+page renders the returned Top-5 with final CATF score, four aspect summaries, review
+credibility, effective review count, reliability, evidence sufficiency, artifact version,
+and deterministic run ID. A customer can save a provider from the final list as a `selected`
+interaction in the same account history used by the rest of the platform.
+
+The active repository still has no Component 2 implementation. Phase 7 therefore uses a
+small, isolated development adapter that takes the first ten unique IDs from Component 1.
+The UI identifies this as `Component 2 integration fixture`; it is never labelled or claimed
+as actual temporal/contextual filtering. The adapter always supplies at most ten IDs and
+Component 4 always returns at most five.
+
+Configuration:
+
+```env
+VITE_COMPONENT2_HANDOFF_MODE=component1-top10-fixture
+```
+
+The replacement boundary is `packages/frontend/src/component2-handoff.ts`. When Component 2
+is merged, that adapter should return Component 2's real Top-10 IDs while the Component 4 API
+and Top-5 presentation remain unchanged.
+
+Phase 7 automated tests cover the exact ten-ID request, five-result rendering, fixture
+disclosure, aspect/evidence presentation, authenticated API request, and selected-provider
+history. Production evaluation and removal of the temporary handoff depend on the real
+Component 2 implementation.

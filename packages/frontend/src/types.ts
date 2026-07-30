@@ -59,6 +59,55 @@ export interface RecommendationResponse {
   results: ProviderRecommendation[];
 }
 
+export interface Component4AspectScores {
+  quality: number;
+  punctuality: number;
+  communication: number;
+  professionalism: number;
+}
+
+export interface Component4Versions {
+  catf_version: string;
+  weight_version: string;
+  category_prior_version: string;
+  absa_model_version: string;
+  credibility_model_version: string;
+}
+
+export interface Component4RankedProvider {
+  provider_id: string;
+  provider_name: string;
+  category: string;
+  district: string;
+  city: string;
+  rank: number;
+  final_score: number;
+  aspect_scores: Component4AspectScores;
+  mean_credibility: number;
+  review_count: number;
+  effective_review_count: number;
+  reliability_factor: number;
+  evidence_status: "insufficient" | "limited" | "sufficient";
+  score_source: "catf_evidence" | "category_prior";
+  platform_rating: number;
+  platform_review_count: number;
+}
+
+export interface Component4RankResponse {
+  component_version: string;
+  request_id: string;
+  run_id: string;
+  user_id: string;
+  input_count: number;
+  output_count: number;
+  requested_top_k: number;
+  candidate_provider_ids: string[];
+  providers: Component4RankedProvider[];
+  versions: Component4Versions;
+  cached: boolean;
+  processing_time_ms: number;
+}
+
 export interface ProviderProfileInput {
   provider_name: string;
   category: string;

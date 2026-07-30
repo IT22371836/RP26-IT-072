@@ -28,6 +28,13 @@ ml/components/component4/reports/absa-v1/*
 !ml/components/component4/reports/absa-v1/absa_training_curves.png
 !ml/components/component4/reports/absa-v1/absa_confusion_matrices.png
 !ml/components/component4/reports/absa-v1/absa_model_summary.txt
+!ml/components/component4/reports/credibility-v1/
+ml/components/component4/reports/credibility-v1/*
+!ml/components/component4/reports/credibility-v1/credibility_metrics.json
+!ml/components/component4/reports/credibility-v1/credibility_confusion_matrix.png
+!ml/components/component4/reports/credibility-v1/credibility_score_distribution.png
+!ml/components/component4/reports/credibility-v1/credibility_threshold_curve.png
+!ml/components/component4/reports/credibility-v1/credibility_model_summary.txt
 
 # Environment
 .env

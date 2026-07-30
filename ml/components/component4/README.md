@@ -140,3 +140,54 @@ Run Phase 3 tests:
 Phase 3 reads the Phase 2 mapped reviews and Phase 1 labels without modifying them. It does
 not implement provider-level aggregation, CATF ranking, MongoDB persistence, or API/UI
 integration.
+
+## Phase 4 - Review credibility and fake-review detection
+
+Phase 4 fits a `StandardScaler` and Isolation Forest on the Phase 1/2 training split. It
+calibrates the fake-review decision threshold on validation labels and reports final metrics
+only on the held-out test split. Target columns (`is_fake_review` and `credibility_score`),
+identifiers, and split names are explicitly excluded from model features.
+
+Install the lightweight Phase 4 dependencies, or reuse `.venv312` from Phase 3:
+
+```powershell
+.\.venv312\Scripts\python.exe -m pip install -r ml\components\component4\requirements-phase4.txt
+```
+
+Run a small end-to-end smoke test:
+
+```powershell
+.\.venv312\Scripts\python.exe ml\components\component4\src\train_credibility.py --smoke-test --artifact-dir .cache\component4-phase4-smoke\artifacts --report-dir .cache\component4-phase4-smoke\reports
+```
+
+Run full Phase 4 training:
+
+```powershell
+.\.venv312\Scripts\python.exe ml\components\component4\src\train_credibility.py
+```
+
+Versioned outputs:
+
+- `artifacts/credibility-v1/credibility_pipeline.joblib` - scaler, detector, fixed
+  validation threshold, and train-only score-normalization bounds.
+- `artifacts/credibility-v1/feature_contract.json` - ordered non-leaking input features and
+  output semantics.
+- `artifacts/credibility-v1/training_config.json` and `manifest.json` - reproducibility,
+  immutable input hashes, artifact hashes, and headline test metrics.
+- `reports/credibility-v1/credibility_metrics.json` - train/validation/test metrics with the
+  test split clearly identified as the headline result.
+- `reports/credibility-v1/credibility_confusion_matrix.png`,
+  `credibility_score_distribution.png`, and `credibility_threshold_curve.png`.
+
+The full row-level `credibility_predictions.csv` contains all 25,000 review IDs, mapped and
+source provider IDs, original targets, and Phase 4 predictions. It is generated locally and
+recorded in the manifest, but remains Git-ignored because it is reproducible.
+
+Score a feature CSV with the validated production loader:
+
+```powershell
+.\.venv312\Scripts\python.exe ml\components\component4\src\credibility_inference.py --input-csv input_features.csv --output-csv credibility_predictions.csv
+```
+
+Phase 4 does not combine ABSA and credibility scores, aggregate provider reviews, implement
+CATF Top-10-to-Top-5 ranking, seed MongoDB, or add API/UI integration.

@@ -1,0 +1,130 @@
+{
+  "request_id": "PHASE5-DETERMINISTIC-FIXTURE",
+  "run_id": "C4RUN-8A005BA11181AC7E",
+  "input_count": 10,
+  "output_count": 5,
+  "requested_top_k": 5,
+  "candidate_provider_ids": [
+    "P02989",
+    "P02971",
+    "P03915",
+    "P00991",
+    "P00783",
+    "P00240",
+    "P00358",
+    "P00359",
+    "P00360",
+    "P00361"
+  ],
+  "providers": [
+    {
+      "provider_id": "P02989",
+      "provider_name": "Prime Electricians Experts",
+      "category": "Electricians",
+      "district": "Kalutara",
+      "rank": 1,
+      "final_score": 0.5468755824,
+      "aspect_scores": {
+        "quality": 0.8619413504,
+        "punctuality": 0.4645320914,
+        "communication": -0.5669031083,
+        "professionalism": 0.5323424782
+      },
+      "mean_credibility": 0.6146011644,
+      "review_count": 13,
+      "effective_review_count": 7.989815137,
+      "reliability_factor": 0.2854543732,
+      "evidence_status": "limited",
+      "score_source": "catf_evidence"
+    },
+    {
+      "provider_id": "P02971",
+      "provider_name": "Elite Electricians Solutions",
+      "category": "Electricians",
+      "district": "Kurunegala",
+      "rank": 2,
+      "final_score": 0.5458655799,
+      "aspect_scores": {
+        "quality": 0.682954575,
+        "punctuality": 0.6716424475,
+        "communication": 0.578219791,
+        "professionalism": 0.5415313817
+      },
+      "mean_credibility": 0.8210480124,
+      "review_count": 7,
+      "effective_review_count": 5.747336087,
+      "reliability_factor": 0.2232206108,
+      "evidence_status": "limited",
+      "score_source": "catf_evidence"
+    },
+    {
+      "provider_id": "P03915",
+      "provider_name": "Kamal Gunawardena",
+      "category": "Technicians",
+      "district": "Colombo",
+      "rank": 3,
+      "final_score": 0.5452152145,
+      "aspect_scores": {
+        "quality": 0.7166968608,
+        "punctuality": 0.3984101424,
+        "communication": 0.3213050051,
+        "professionalism": 0.7207418715
+      },
+      "mean_credibility": 0.9201931104,
+      "review_count": 8,
+      "effective_review_count": 7.361544883,
+      "reliability_factor": 0.2690471212,
+      "evidence_status": "limited",
+      "score_source": "catf_evidence"
+    },
+    {
+      "provider_id": "P00991",
+      "provider_name": "Best Carpenters Works",
+      "category": "Carpenters",
+      "district": "Galle",
+      "rank": 4,
+      "final_score": 0.5419825286,
+      "aspect_scores": {
+        "quality": 0.4423145457,
+        "punctuality": 0.3216818338,
+        "communication": 0.5851218836,
+        "professionalism": 0.5671295768
+      },
+      "mean_credibility": 0.914172169,
+      "review_count": 9,
+      "effective_review_count": 8.227549521,
+      "reliability_factor": 0.2914723262,
+      "evidence_status": "limited",
+      "score_source": "catf_evidence"
+    },
+    {
+      "provider_id": "P00783",
+      "provider_name": "Metro Carpenters Solutions",
+      "category": "Carpenters",
+      "district": "Jaffna",
+      "rank": 5,
+      "final_score": 0.5415848413,
+      "aspect_scores": {
+        "quality": 0.6696227012,
+        "punctuality": 0.4992717549,
+        "communication": 0.2840484798,
+        "professionalism": 0.5908239193
+      },
+      "mean_credibility": 0.852030119,
+      "review_count": 8,
+      "effective_review_count": 6.816240952,
+      "reliability_factor": 0.2541833124,
+      "evidence_status": "limited",
+      "score_source": "catf_evidence"
+    }
+  ],
+  "versions": {
+    "catf_version": "catf-v1",
+    "weight_version": "category-weights-v1",
+    "category_prior_version": "category-priors-v1",
+    "absa_model_version": "absa-v1",
+    "credibility_model_version": "credibility-v1"
+  },
+  "candidate_source": "deterministic_phase5_fixture_not_component2",
+  "integration_note": "Replace this fixture with the Component 2 Top-10 provider IDs during Phase 6."
+}

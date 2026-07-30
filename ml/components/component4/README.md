@@ -191,3 +191,63 @@ Score a feature CSV with the validated production loader:
 
 Phase 4 does not combine ABSA and credibility scores, aggregate provider reviews, implement
 CATF Top-10-to-Top-5 ranking, seed MongoDB, or add API/UI integration.
+
+## Phase 5 - Category-Adaptive Trust Fusion and Top-5 ranking
+
+Phase 5 applies the saved Phase 3 ABSA model and Phase 4 credibility pipeline to all 25,000
+mapped reviews. For each aspect, signed sentiment is `P(Positive) - P(Negative)` and the
+review weight is the maximum class probability multiplied by predicted credibility. Provider
+aspect scores are confidence/credibility-weighted means. Category-specific aspect weights
+produce a base score, which is normalized to 0..1 and smoothed with the Phase 2 category prior:
+
+```text
+effective_reviews = sum(review_credibility)
+reliability = effective_reviews / (effective_reviews + 20)
+final_CATF = reliability * normalized_base + (1 - reliability) * category_prior
+```
+
+Run the complete deterministic build:
+
+```powershell
+.\.venv312\Scripts\python.exe -m pip install -r ml\components\component4\requirements-phase5.txt
+.\.venv312\Scripts\python.exe ml\components\component4\src\build_catf_scores.py
+```
+
+Versioned outputs:
+
+- `artifacts/catf-v1/provider_catf_scores.csv` - all 10,000 Component 1 providers, including
+  4,976 with mapped review evidence and 5,024 category-prior fallbacks.
+- `artifacts/catf-v1/category_aspect_weights.json` and `catf_config.json` - explicit,
+  versioned formulas, category weights, evidence thresholds, and tie-break rules.
+- `artifacts/catf-v1/manifest.json` - hashes for all immutable inputs and tracked outputs.
+- `reports/catf-v1/catf_audit.json` - preservation, mapping, category, range, and fallback
+  validation.
+- `reports/catf-v1/demo_top10_to_top5.json` - deterministic contract demonstration using
+  real Component 1 provider IDs. Its candidate list is a Phase 5 fixture, not Component 2
+  output.
+- `reports/catf-v1/provider_score_distribution.png`, `reliability_curve.png`, and
+  `demo_top5_ranking.png`.
+
+The row-level `review_fusion_predictions.csv` is reproducibly generated for all 25,000
+reviews and remains Git-ignored. It retains review IDs, mapped and source provider IDs,
+ratings, split names, ABSA probabilities, signed sentiment, confidence, credibility, and
+fusion weights without copying review text.
+
+Filter up to ten Component 2 candidates to at most five Component 4 results:
+
+```powershell
+.\.venv312\Scripts\python.exe ml\components\component4\src\catf_ranking.py --request-id REQ-001 --provider-ids P00001 P00002 P00003 P00004 P00005 P00006 P00007 P00008 P00009 P00010
+```
+
+The ranker rejects duplicates and unknown IDs, never introduces a provider outside the input
+candidate set, and uses `final score DESC`, `effective review count DESC`, `mean credibility
+DESC`, then `provider ID ASC`. The run ID is deterministic even if the same candidate IDs are
+supplied in a different order.
+
+Category-weight profiles have passed structural validation. Ranking-ground-truth evaluation
+(NDCG/Precision@K) remains explicitly pending the planned evaluation phase; Phase 5 does not
+claim that validation.
+
+Phase 5 does not write MongoDB data or add backend/frontend endpoints. Live Component 2
+candidate integration, shared database persistence, API schemas, and UI wiring begin only in
+Phase 6.

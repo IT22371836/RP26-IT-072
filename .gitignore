@@ -35,6 +35,13 @@ ml/components/component4/reports/credibility-v1/*
 !ml/components/component4/reports/credibility-v1/credibility_score_distribution.png
 !ml/components/component4/reports/credibility-v1/credibility_threshold_curve.png
 !ml/components/component4/reports/credibility-v1/credibility_model_summary.txt
+!ml/components/component4/reports/catf-v1/
+ml/components/component4/reports/catf-v1/*
+!ml/components/component4/reports/catf-v1/catf_audit.json
+!ml/components/component4/reports/catf-v1/demo_top10_to_top5.json
+!ml/components/component4/reports/catf-v1/provider_score_distribution.png
+!ml/components/component4/reports/catf-v1/reliability_curve.png
+!ml/components/component4/reports/catf-v1/demo_top5_ranking.png
 
 # Environment
 .env

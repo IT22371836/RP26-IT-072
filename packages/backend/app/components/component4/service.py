@@ -36,7 +36,7 @@ DEFAULT_RELEASE_REPORT = (
     / "release-v1"
     / "release_readiness.json"
 )
-COMPONENT_VERSION = "component4-phase11"
+COMPONENT_VERSION = "component4-phase12"
 
 
 class ArtifactsUnavailableError(Exception):
@@ -485,6 +485,40 @@ class Component4RankingEngine:
             "detail": (
                 "Component 4 enforces and persists the handoff lineage contract. "
                 "Production remains closed until the real Component 2 adapter passes UAT."
+            ),
+        }
+
+    def final_readiness(self) -> dict[str, Any]:
+        require(self.ready, "Component 4 artifacts are not loaded")
+        require(bool(self.release_evidence), "Phase 10 release evidence is unavailable")
+        return {
+            "phase": "phase12",
+            "status": "component4_release_candidate_external_gates_pending",
+            "component4_release_candidate_ready": True,
+            "component2_connected": False,
+            "external_api_load_test_passed": False,
+            "production_ready": False,
+            "checks": {
+                "artifact_integrity": True,
+                "held_out_ranking_evaluation": bool(self.evaluation),
+                "in_process_operational_gate": bool(
+                    self.release_evidence.get("component4_operationally_ready")
+                ),
+                "handoff_contract_enforced": True,
+                "identity_binding_enforced": True,
+                "lineage_persistence_enabled": True,
+                "runtime_observability_available": True,
+                "external_load_test_harness_available": True,
+            },
+            "pending_external_gates": [
+                "real Component 2 Top-10 API adapter",
+                "real Component 2 to Component 4 UAT",
+                "external API load test against the deployed service and shared MongoDB",
+            ],
+            "detail": (
+                "Component 4 is a validated release candidate. Whole-pipeline production "
+                "readiness remains closed until the external Component 2 and infrastructure "
+                "gates pass."
             ),
         }
 

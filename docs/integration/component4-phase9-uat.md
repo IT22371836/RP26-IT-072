@@ -79,3 +79,11 @@ The strict handoff payload, customer-identity binding, production fixture reject
 version lineage, and MongoDB audit fields are documented in
 [`component4-phase11-handoff.md`](component4-phase11-handoff.md). These controls make the
 Component 4 side of the adapter ready, but do not satisfy the real Component 2 steps above.
+
+## Phase 12 release-candidate gate
+
+The final Component 4 operational status, administrator telemetry, and deployed API/shared
+MongoDB load-test procedure are documented in
+[`component4-phase12-release-candidate.md`](component4-phase12-release-candidate.md). The
+external load-test and real Component 2 results must be attached before this UAT can approve
+whole-pipeline production readiness.

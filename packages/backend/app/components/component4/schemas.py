@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Literal, Self
 
 from pydantic import BaseModel, Field, field_validator, model_validator
@@ -167,6 +168,37 @@ class Component4HandoffReadinessResponse(BaseModel):
     component2_connected: bool
     production_ready: bool
     required_handoff_fields: list[str]
+    detail: str
+
+
+class Component4RuntimeMetricsResponse(BaseModel):
+    scope: Literal["process_local"]
+    component_version: str
+    started_at: datetime
+    uptime_seconds: float = Field(ge=0)
+    requests_total: int = Field(ge=0)
+    successful_requests: int = Field(ge=0)
+    client_errors: int = Field(ge=0)
+    server_errors: int = Field(ge=0)
+    cache_hits: int = Field(ge=0)
+    fresh_rankings: int = Field(ge=0)
+    cache_hit_ratio: float = Field(ge=0, le=1)
+    average_latency_ms: float = Field(ge=0)
+    maximum_latency_ms: float = Field(ge=0)
+    latency_buckets: dict[str, int]
+    contains_personal_data: Literal[False]
+    reset_on_process_restart: Literal[True]
+
+
+class Component4FinalReadinessResponse(BaseModel):
+    phase: Literal["phase12"]
+    status: Literal["component4_release_candidate_external_gates_pending"]
+    component4_release_candidate_ready: bool
+    component2_connected: bool
+    external_api_load_test_passed: bool
+    production_ready: bool
+    checks: dict[str, bool]
+    pending_external_gates: list[str]
     detail: str
 
 

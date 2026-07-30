@@ -49,7 +49,7 @@ def test_engine_loads_versioned_phase5_snapshot(engine: Component4RankingEngine)
         "absa_model_version": "absa-v1",
         "credibility_model_version": "credibility-v1",
     }
-    assert status["component_version"] == "component4-phase11"
+    assert status["component_version"] == "component4-phase12"
     assert status["evaluation_version"] == "ranking-evaluation-v1"
     assert status["ranking_ground_truth_validation"] == "held_out_proxy_validated_phase8"
     assert status["production_ground_truth_validation"] == (
@@ -100,6 +100,21 @@ def test_phase11_handoff_boundary_is_ready_without_claiming_component2_connectio
     assert readiness["fixture_blocked_in_production"] is True
     assert readiness["component2_connected"] is False
     assert readiness["production_ready"] is False
+
+
+def test_phase12_final_readiness_is_honest_about_external_gates(
+    engine: Component4RankingEngine,
+) -> None:
+    readiness = engine.final_readiness()
+
+    assert readiness["phase"] == "phase12"
+    assert readiness["status"] == "component4_release_candidate_external_gates_pending"
+    assert readiness["component4_release_candidate_ready"] is True
+    assert readiness["component2_connected"] is False
+    assert readiness["external_api_load_test_passed"] is False
+    assert readiness["production_ready"] is False
+    assert all(readiness["checks"].values())
+    assert len(readiness["pending_external_gates"]) == 3
 
 
 def test_engine_rejects_a_tampered_artifact(

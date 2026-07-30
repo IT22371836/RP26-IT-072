@@ -42,6 +42,8 @@ python -m uvicorn app.main:app --reload
 - `GET /api/v1/component4/integration-readiness`
 - `GET /api/v1/component4/release-readiness`
 - `GET /api/v1/component4/handoff-readiness`
+- `GET /api/v1/component4/final-readiness`
+- `GET /api/v1/component4/runtime-metrics` (administrator only)
 - `GET /api/v1/component4/weights/{category}`
 - `GET /api/v1/component4/health`
 
@@ -75,6 +77,18 @@ deterministic run identity and are persisted with both the run and provider snap
 development fixture is rejected whenever `APP_ENV=production`. The handoff-readiness
 endpoint reports these controls separately from the still-pending real Component 2
 connection.
+
+Phase 12 marks the independently validated Component 4 implementation as a release candidate.
+It adds bounded process-local ranking telemetry, an administrator-only runtime-metrics
+endpoint, and an authenticated external HTTP/shared-Mongo load-test runner:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\load_test_component4_api.py --help
+```
+
+The final-readiness endpoint remains fail-closed for whole-pipeline production: the real
+Component 2 UAT and a successful load-test report from the deployed shared environment are
+still required. See `docs/integration/component4-phase12-release-candidate.md`.
 
 Component 4 loads and validates the Phase 5 provider-score snapshot on its first API request,
 then reuses the immutable in-memory index for the process lifetime. It supports newly

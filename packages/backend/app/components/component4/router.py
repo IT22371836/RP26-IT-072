@@ -1,3 +1,4 @@
+import time
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -9,6 +10,7 @@ from app.api.dependencies import (
     require_role,
 )
 from app.components.component4.schemas import (
+    Component4FinalReadinessResponse,
     Component4HandoffReadinessResponse,
     Component4HealthResponse,
     Component4IntegrationReadinessResponse,
@@ -16,6 +18,7 @@ from app.components.component4.schemas import (
     Component4RankRequest,
     Component4RankResponse,
     Component4ReleaseReadinessResponse,
+    Component4RuntimeMetricsResponse,
     Component4WeightResponse,
 )
 from app.components.component4.service import (
@@ -26,6 +29,7 @@ from app.components.component4.service import (
     UnknownProviderError,
     get_component4_engine,
 )
+from app.components.component4.telemetry import component4_runtime_telemetry
 from app.core.config import Settings, get_settings
 from app.core.database import MongoDatabase
 from app.repositories.component4 import Component4Repository
@@ -36,6 +40,7 @@ from app.schemas.common import UserRole
 
 router = APIRouter(prefix="/component4", tags=["component 4"])
 customer_user = require_role(UserRole.CUSTOMER)
+admin_user = require_role(UserRole.ADMIN)
 
 
 def engine_dependency(
@@ -71,6 +76,43 @@ async def rank_candidates(
         ServiceRequestRepository,
         Depends(get_service_request_repository),
     ],
+) -> Component4RankResponse:
+    started = time.perf_counter()
+    response_status = status.HTTP_500_INTERNAL_SERVER_ERROR
+    cached: bool | None = None
+    try:
+        response = await _execute_ranking(
+            payload=payload,
+            current_user=current_user,
+            settings=settings,
+            engine=engine,
+            component4_repository=component4_repository,
+            provider_repository=provider_repository,
+            service_request_repository=service_request_repository,
+        )
+        response_status = status.HTTP_200_OK
+        cached = response.cached
+        return response
+    except HTTPException as error:
+        response_status = error.status_code
+        raise
+    finally:
+        component4_runtime_telemetry.record(
+            status_code=response_status,
+            duration_ms=(time.perf_counter() - started) * 1000,
+            cached=cached,
+        )
+
+
+async def _execute_ranking(
+    *,
+    payload: Component4RankRequest,
+    current_user: UserPublic,
+    settings: Settings,
+    engine: Component4RankingEngine,
+    component4_repository: Component4Repository,
+    provider_repository: ProviderRepository,
+    service_request_repository: ServiceRequestRepository,
 ) -> Component4RankResponse:
     if payload.user_id != current_user.user_id:
         raise HTTPException(
@@ -194,6 +236,33 @@ async def handoff_readiness(
 ) -> Component4HandoffReadinessResponse:
     return Component4HandoffReadinessResponse.model_validate(
         engine.handoff_readiness()
+    )
+
+
+@router.get(
+    "/final-readiness",
+    response_model=Component4FinalReadinessResponse,
+)
+async def final_readiness(
+    engine: Annotated[Component4RankingEngine, Depends(engine_dependency)],
+) -> Component4FinalReadinessResponse:
+    return Component4FinalReadinessResponse.model_validate(
+        engine.final_readiness()
+    )
+
+
+@router.get(
+    "/runtime-metrics",
+    response_model=Component4RuntimeMetricsResponse,
+)
+async def runtime_metrics(
+    _: Annotated[UserPublic, Depends(admin_user)],
+    engine: Annotated[Component4RankingEngine, Depends(engine_dependency)],
+) -> Component4RuntimeMetricsResponse:
+    return Component4RuntimeMetricsResponse.model_validate(
+        component4_runtime_telemetry.snapshot(
+            engine.status()["component_version"],
+        )
     )
 
 

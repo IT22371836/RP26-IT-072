@@ -457,3 +457,21 @@ This phase makes the Component 4 side of the handoff contract enforceable and au
 does not claim that Component 2 exists: `component2_connected` and `production_ready` remain
 false until the real adapter, post-merge UAT, and shared-Mongo load test pass. See
 `docs/integration/component4-phase11-handoff.md` for the exact contract and UAT steps.
+
+## Phase 12 - Final release candidate
+
+Phase 12 completes the independently deliverable Component 4 scope. It adds:
+
+- bounded process-local request, outcome, cache, and latency telemetry with no personal data;
+- administrator-only `GET /api/v1/component4/runtime-metrics`;
+- fail-closed `GET /api/v1/component4/final-readiness`;
+- a real authenticated HTTP/shared-Mongo load-test runner at
+  `packages/backend/scripts/load_test_component4_api.py`;
+- versioned load-test defaults in `artifacts/acceptance-v1/acceptance_config.json`;
+- a final deployment and external-gate runbook.
+
+`component4_release_candidate_ready` is true. `component2_connected`,
+`external_api_load_test_passed`, and `production_ready` intentionally remain false because
+those values require evidence from systems outside this branch. The exact final status and
+commands are documented in
+`docs/integration/component4-phase12-release-candidate.md`.

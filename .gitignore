@@ -21,6 +21,13 @@ ml/components/**/reports/*
 !ml/components/component4/data/processed/phase2_manifest.json
 !ml/components/component4/reports/phase1_audit.json
 !ml/components/component4/reports/phase2_mapping_audit.json
+!ml/components/component4/reports/absa-v1/
+ml/components/component4/reports/absa-v1/*
+!ml/components/component4/reports/absa-v1/absa_metrics.json
+!ml/components/component4/reports/absa-v1/absa_training_history.csv
+!ml/components/component4/reports/absa-v1/absa_training_curves.png
+!ml/components/component4/reports/absa-v1/absa_confusion_matrices.png
+!ml/components/component4/reports/absa-v1/absa_model_summary.txt
 
 # Environment
 .env

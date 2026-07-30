@@ -46,11 +46,6 @@ Phase 1 transformations are deliberately auditable:
 Generated processed CSV files are intentionally ignored by Git because they are reproducible
 from the frozen raw files. Their manifest and audit report remain tracked.
 
-## Phase boundary
-
-Do not begin provider-ID mapping, MongoDB seeding, model training, CATF implementation, or API
-integration until Phase 1 verification has passed and Phase 2 has been explicitly approved.
-
 ## Phase 2 - Deterministic provider mapping
 
 Phase 2 maps every Component 4 research provider to a real Component 1 research-provider ID
@@ -86,3 +81,62 @@ providers in each category. Any Component 1 provider without mapped reviews rece
 category prior, zero effective reviews, zero reliability, and `insufficient` evidence status.
 
 Phase 2 does not seed MongoDB, train models, implement CATF, or change Component 1 artifacts.
+
+## Phase 3 - Multi-task aspect sentiment model
+
+Phase 3 trains one review-level model with four output heads: quality, punctuality,
+communication, and professionalism. The encoder is a bidirectional LSTM followed by a real
+multi-head self-attention layer. Each head returns probabilities in the frozen
+`Positive, Neutral, Negative` order required by the later trust-score calculation.
+
+Create the isolated Python 3.12 training environment from the repository root:
+
+```powershell
+py -3.12 -m venv .venv312
+.\.venv312\Scripts\python.exe -m pip install -r ml\components\component4\requirements-phase3.txt
+```
+
+Run a small end-to-end smoke test first:
+
+```powershell
+.\.venv312\Scripts\python.exe ml\components\component4\src\train_absa.py --smoke-test --artifact-dir .cache\component4-phase3-smoke\artifacts --report-dir .cache\component4-phase3-smoke\reports
+```
+
+Run full training:
+
+```powershell
+.\.venv312\Scripts\python.exe ml\components\component4\src\train_absa.py
+```
+
+The saved `.keras` model accepts raw review strings because the train-only adapted
+`TextVectorization` layer is embedded in the artifact. Phase 3 exports:
+
+- `artifacts/absa-v1/absa_model.keras` - reloadable multi-output model.
+- `artifacts/absa-v1/manifest.json` - versions, immutable input hashes, artifact hashes,
+  architecture, and metric summary.
+- `artifacts/absa-v1/label_mapping.json` - fixed label and output-head contracts.
+- `artifacts/absa-v1/text_vectorization_vocabulary.json` - frozen train vocabulary.
+- `artifacts/absa-v1/training_config.json` - reproducibility and class-weight settings.
+- `reports/absa-v1/absa_metrics.json` - per-aspect and aggregate test metrics.
+- `reports/absa-v1/absa_training_history.csv` - epoch history.
+- `reports/absa-v1/absa_training_curves.png` and `absa_confusion_matrices.png`.
+- `reports/absa-v1/absa_model_summary.txt` - auditable model structure.
+
+The full row-level `absa_test_predictions.csv` is generated locally and recorded in the model
+manifest, but remains Git-ignored because it repeats review text and is reproducible.
+
+Run inference from raw text:
+
+```powershell
+.\.venv312\Scripts\python.exe ml\components\component4\src\absa_inference.py --text "The provider arrived on time and communicated clearly."
+```
+
+Run Phase 3 tests:
+
+```powershell
+.\.venv312\Scripts\python.exe -m pytest ml\components\component4\tests\test_absa_training.py -q
+```
+
+Phase 3 reads the Phase 2 mapped reviews and Phase 1 labels without modifying them. It does
+not implement provider-level aggregation, CATF ranking, MongoDB persistence, or API/UI
+integration.

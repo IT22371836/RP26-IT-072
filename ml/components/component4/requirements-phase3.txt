@@ -1,0 +1,7 @@
+tensorflow-cpu==2.21.0
+pandas==2.3.3
+scikit-learn==1.9.0
+matplotlib==3.10.7
+joblib==1.5.3
+pytest==8.4.2
+ruff==0.14.6

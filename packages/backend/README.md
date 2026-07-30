@@ -40,6 +40,7 @@ python -m uvicorn app.main:app --reload
 - `GET /api/v1/component4/runs/{run_id}`
 - `GET /api/v1/component4/models`
 - `GET /api/v1/component4/integration-readiness`
+- `GET /api/v1/component4/release-readiness`
 - `GET /api/v1/component4/weights/{category}`
 - `GET /api/v1/component4/health`
 
@@ -54,6 +55,18 @@ requests, and interactions.
 The Phase 9 integration-readiness endpoint is deliberately fail-closed. Until the real
 Component 2 implementation is merged, it reports that Component 4 is ready but the complete
 production pipeline is still awaiting Component 2.
+
+Phase 10 validates artifact loading, deterministic sequential/concurrent ranking, candidate
+preservation, the Top-5 limit, and conservative in-process latency/throughput thresholds.
+Run the versioned operational gate from `packages/backend`:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\validate_component4_release.py
+```
+
+The release-readiness endpoint exposes this checksum-validated evidence. Passing this gate
+means Component 4 is operationally ready; it does not replace a production infrastructure
+load test or the real Component 2 integration UAT.
 
 Component 4 loads and validates the Phase 5 provider-score snapshot on its first API request,
 then reuses the immutable in-memory index for the process lifetime. It supports newly

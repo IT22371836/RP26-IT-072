@@ -97,6 +97,35 @@ class Component4IntegrationReadinessResponse(BaseModel):
     detail: str
 
 
+class Component4TimingSummary(BaseModel):
+    p50_ms: float = Field(ge=0)
+    p95_ms: float = Field(ge=0)
+    p99_ms: float = Field(ge=0)
+    maximum_ms: float = Field(ge=0)
+    total_ms: float = Field(ge=0)
+    operations_per_second: float = Field(gt=0)
+
+
+class Component4PerformanceSummary(BaseModel):
+    cold_load_ms: float = Field(ge=0)
+    sequential: Component4TimingSummary
+    concurrent: Component4TimingSummary
+
+
+class Component4ReleaseReadinessResponse(BaseModel):
+    phase: Literal["phase10"]
+    release_evidence_version: str
+    status: Literal["component4_ready_awaiting_component2_uat"]
+    component4_operationally_ready: bool
+    component2_connected: bool
+    production_ready: bool
+    checks: dict[str, bool]
+    performance: Component4PerformanceSummary
+    thresholds: dict[str, float]
+    remaining_production_gates: list[str]
+    detail: str
+
+
 class Component4WeightResponse(BaseModel):
     category: str
     weights: dict[str, float]

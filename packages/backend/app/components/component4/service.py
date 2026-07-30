@@ -27,7 +27,16 @@ DEFAULT_EVALUATION_MANIFEST = (
     / "evaluation-v1"
     / "manifest.json"
 )
-COMPONENT_VERSION = "component4-phase8"
+DEFAULT_RELEASE_REPORT = (
+    REPOSITORY_ROOT
+    / "ml"
+    / "components"
+    / "component4"
+    / "reports"
+    / "release-v1"
+    / "release_readiness.json"
+)
+COMPONENT_VERSION = "component4-phase10"
 
 
 class ArtifactsUnavailableError(Exception):
@@ -74,11 +83,15 @@ class Component4RankingEngine:
         artifact_dir: Path,
         category_priors_path: Path,
         evaluation_manifest_path: Path | None = None,
+        release_report_path: Path | None = None,
     ) -> None:
         self.artifact_dir = artifact_dir.resolve()
         self.category_priors_path = category_priors_path.resolve()
         self.evaluation_manifest_path = (
             evaluation_manifest_path or DEFAULT_EVALUATION_MANIFEST
+        ).resolve()
+        self.release_report_path = (
+            release_report_path or DEFAULT_RELEASE_REPORT
         ).resolve()
         self.ready = False
         self.manifest: dict[str, Any] = {}
@@ -87,6 +100,7 @@ class Component4RankingEngine:
         self.category_priors: dict[str, Any] = {}
         self.provider_scores: dict[str, dict[str, Any]] = {}
         self.evaluation: dict[str, Any] = {}
+        self.release_evidence: dict[str, Any] = {}
 
     @property
     def versions(self) -> dict[str, str]:
@@ -163,6 +177,67 @@ class Component4RankingEngine:
             "Phase 8 production limitation mismatch",
         )
         return evaluation
+
+    def _load_release_evidence(self, phase5_manifest_path: Path) -> dict[str, Any]:
+        if not self.release_report_path.is_file():
+            return {}
+        release_manifest_path = self.release_report_path.parent / "manifest.json"
+        release_manifest = self._load_json(
+            release_manifest_path,
+            "Phase 10 release manifest",
+        )
+        require(
+            release_manifest.get("release_evidence_version")
+            == "component4-release-evidence-v1",
+            "Phase 10 release version mismatch",
+        )
+        require(release_manifest.get("status") == "passed", "Phase 10 release gate failed")
+        inputs = release_manifest.get("inputs")
+        reports = release_manifest.get("reports")
+        require(isinstance(inputs, dict), "Phase 10 input metadata is missing")
+        require(isinstance(reports, dict), "Phase 10 report metadata is missing")
+        self._verify_file(
+            phase5_manifest_path,
+            inputs.get("catf_manifest"),
+            "Phase 10 CATF manifest input",
+        )
+        for input_name, label in (
+            ("release_config", "Phase 10 release config"),
+            ("evaluation_manifest", "Phase 10 evaluation manifest"),
+        ):
+            metadata = inputs.get(input_name)
+            require(isinstance(metadata, dict), f"{label} metadata is missing")
+            input_path = REPOSITORY_ROOT / str(metadata.get("path", ""))
+            self._verify_file(input_path, metadata, label)
+        self._verify_file(
+            self.release_report_path,
+            reports.get("release_readiness"),
+            "Phase 10 release readiness",
+        )
+        report = self._load_json(
+            self.release_report_path,
+            "Phase 10 release readiness",
+        )
+        require(report.get("status") == "passed", "Phase 10 operational validation failed")
+        require(
+            report.get("release_evidence_version")
+            == release_manifest.get("release_evidence_version"),
+            "Phase 10 report version mismatch",
+        )
+        require(
+            report.get("component4_operationally_ready") is True,
+            "Component 4 operational gate did not pass",
+        )
+        require(
+            report.get("production_ready") is False,
+            "Phase 10 cannot claim production readiness before Component 2 UAT",
+        )
+        checks = report.get("checks")
+        require(
+            isinstance(checks, dict) and checks and all(checks.values()),
+            "Phase 10 release checks are incomplete",
+        )
+        return report
 
     def load(self) -> None:
         manifest_path = self.artifact_dir / "manifest.json"
@@ -304,6 +379,7 @@ class Component4RankingEngine:
             "Provider score count differs from the manifest",
         )
         evaluation = self._load_evaluation(manifest_path)
+        release_evidence = self._load_release_evidence(manifest_path)
 
         self.manifest = manifest
         self.config = config
@@ -311,6 +387,7 @@ class Component4RankingEngine:
         self.category_priors = priors
         self.provider_scores = provider_scores
         self.evaluation = evaluation
+        self.release_evidence = release_evidence
         self.ready = True
 
     def status(self) -> dict[str, Any]:
@@ -355,6 +432,32 @@ class Component4RankingEngine:
             "detail": (
                 "Component 4 is ready, but production integration is waiting for the real "
                 "Component 2 Top-10 implementation."
+            ),
+        }
+
+    def release_readiness(self) -> dict[str, Any]:
+        require(self.ready, "Component 4 artifacts are not loaded")
+        require(bool(self.release_evidence), "Phase 10 release evidence is unavailable")
+        return {
+            "phase": "phase10",
+            "release_evidence_version": self.release_evidence[
+                "release_evidence_version"
+            ],
+            "status": self.release_evidence["production_status"],
+            "component4_operationally_ready": self.release_evidence[
+                "component4_operationally_ready"
+            ],
+            "component2_connected": self.release_evidence["component2_connected"],
+            "production_ready": self.release_evidence["production_ready"],
+            "checks": self.release_evidence["checks"],
+            "performance": self.release_evidence["performance"],
+            "thresholds": self.release_evidence["thresholds"],
+            "remaining_production_gates": self.release_evidence[
+                "remaining_production_gates"
+            ],
+            "detail": (
+                "Component 4 passed its in-process operational gate. Production remains "
+                "closed until real Component 2 UAT and infrastructure load testing pass."
             ),
         }
 

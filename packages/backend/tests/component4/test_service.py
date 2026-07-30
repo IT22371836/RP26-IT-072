@@ -36,7 +36,7 @@ def test_engine_loads_versioned_phase5_snapshot(engine: Component4RankingEngine)
         "absa_model_version": "absa-v1",
         "credibility_model_version": "credibility-v1",
     }
-    assert status["component_version"] == "component4-phase8"
+    assert status["component_version"] == "component4-phase10"
     assert status["evaluation_version"] == "ranking-evaluation-v1"
     assert status["ranking_ground_truth_validation"] == "held_out_proxy_validated_phase8"
     assert status["production_ground_truth_validation"] == (
@@ -57,6 +57,21 @@ def test_phase9_readiness_is_fail_closed_until_component2_exists(
     assert readiness["maximum_input_candidates"] == 10
     assert readiness["maximum_output_providers"] == 5
     assert readiness["fixture_policy"] == "development_only"
+
+
+def test_phase10_release_evidence_passes_without_claiming_production_ready(
+    engine: Component4RankingEngine,
+) -> None:
+    readiness = engine.release_readiness()
+
+    assert readiness["phase"] == "phase10"
+    assert readiness["status"] == "component4_ready_awaiting_component2_uat"
+    assert readiness["component4_operationally_ready"] is True
+    assert readiness["component2_connected"] is False
+    assert readiness["production_ready"] is False
+    assert all(readiness["checks"].values())
+    assert readiness["performance"]["sequential"]["p95_ms"] <= 5
+    assert readiness["performance"]["concurrent"]["p95_ms"] <= 20
 
 
 def test_engine_rejects_a_tampered_artifact(
@@ -82,6 +97,28 @@ def test_engine_rejects_a_tampered_artifact(
 
     with pytest.raises(ArtifactValidationError, match="byte count failed"):
         Component4RankingEngine(artifact_dir, priors_path).load()
+
+
+def test_engine_rejects_tampered_phase10_release_evidence(
+    engine: Component4RankingEngine,
+    tmp_path,
+) -> None:
+    release_dir = tmp_path / "release-v1"
+    release_dir.mkdir()
+    for name in ("manifest.json", "release_readiness.json"):
+        shutil.copy2(engine.release_report_path.parent / name, release_dir / name)
+    report_path = release_dir / "release_readiness.json"
+    report_path.write_text(
+        report_path.read_text(encoding="utf-8") + "\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ArtifactValidationError, match="byte count failed"):
+        Component4RankingEngine(
+            engine.artifact_dir,
+            engine.category_priors_path,
+            release_report_path=report_path,
+        ).load()
 
 
 def test_ranking_is_deterministic_and_never_adds_candidates(

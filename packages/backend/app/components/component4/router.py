@@ -14,6 +14,7 @@ from app.components.component4.schemas import (
     Component4ModelsResponse,
     Component4RankRequest,
     Component4RankResponse,
+    Component4ReleaseReadinessResponse,
     Component4WeightResponse,
 )
 from app.components.component4.service import (
@@ -154,6 +155,18 @@ async def integration_readiness(
 ) -> Component4IntegrationReadinessResponse:
     return Component4IntegrationReadinessResponse.model_validate(
         engine.integration_readiness()
+    )
+
+
+@router.get(
+    "/release-readiness",
+    response_model=Component4ReleaseReadinessResponse,
+)
+async def release_readiness(
+    engine: Annotated[Component4RankingEngine, Depends(engine_dependency)],
+) -> Component4ReleaseReadinessResponse:
+    return Component4ReleaseReadinessResponse.model_validate(
+        engine.release_readiness()
     )
 
 

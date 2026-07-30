@@ -392,3 +392,44 @@ remain false with status `awaiting_component2`.
 The authoritative Phase 9 contract and post-merge UAT checklist are in
 `docs/integration/component4-phase9-uat.md`. Production readiness must not be enabled until
 the real Component 2 Top-10 output passes that checklist.
+
+## Phase 10 - Operational hardening and release evidence
+
+Phase 10 adds a versioned, executable operational gate for Component 4. It loads and
+checksum-validates the complete CATF/evaluation snapshot, then exercises 1,000 deterministic
+ten-candidate requests sequentially and with 16 worker threads.
+
+The gate validates:
+
+- all 10,000 provider scores load successfully;
+- sequential and concurrent results are identical;
+- input reordering preserves the deterministic run ID and ranking;
+- no result introduces a non-candidate provider;
+- every response respects the Top-5 limit;
+- cold-load, P95 latency, and throughput remain inside conservative versioned thresholds.
+
+Run it from `packages/backend`:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\validate_component4_release.py
+```
+
+Versioned outputs:
+
+- `artifacts/release-v1/release_config.json` - benchmark workload, thresholds, checks, and
+  production-gate requirements.
+- `reports/release-v1/release_readiness.json` - measured performance, validation checks,
+  versions, limitations, and remaining gates.
+- `reports/release-v1/manifest.json` - SHA-256 and byte-count metadata for the release inputs
+  and report.
+
+The backend exposes the checksum-validated evidence at:
+
+```text
+GET /api/v1/component4/release-readiness
+```
+
+The current gate passes Component 4 operational validation with zero ranking failures.
+`production_ready` intentionally remains false: real Component 2 UAT and a production
+infrastructure load test against the shared MongoDB are still required. The benchmark
+measures the in-process immutable ranker, not network or database latency.

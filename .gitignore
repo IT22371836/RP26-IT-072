@@ -52,6 +52,10 @@ ml/components/component4/reports/evaluation-v1/*
 !ml/components/component4/reports/evaluation-v1/category_metrics.csv
 !ml/components/component4/reports/evaluation-v1/ranking_method_comparison.png
 !ml/components/component4/reports/evaluation-v1/category_ndcg_at_5.png
+!ml/components/component4/reports/release-v1/
+ml/components/component4/reports/release-v1/*
+!ml/components/component4/reports/release-v1/release_readiness.json
+!ml/components/component4/reports/release-v1/manifest.json
 
 # Environment
 .env

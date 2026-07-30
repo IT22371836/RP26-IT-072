@@ -270,6 +270,7 @@ def test_model_weight_and_health_endpoints() -> None:
             async with AsyncClient(transport=transport, base_url="http://testserver") as client:
                 models = await client.get("/api/v1/component4/models")
                 readiness = await client.get("/api/v1/component4/integration-readiness")
+                release = await client.get("/api/v1/component4/release-readiness")
                 weights = await client.get("/api/v1/component4/weights/Electricians")
                 health = await client.get("/api/v1/component4/health")
         finally:
@@ -292,6 +293,11 @@ def test_model_weight_and_health_endpoints() -> None:
         assert readiness.json()["component4_ready"] is True
         assert readiness.json()["component2_connected"] is False
         assert readiness.json()["production_ready"] is False
+        assert release.status_code == 200
+        assert release.json()["component4_operationally_ready"] is True
+        assert release.json()["component2_connected"] is False
+        assert release.json()["production_ready"] is False
+        assert all(release.json()["checks"].values())
         assert weights.status_code == 200
         assert sum(weights.json()["weights"].values()) == 1.0
         assert health.status_code == 200

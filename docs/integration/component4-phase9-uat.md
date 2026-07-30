@@ -60,3 +60,15 @@ production.
 Production readiness may change to true only after all ten checks pass using real Component 2
 output. The Phase 8 held-out proxy evaluation remains research validation and is not a
 substitute for this integration UAT.
+
+## Phase 10 operational evidence
+
+Component 4's independent runtime gate is exposed at:
+
+```text
+GET /api/v1/component4/release-readiness
+```
+
+This evidence must pass before the post-merge UAT starts. It covers immutable artifact
+integrity and in-process sequential/concurrent ranking performance. It does not satisfy steps
+1-9 above and does not measure production network or shared MongoDB latency.

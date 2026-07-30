@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from app.core.config import Settings
+from app.core.config import BACKEND_DIR, Settings
 
 
 def test_cors_origins_are_parsed() -> None:
@@ -22,3 +22,20 @@ def test_production_rejects_development_jwt_secret() -> None:
             mongodb_database="test_database",
             jwt_secret_key="development-only-change-me-32-bytes",
         )
+
+
+def test_component_artifact_paths_resolve_from_backend_directory() -> None:
+    settings = Settings(
+        component1_artifact_dir="app/components/component1/artifacts",
+        component4_artifact_dir="../../ml/components/component4/artifacts/catf-v1",
+        component4_category_priors_path=(
+            "../../ml/components/component4/data/processed/category_priors.json"
+        ),
+    )
+
+    assert settings.component1_artifact_dir == (
+        BACKEND_DIR / "app/components/component1/artifacts"
+    ).resolve()
+    assert settings.component4_artifact_dir == (
+        BACKEND_DIR / "../../ml/components/component4/artifacts/catf-v1"
+    ).resolve()

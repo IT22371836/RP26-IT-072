@@ -251,3 +251,40 @@ claim that validation.
 Phase 5 does not write MongoDB data or add backend/frontend endpoints. Live Component 2
 candidate integration, shared database persistence, API schemas, and UI wiring begin only in
 Phase 6.
+
+## Phase 6 - Shared MongoDB persistence and ranking API
+
+Phase 6 integrates the versioned Phase 5 score snapshot into the active FastAPI backend
+without importing TensorFlow, Pandas, or the research pipeline into the web process. The
+backend validates artifact byte counts and SHA-256 hashes once, keeps the immutable 10,000
+provider score index in memory, and persists ranking runs to the application's configured
+shared MongoDB database.
+
+MongoDB collections:
+
+- `component4_runs` - request ownership, candidates, versions, timing, status, and the
+  reproducible response snapshot.
+- `component4_provider_scores` - one document per returned provider with rank, CATF score,
+  aspect scores, credibility/evidence fields, and all active versions.
+
+The normal application index setup creates the required unique and compound indexes for both
+collections. No separate Component 4 database or `.env` file is used.
+
+API routes:
+
+- `POST /api/v1/component4/rank`
+- `GET /api/v1/component4/runs/{run_id}`
+- `GET /api/v1/component4/models`
+- `GET /api/v1/component4/weights/{category}`
+- `GET /api/v1/component4/health`
+
+`rank` requires a customer JWT, verifies that `request_id` belongs to that customer, accepts
+one to ten unique canonical provider IDs, and returns at most five candidates. Unknown IDs
+return 404. A registered provider that is available in the shared `providers` collection but
+not in the Phase 5 research snapshot receives the versioned category-prior fallback with
+explicit insufficient-evidence status.
+
+Component 2 is not implemented in the active repository yet. Therefore, Phase 6 exposes its
+strict candidate handoff contract but does not fabricate Component 2 output. Connecting the
+previous stage and replacing the current Component 1 Top-20 frontend result with the final
+Top-5 display remains the Phase 7 boundary.

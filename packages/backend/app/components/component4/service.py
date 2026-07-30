@@ -332,6 +332,32 @@ class Component4RankingEngine:
             ),
         }
 
+    def integration_readiness(self) -> dict[str, Any]:
+        require(self.ready, "Component 4 artifacts are not loaded")
+        return {
+            "phase": "phase9",
+            "status": "awaiting_component2",
+            "component4_ready": True,
+            "component2_connected": False,
+            "production_ready": False,
+            "contract_version": "component2-to-component4-v1",
+            "expected_source": "component2",
+            "maximum_input_candidates": int(self.config["maximum_candidates"]),
+            "maximum_output_providers": int(self.config["maximum_top_k"]),
+            "fixture_policy": "development_only",
+            "required_handoff_fields": [
+                "request_id",
+                "user_id",
+                "component_version",
+                "model_version",
+                "provider_ids",
+            ],
+            "detail": (
+                "Component 4 is ready, but production integration is waiting for the real "
+                "Component 2 Top-10 implementation."
+            ),
+        }
+
     def weight_profile(self, category: str) -> dict[str, Any]:
         normalized = " ".join(category.split())
         categories = self.weight_profiles["categories"]

@@ -59,6 +59,15 @@ export interface RecommendationResponse {
   results: ProviderRecommendation[];
 }
 
+export interface Component4CandidateHandoff {
+  source: "component2" | "development_fixture";
+  request_id: string;
+  user_id: string;
+  component_version: string;
+  model_version: string;
+  provider_ids: string[];
+}
+
 export interface Component4AspectScores {
   quality: number;
   punctuality: number;

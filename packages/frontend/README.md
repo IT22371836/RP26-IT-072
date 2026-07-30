@@ -35,6 +35,12 @@ When Component 2 is available, replace the fixture implementation in
 `src/component2-handoff.ts` with its returned Top-10 IDs. The Component 4 API client and
 Top-5 UI do not need a contract change.
 
+The fixture is development-only. Production builds fail closed and disable recommendation
+execution while `VITE_COMPONENT2_HANDOFF_MODE=component1-top10-fixture`. The reserved
+`component2-api` mode also remains disabled until the real adapter exists. Phase 9 UAT and
+the required inbound contract are documented in
+`docs/integration/component4-phase9-uat.md`.
+
 Run frontend validation:
 
 ```powershell

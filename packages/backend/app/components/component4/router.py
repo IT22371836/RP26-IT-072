@@ -10,6 +10,7 @@ from app.api.dependencies import (
 )
 from app.components.component4.schemas import (
     Component4HealthResponse,
+    Component4IntegrationReadinessResponse,
     Component4ModelsResponse,
     Component4RankRequest,
     Component4RankResponse,
@@ -142,6 +143,18 @@ async def active_models(
     engine: Annotated[Component4RankingEngine, Depends(engine_dependency)],
 ) -> Component4ModelsResponse:
     return Component4ModelsResponse.model_validate(engine.status())
+
+
+@router.get(
+    "/integration-readiness",
+    response_model=Component4IntegrationReadinessResponse,
+)
+async def integration_readiness(
+    engine: Annotated[Component4RankingEngine, Depends(engine_dependency)],
+) -> Component4IntegrationReadinessResponse:
+    return Component4IntegrationReadinessResponse.model_validate(
+        engine.integration_readiness()
+    )
 
 
 @router.get("/weights/{category}", response_model=Component4WeightResponse)

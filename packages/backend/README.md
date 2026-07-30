@@ -39,6 +39,7 @@ python -m uvicorn app.main:app --reload
 - `POST /api/v1/component4/rank`
 - `GET /api/v1/component4/runs/{run_id}`
 - `GET /api/v1/component4/models`
+- `GET /api/v1/component4/integration-readiness`
 - `GET /api/v1/component4/weights/{category}`
 - `GET /api/v1/component4/health`
 
@@ -49,6 +50,10 @@ returns at most five deterministic CATF-ranked providers. The ranking endpoint r
 customer JWT and a service request owned by that customer. Completed runs and their provider
 score snapshots are stored in the same MongoDB database as users, providers, service
 requests, and interactions.
+
+The Phase 9 integration-readiness endpoint is deliberately fail-closed. Until the real
+Component 2 implementation is merged, it reports that Component 4 is ready but the complete
+production pipeline is still awaiting Component 2.
 
 Component 4 loads and validates the Phase 5 provider-score snapshot on its first API request,
 then reuses the immutable in-memory index for the process lifetime. It supports newly

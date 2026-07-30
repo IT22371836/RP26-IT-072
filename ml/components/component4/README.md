@@ -367,3 +367,28 @@ weight ablation is marginally higher than category-adaptive weights on some aggr
 metrics, so Phase 8 does not claim that the PDF-guided category weights are empirically
 superior. The proxy is not human or production ground truth. Final production validation
 still requires real Component 2 candidates and independent relevance judgements.
+
+## Phase 9 - Integration and UAT readiness
+
+The latest active development integration branch still contains only Component 2
+placeholders. Phase 9 therefore freezes and tests the real Component 2-to-Component 4
+boundary without fabricating Component 2 output.
+
+The frontend validates request/user identity, one-to-ten unique provider IDs, and the
+requirement that every candidate remains inside the matching Component 1 Top-20. Its current
+first-ten fixture is allowed only in development and is fail-closed in production. The
+reserved `component2-api` mode also remains disabled until a real adapter is implemented.
+
+The backend exposes:
+
+```text
+GET /api/v1/component4/integration-readiness
+```
+
+It reports Component 4 readiness separately from whole-pipeline readiness. Until Component 2
+is merged, `component4_ready` is true while `component2_connected` and `production_ready`
+remain false with status `awaiting_component2`.
+
+The authoritative Phase 9 contract and post-merge UAT checklist are in
+`docs/integration/component4-phase9-uat.md`. Production readiness must not be enabled until
+the real Component 2 Top-10 output passes that checklist.

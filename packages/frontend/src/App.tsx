@@ -22,8 +22,9 @@ import {
 import { FormEvent, ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { ApiError, api } from "./api";
 import {
-  COMPONENT2_HANDOFF_MODE,
+  COMPONENT2_HANDOFF_READINESS,
   buildComponent2IntegrationFixture,
+  validateComponent4CandidateHandoff,
 } from "./component2-handoff";
 import type {
   Component4RankedProvider,
@@ -316,16 +317,21 @@ function CustomerDashboard({ session }: { session: Session }) {
 
   async function findProviders(event: FormEvent) {
     event.preventDefault();
+    if (!COMPONENT2_HANDOFF_READINESS.ready) {
+      setError(COMPONENT2_HANDOFF_READINESS.detail);
+      return;
+    }
     setLoading(true); setLoadingStage("component1"); setError(""); setRecommendations(null); setFinalRanking(null);
     try {
       const created = await api.createServiceRequest(form, session.token);
       const component1Result = await api.recommend(created, session.token);
       setRecommendations(component1Result);
-      const candidateIds = buildComponent2IntegrationFixture(component1Result);
+      const candidateIds = validateComponent4CandidateHandoff(
+        buildComponent2IntegrationFixture(component1Result),
+        component1Result,
+        import.meta.env.PROD,
+      );
       if (!candidateIds.length) return;
-      if (COMPONENT2_HANDOFF_MODE !== "component1-top10-fixture") {
-        throw new Error("Component 2 Top-10 handoff is not connected.");
-      }
       setLoadingStage("component4");
       setFinalRanking(
         await api.rankComponent4(created.request_id, candidateIds, session.token),
@@ -403,8 +409,9 @@ function CustomerDashboard({ session }: { session: Session }) {
           <label>District<select value={form.district} onChange={(e) => update("district", e.target.value)}>{districts.map((item) => <option key={item}>{item}</option>)}</select></label>
           <label>City<input required value={form.city} onChange={(e) => update("city", e.target.value)} placeholder="e.g. Kottawa" /></label>
           <label>Urgency<select value={form.urgency} onChange={(e) => update("urgency", e.target.value as ServiceRequestInput["urgency"])}><option value="normal">Normal</option><option value="urgent">Urgent</option><option value="emergency">Emergency</option></select></label>
-          <button className="find-button" disabled={loading}>{loading ? <LoaderCircle className="spin" size={19} /> : <Search size={19} />}{loading ? "Analysing providers..." : "Find my best matches"}<ChevronRight size={19} /></button>
+          <button className="find-button" disabled={loading || !COMPONENT2_HANDOFF_READINESS.ready}>{loading ? <LoaderCircle className="spin" size={19} /> : <Search size={19} />}{loading ? "Analysing providers..." : "Find my best matches"}<ChevronRight size={19} /></button>
         </form>
+        {!COMPONENT2_HANDOFF_READINESS.ready && <div className="notice error request-error">{COMPONENT2_HANDOFF_READINESS.detail}</div>}
         {error && <div className="notice error request-error">{error}</div>}
       </section>
       {loading && <section className="loading-panel"><div className="loader-orbit"><Sparkles size={25} /></div><h2>{loadingStage === "component1" ? "Finding relevant providers" : "Building your trust-aware Top 5"}</h2><p>{loadingStage === "component1" ? "Comparing semantic relevance, content signals and your service history…" : "Fusing aspect sentiment, review credibility and evidence reliability…"}</p></section>}

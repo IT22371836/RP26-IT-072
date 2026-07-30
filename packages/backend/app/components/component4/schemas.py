@@ -82,6 +82,21 @@ class Component4ModelsResponse(BaseModel):
     production_ground_truth_validation: str
 
 
+class Component4IntegrationReadinessResponse(BaseModel):
+    phase: Literal["phase9"]
+    status: Literal["awaiting_component2"]
+    component4_ready: bool
+    component2_connected: bool
+    production_ready: bool
+    contract_version: str
+    expected_source: Literal["component2"]
+    maximum_input_candidates: Literal[10]
+    maximum_output_providers: Literal[5]
+    fixture_policy: Literal["development_only"]
+    required_handoff_fields: list[str]
+    detail: str
+
+
 class Component4WeightResponse(BaseModel):
     category: str
     weights: dict[str, float]

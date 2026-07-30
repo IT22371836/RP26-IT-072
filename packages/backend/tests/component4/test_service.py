@@ -44,6 +44,21 @@ def test_engine_loads_versioned_phase5_snapshot(engine: Component4RankingEngine)
     )
 
 
+def test_phase9_readiness_is_fail_closed_until_component2_exists(
+    engine: Component4RankingEngine,
+) -> None:
+    readiness = engine.integration_readiness()
+
+    assert readiness["phase"] == "phase9"
+    assert readiness["status"] == "awaiting_component2"
+    assert readiness["component4_ready"] is True
+    assert readiness["component2_connected"] is False
+    assert readiness["production_ready"] is False
+    assert readiness["maximum_input_candidates"] == 10
+    assert readiness["maximum_output_providers"] == 5
+    assert readiness["fixture_policy"] == "development_only"
+
+
 def test_engine_rejects_a_tampered_artifact(
     engine: Component4RankingEngine,
     tmp_path,

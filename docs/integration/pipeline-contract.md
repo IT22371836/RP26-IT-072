@@ -21,30 +21,34 @@ The canonical MongoDB collection fields and ownership rules are defined in [`cor
 
 `request_id`, `user_id`, `component_version`, `model_version`, and exactly Top-20 providers (when at least 20 match the supplied filters) with `provider_id`, provider metadata, `tfidf_score`, `bert_score`, `cf_score`, and `hybrid_score`. The pipeline request fixes `top_k` at `20`.
 
-### Component 2 to Component 3
+### Component 2 to Component 4
 
-Top-10 providers with Component 1 scores plus distance, availability, weather, demand, and `context_score`.
-
-### Component 3 to Component 4
-
-Top-8 providers with prior scores plus verification status, qualification signals, and `credibility_score`.
+Component 2 filters the Component 1 Top-20 to at most ten unique providers. The minimum
+handoff required by Component 4 is `request_id`, `user_id`, `component_version`,
+`model_version`, and `provider_ids`. Component 2 may preserve its contextual features and
+scores in its own response, but it must not rewrite provider IDs or introduce a provider
+outside the Component 1 candidate set.
 
 ### Component 4 final output
 
-Top-5 providers with prior scores, aspect sentiment, fraud signals, final score, tier, and human-readable ranking reasons.
+At most five providers selected only from the Component 2 candidates, with aspect sentiment,
+review credibility, evidence reliability, final CATF score, and version metadata.
 
 ## Contract requirements
 
 - Every numeric score passed between components must be normalized to `[0, 1]`.
 - Each response must include `component_version` and `model_version`.
 - Components must preserve `request_id` and `provider_id` without rewriting them.
+- Component 2 candidate IDs must be unique, contain between one and ten items, and remain a
+  subset of the corresponding Component 1 Top-20.
+- Component 4 must return no more than five items and must never add a non-candidate provider.
 - Failure and fallback behavior must be explicit; random provider selection is not an integration fallback.
+- The Component 1 Top-10 development fixture is forbidden in production.
 - API DTOs and persisted MongoDB fields must use the same canonical names.
 
 ## Items still requiring team agreement
 
 - Component 2 input data sources and exact context formula
-- Component 3 verification fields, model outputs, and tier thresholds
-- Component 4 review dataset schema, fraud features, and blending formula
+- Component 2 production endpoint and final response DTO
 - Ownership of shared provider and request collections
 - End-to-end evaluation dataset and success metrics

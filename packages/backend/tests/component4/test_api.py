@@ -269,6 +269,7 @@ def test_model_weight_and_health_endpoints() -> None:
             transport = ASGITransport(app=app)
             async with AsyncClient(transport=transport, base_url="http://testserver") as client:
                 models = await client.get("/api/v1/component4/models")
+                readiness = await client.get("/api/v1/component4/integration-readiness")
                 weights = await client.get("/api/v1/component4/weights/Electricians")
                 health = await client.get("/api/v1/component4/health")
         finally:
@@ -286,6 +287,11 @@ def test_model_weight_and_health_endpoints() -> None:
             models.json()["production_ground_truth_validation"]
             == "pending_real_component2_and_independent_relevance_judgements"
         )
+        assert readiness.status_code == 200
+        assert readiness.json()["status"] == "awaiting_component2"
+        assert readiness.json()["component4_ready"] is True
+        assert readiness.json()["component2_connected"] is False
+        assert readiness.json()["production_ready"] is False
         assert weights.status_code == 200
         assert sum(weights.json()["weights"].values()) == 1.0
         assert health.status_code == 200

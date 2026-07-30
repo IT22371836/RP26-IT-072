@@ -9,6 +9,7 @@ from app.api.dependencies import (
     require_role,
 )
 from app.components.component4.schemas import (
+    Component4HandoffReadinessResponse,
     Component4HealthResponse,
     Component4IntegrationReadinessResponse,
     Component4ModelsResponse,
@@ -56,6 +57,7 @@ def engine_dependency(
 async def rank_candidates(
     payload: Component4RankRequest,
     current_user: Annotated[UserPublic, Depends(customer_user)],
+    settings: Annotated[Settings, Depends(get_settings)],
     engine: Annotated[Component4RankingEngine, Depends(engine_dependency)],
     component4_repository: Annotated[
         Component4Repository,
@@ -70,6 +72,19 @@ async def rank_candidates(
         Depends(get_service_request_repository),
     ],
 ) -> Component4RankResponse:
+    if payload.user_id != current_user.user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="The Component 4 handoff user does not match the authenticated customer",
+        )
+    if (
+        settings.app_env.lower() == "production"
+        and payload.source == "development_fixture"
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="The Component 2 development fixture is forbidden in production",
+        )
     try:
         request = await service_request_repository.find_by_id(payload.request_id)
     except Exception as error:
@@ -167,6 +182,18 @@ async def release_readiness(
 ) -> Component4ReleaseReadinessResponse:
     return Component4ReleaseReadinessResponse.model_validate(
         engine.release_readiness()
+    )
+
+
+@router.get(
+    "/handoff-readiness",
+    response_model=Component4HandoffReadinessResponse,
+)
+async def handoff_readiness(
+    engine: Annotated[Component4RankingEngine, Depends(engine_dependency)],
+) -> Component4HandoffReadinessResponse:
+    return Component4HandoffReadinessResponse.model_validate(
+        engine.handoff_readiness()
     )
 
 

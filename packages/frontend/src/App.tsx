@@ -326,15 +326,19 @@ function CustomerDashboard({ session }: { session: Session }) {
       const created = await api.createServiceRequest(form, session.token);
       const component1Result = await api.recommend(created, session.token);
       setRecommendations(component1Result);
+      const handoff = buildComponent2IntegrationFixture(component1Result);
       const candidateIds = validateComponent4CandidateHandoff(
-        buildComponent2IntegrationFixture(component1Result),
+        handoff,
         component1Result,
         import.meta.env.PROD,
       );
       if (!candidateIds.length) return;
       setLoadingStage("component4");
       setFinalRanking(
-        await api.rankComponent4(created.request_id, candidateIds, session.token),
+        await api.rankComponent4(
+          { ...handoff, provider_ids: candidateIds },
+          session.token,
+        ),
       );
       await refreshHistory();
     } catch (reason) {

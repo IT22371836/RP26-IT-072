@@ -41,6 +41,7 @@ python -m uvicorn app.main:app --reload
 - `GET /api/v1/component4/models`
 - `GET /api/v1/component4/integration-readiness`
 - `GET /api/v1/component4/release-readiness`
+- `GET /api/v1/component4/handoff-readiness`
 - `GET /api/v1/component4/weights/{category}`
 - `GET /api/v1/component4/health`
 
@@ -68,6 +69,13 @@ The release-readiness endpoint exposes this checksum-validated evidence. Passing
 means Component 4 is operationally ready; it does not replace a production infrastructure
 load test or the real Component 2 integration UAT.
 
+Phase 11 enforces the complete Component 2 handoff lineage at the ranking boundary. The
+authenticated customer must match `user_id`; Component 2 and model versions affect the
+deterministic run identity and are persisted with both the run and provider snapshots. The
+development fixture is rejected whenever `APP_ENV=production`. The handoff-readiness
+endpoint reports these controls separately from the still-pending real Component 2
+connection.
+
 Component 4 loads and validates the Phase 5 provider-score snapshot on its first API request,
 then reuses the immutable in-memory index for the process lifetime. It supports newly
 registered Component 1 providers by applying the versioned category-prior fallback until
@@ -78,7 +86,11 @@ Example request:
 
 ```json
 {
+  "source": "component2",
   "request_id": "RABC123",
+  "user_id": "UABC123",
+  "component_version": "component2-v1",
+  "model_version": "context-filter-v1",
   "provider_ids": [
     "P00001",
     "P00002",

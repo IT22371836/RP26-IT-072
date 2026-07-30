@@ -1,15 +1,27 @@
-from typing import Literal
+from typing import Literal, Self
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 ASPECTS = ("quality", "punctuality", "communication", "professionalism")
 
 
 class Component4RankRequest(BaseModel):
+    source: Literal["component2", "development_fixture"]
     request_id: str = Field(pattern=r"^R[A-Z0-9]+$", min_length=2, max_length=64)
+    user_id: str = Field(pattern=r"^U[A-Z0-9]+$", min_length=2, max_length=64)
+    component_version: str = Field(min_length=1, max_length=128)
+    model_version: str = Field(min_length=1, max_length=128)
     provider_ids: list[str] = Field(min_length=1, max_length=10)
     top_k: int = Field(default=5, ge=1, le=5)
     force_recalculate: bool = False
+
+    @field_validator("component_version", "model_version")
+    @classmethod
+    def normalize_version(cls, value: str) -> str:
+        normalized = value.strip()
+        if not normalized:
+            raise ValueError("handoff versions must not be blank")
+        return normalized
 
     @field_validator("provider_ids")
     @classmethod
@@ -20,6 +32,23 @@ class Component4RankRequest(BaseModel):
         if len(normalized) != len(set(normalized)):
             raise ValueError("provider_ids must be unique")
         return normalized
+
+    @model_validator(mode="after")
+    def reject_placeholder_component2_versions(self) -> Self:
+        if self.source == "component2" and (
+            self.component_version == "not-component2"
+            or self.model_version == "not-component2"
+        ):
+            raise ValueError("real Component 2 handoffs require real version identifiers")
+        return self
+
+
+class Component4HandoffLineage(BaseModel):
+    source: Literal["component2", "development_fixture"]
+    request_id: str
+    user_id: str
+    component_version: str
+    model_version: str
 
 
 class AspectScores(BaseModel):
@@ -61,6 +90,7 @@ class Component4RankResponse(BaseModel):
     request_id: str
     run_id: str
     user_id: str
+    handoff: Component4HandoffLineage
     input_count: int = Field(ge=1, le=10)
     output_count: int = Field(ge=1, le=5)
     requested_top_k: int = Field(ge=1, le=5)
@@ -123,6 +153,20 @@ class Component4ReleaseReadinessResponse(BaseModel):
     performance: Component4PerformanceSummary
     thresholds: dict[str, float]
     remaining_production_gates: list[str]
+    detail: str
+
+
+class Component4HandoffReadinessResponse(BaseModel):
+    phase: Literal["phase11"]
+    status: Literal["contract_ready_awaiting_component2"]
+    contract_version: Literal["component2-to-component4-v1"]
+    contract_enforced: bool
+    identity_binding_enforced: bool
+    lineage_persistence_enabled: bool
+    fixture_blocked_in_production: bool
+    component2_connected: bool
+    production_ready: bool
+    required_handoff_fields: list[str]
     detail: str
 
 

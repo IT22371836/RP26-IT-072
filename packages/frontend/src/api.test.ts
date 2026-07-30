@@ -7,6 +7,14 @@ describe("Component 4 API client", () => {
 
   it("posts the strict Top-10 to Top-5 ranking contract with authentication", async () => {
     const providerIds = Array.from({ length: 10 }, (_, index) => `P${index + 1}`);
+    const handoff = {
+      source: "component2" as const,
+      request_id: "RTEST1",
+      user_id: "UTEST1",
+      component_version: "component2-v1",
+      model_version: "context-v1",
+      provider_ids: providerIds,
+    };
     const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
       new Response(
         JSON.stringify({
@@ -14,6 +22,7 @@ describe("Component 4 API client", () => {
           request_id: "RTEST1",
           run_id: "C4RUN-TEST",
           user_id: "UTEST1",
+          handoff,
           input_count: 10,
           output_count: 0,
           requested_top_k: 5,
@@ -36,7 +45,7 @@ describe("Component 4 API client", () => {
       ),
     );
 
-    await api.rankComponent4("RTEST1", providerIds, "test-token");
+    await api.rankComponent4(handoff, "test-token");
 
     expect(fetchMock).toHaveBeenCalledOnce();
     const [url, options] = fetchMock.mock.calls[0];
@@ -47,8 +56,7 @@ describe("Component 4 API client", () => {
       "Content-Type": "application/json",
     });
     expect(JSON.parse(String(options?.body))).toEqual({
-      request_id: "RTEST1",
-      provider_ids: providerIds,
+      ...handoff,
       top_k: 5,
       force_recalculate: false,
     });

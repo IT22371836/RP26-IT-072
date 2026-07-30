@@ -179,7 +179,15 @@ describe("authentication entry flow", () => {
       new URL(String(url)).pathname.endsWith("/component4/rank"),
     );
     expect(rankCall).toBeDefined();
-    expect(JSON.parse(String(rankCall?.[1]?.body)).provider_ids).toHaveLength(10);
+    const rankPayload = JSON.parse(String(rankCall?.[1]?.body));
+    expect(rankPayload.provider_ids).toHaveLength(10);
+    expect(rankPayload).toMatchObject({
+      source: "development_fixture",
+      request_id: "RTEST1",
+      user_id: "UTEST1",
+      component_version: "not-component2",
+      model_version: "not-component2",
+    });
 
     fireEvent.click(screen.getAllByRole("button", { name: "Select this provider" })[0]);
     await waitFor(() =>

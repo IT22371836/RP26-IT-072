@@ -433,3 +433,27 @@ The current gate passes Component 4 operational validation with zero ranking fai
 `production_ready` intentionally remains false: real Component 2 UAT and a production
 infrastructure load test against the shared MongoDB are still required. The benchmark
 measures the in-process immutable ranker, not network or database latency.
+
+## Phase 11 - Component 2 handoff lineage
+
+Phase 11 closes the audit gap between the existing frontend handoff object and the backend
+ranking request. `POST /api/v1/component4/rank` now requires `source`, `request_id`,
+`user_id`, upstream `component_version`, upstream `model_version`, and one to ten
+`provider_ids`.
+
+The backend binds `user_id` to the authenticated customer, verifies request ownership, rejects
+placeholder versions presented as real Component 2 output, and forbids the development
+fixture when `APP_ENV=production`. Source and upstream versions participate in deterministic
+run identity and are preserved in the API response, Component 4 run document, and ranked
+provider snapshots.
+
+The receiving-boundary status is exposed at:
+
+```text
+GET /api/v1/component4/handoff-readiness
+```
+
+This phase makes the Component 4 side of the handoff contract enforceable and auditable. It
+does not claim that Component 2 exists: `component2_connected` and `production_ready` remain
+false until the real adapter, post-merge UAT, and shared-Mongo load test pass. See
+`docs/integration/component4-phase11-handoff.md` for the exact contract and UAT steps.

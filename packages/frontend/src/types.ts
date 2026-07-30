@@ -68,6 +68,11 @@ export interface Component4CandidateHandoff {
   provider_ids: string[];
 }
 
+export type Component4HandoffLineage = Omit<
+  Component4CandidateHandoff,
+  "provider_ids"
+>;
+
 export interface Component4AspectScores {
   quality: number;
   punctuality: number;
@@ -107,6 +112,7 @@ export interface Component4RankResponse {
   request_id: string;
   run_id: string;
   user_id: string;
+  handoff: Component4HandoffLineage;
   input_count: number;
   output_count: number;
   requested_top_k: number;

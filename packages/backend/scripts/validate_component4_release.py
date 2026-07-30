@@ -143,7 +143,11 @@ def build_payloads(
         start = (index * stride) % maximum_start
         payloads.append(
             Component4RankRequest(
+                source="development_fixture",
                 request_id=f"RRELEASE{index:06d}",
+                user_id="URELEASEVALIDATION",
+                component_version="not-component2",
+                model_version="not-component2",
                 provider_ids=provider_ids[start : start + candidate_count],
                 top_k=top_k,
             )

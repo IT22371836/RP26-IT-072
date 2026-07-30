@@ -24,10 +24,12 @@ The canonical MongoDB collection fields and ownership rules are defined in [`cor
 ### Component 2 to Component 4
 
 Component 2 filters the Component 1 Top-20 to at most ten unique providers. The minimum
-handoff required by Component 4 is `request_id`, `user_id`, `component_version`,
-`model_version`, and `provider_ids`. Component 2 may preserve its contextual features and
-scores in its own response, but it must not rewrite provider IDs or introduce a provider
-outside the Component 1 candidate set.
+handoff required by Component 4 is `source`, `request_id`, `user_id`, `component_version`,
+`model_version`, and `provider_ids`. Production handoffs use `source: component2`. Component 2
+may preserve its contextual features and scores in its own response, but it must not rewrite
+provider IDs or introduce a provider outside the Component 1 candidate set. Component 4
+preserves these source fields in its response and MongoDB ranking snapshots; the enforced
+boundary is documented in [`component4-phase11-handoff.md`](component4-phase11-handoff.md).
 
 ### Component 4 final output
 
@@ -44,6 +46,8 @@ review credibility, evidence reliability, final CATF score, and version metadata
 - Component 4 must return no more than five items and must never add a non-candidate provider.
 - Failure and fallback behavior must be explicit; random provider selection is not an integration fallback.
 - The Component 1 Top-10 development fixture is forbidden in production.
+- The authenticated customer must match the handoff `user_id`.
+- Handoff source and upstream versions must be included in Component 4 run identity.
 - API DTOs and persisted MongoDB fields must use the same canonical names.
 
 ## Items still requiring team agreement

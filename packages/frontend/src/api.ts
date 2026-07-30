@@ -1,5 +1,6 @@
 import type {
   RecommendationResponse,
+  Component4CandidateHandoff,
   Component4RankResponse,
   ProviderProfile,
   ProviderProfileInput,
@@ -79,14 +80,13 @@ export const api = {
       },
       token,
     ),
-  rankComponent4: (requestId: string, providerIds: string[], token: string) =>
+  rankComponent4: (handoff: Component4CandidateHandoff, token: string) =>
     request<Component4RankResponse>(
       "/component4/rank",
       {
         method: "POST",
         body: JSON.stringify({
-          request_id: requestId,
-          provider_ids: providerIds,
+          ...handoff,
           top_k: 5,
           force_recalculate: false,
         }),

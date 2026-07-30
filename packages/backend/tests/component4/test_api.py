@@ -13,7 +13,7 @@ from app.api.dependencies import (
 )
 from app.components.component4.router import customer_user, engine_dependency
 from app.components.component4.service import Component4RankingEngine
-from app.core.config import Settings
+from app.core.config import Settings, get_settings
 from app.core.database import MongoDatabase
 from app.main import app
 from app.schemas.auth import UserPublic
@@ -98,7 +98,11 @@ def test_rank_endpoint_persists_and_returns_cached_top5() -> None:
             OwnedServiceRequestRepository(customer.user_id)
         )
         payload = {
+            "source": "development_fixture",
             "request_id": "RAPITEST1",
+            "user_id": customer.user_id,
+            "component_version": "not-component2",
+            "model_version": "not-component2",
             "provider_ids": [f"P{index:05d}" for index in range(1, 11)],
             "top_k": 5,
         }
@@ -117,6 +121,13 @@ def test_rank_endpoint_persists_and_returns_cached_top5() -> None:
         assert first.status_code == 200
         assert first.json()["input_count"] == 10
         assert first.json()["output_count"] == 5
+        assert first.json()["handoff"] == {
+            "source": "development_fixture",
+            "request_id": "RAPITEST1",
+            "user_id": customer.user_id,
+            "component_version": "not-component2",
+            "model_version": "not-component2",
+        }
         assert first.json()["cached"] is False
         assert second.status_code == 200
         assert second.json()["cached"] is True
@@ -151,7 +162,11 @@ def test_rank_endpoint_returns_404_for_unknown_provider() -> None:
                 response = await client.post(
                     "/api/v1/component4/rank",
                     json={
+                        "source": "development_fixture",
                         "request_id": "RUNKNOWN1",
+                        "user_id": customer.user_id,
+                        "component_version": "not-component2",
+                        "model_version": "not-component2",
                         "provider_ids": ["PUNKNOWN1"],
                     },
                 )
@@ -188,7 +203,11 @@ def test_rank_endpoint_rejects_a_request_owned_by_another_customer() -> None:
                 response = await client.post(
                     "/api/v1/component4/rank",
                     json={
+                        "source": "development_fixture",
                         "request_id": "ROWNER1",
+                        "user_id": customer.user_id,
+                        "component_version": "not-component2",
+                        "model_version": "not-component2",
                         "provider_ids": ["P00001"],
                     },
                 )
@@ -224,7 +243,11 @@ def test_rank_endpoint_reports_persistence_unavailability() -> None:
                 response = await client.post(
                     "/api/v1/component4/rank",
                     json={
+                        "source": "development_fixture",
                         "request_id": "RDBFAIL1",
+                        "user_id": customer.user_id,
+                        "component_version": "not-component2",
+                        "model_version": "not-component2",
                         "provider_ids": ["P00001"],
                     },
                 )
@@ -233,6 +256,74 @@ def test_rank_endpoint_reports_persistence_unavailability() -> None:
 
         assert response.status_code == 503
         assert response.json()["detail"] == "Component 4 ranking persistence is unavailable"
+
+    asyncio.run(run_test())
+
+
+def test_rank_endpoint_enforces_identity_and_production_fixture_policy() -> None:
+    async def run_test() -> None:
+        customer = UserPublic(
+            user_id="ULINEAGE1",
+            email="lineage@example.com",
+            full_name="Lineage Customer",
+            role=UserRole.CUSTOMER,
+            is_active=True,
+            created_at=datetime.now(UTC),
+        )
+        repository = InMemoryComponent4Repository()
+        production = Settings(
+            app_env="production",
+            jwt_secret_key="phase11-production-test-secret-key",
+        )
+        app.dependency_overrides[customer_user] = lambda: customer
+        app.dependency_overrides[engine_dependency] = loaded_engine
+        app.dependency_overrides[get_settings] = lambda: production
+        app.dependency_overrides[get_component4_repository] = lambda: repository
+        app.dependency_overrides[get_provider_repository] = EmptyProviderRepository
+        app.dependency_overrides[get_service_request_repository] = lambda: (
+            OwnedServiceRequestRepository(customer.user_id)
+        )
+        base_payload = {
+            "request_id": "RLINEAGE1",
+            "user_id": customer.user_id,
+            "component_version": "component2-v1",
+            "model_version": "context-v1",
+            "provider_ids": ["P00001"],
+        }
+
+        try:
+            transport = ASGITransport(app=app)
+            async with AsyncClient(transport=transport, base_url="http://testserver") as client:
+                identity_mismatch = await client.post(
+                    "/api/v1/component4/rank",
+                    json={
+                        **base_payload,
+                        "source": "component2",
+                        "user_id": "UOTHER1",
+                    },
+                )
+                forbidden_fixture = await client.post(
+                    "/api/v1/component4/rank",
+                    json={
+                        **base_payload,
+                        "source": "development_fixture",
+                        "component_version": "not-component2",
+                        "model_version": "not-component2",
+                    },
+                )
+                component2 = await client.post(
+                    "/api/v1/component4/rank",
+                    json={**base_payload, "source": "component2"},
+                )
+        finally:
+            app.dependency_overrides.clear()
+
+        assert identity_mismatch.status_code == 403
+        assert forbidden_fixture.status_code == 403
+        assert "forbidden in production" in forbidden_fixture.json()["detail"]
+        assert component2.status_code == 200
+        assert component2.json()["handoff"]["component_version"] == "component2-v1"
+        assert repository.persist_count == 1
 
     asyncio.run(run_test())
 
@@ -246,7 +337,11 @@ def test_rank_endpoint_requires_authentication() -> None:
                 response = await client.post(
                     "/api/v1/component4/rank",
                     json={
+                        "source": "development_fixture",
                         "request_id": "RNOAUTH1",
+                        "user_id": "UTESTNOAUTH",
+                        "component_version": "not-component2",
+                        "model_version": "not-component2",
                         "provider_ids": ["P00001"],
                     },
                 )
@@ -271,6 +366,7 @@ def test_model_weight_and_health_endpoints() -> None:
                 models = await client.get("/api/v1/component4/models")
                 readiness = await client.get("/api/v1/component4/integration-readiness")
                 release = await client.get("/api/v1/component4/release-readiness")
+                handoff = await client.get("/api/v1/component4/handoff-readiness")
                 weights = await client.get("/api/v1/component4/weights/Electricians")
                 health = await client.get("/api/v1/component4/health")
         finally:
@@ -298,6 +394,11 @@ def test_model_weight_and_health_endpoints() -> None:
         assert release.json()["component2_connected"] is False
         assert release.json()["production_ready"] is False
         assert all(release.json()["checks"].values())
+        assert handoff.status_code == 200
+        assert handoff.json()["status"] == "contract_ready_awaiting_component2"
+        assert handoff.json()["contract_enforced"] is True
+        assert handoff.json()["component2_connected"] is False
+        assert handoff.json()["production_ready"] is False
         assert weights.status_code == 200
         assert sum(weights.json()["weights"].values()) == 1.0
         assert health.status_code == 200

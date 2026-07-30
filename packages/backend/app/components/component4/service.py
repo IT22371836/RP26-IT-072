@@ -36,7 +36,7 @@ DEFAULT_RELEASE_REPORT = (
     / "release-v1"
     / "release_readiness.json"
 )
-COMPONENT_VERSION = "component4-phase10"
+COMPONENT_VERSION = "component4-phase11"
 
 
 class ArtifactsUnavailableError(Exception):
@@ -423,6 +423,7 @@ class Component4RankingEngine:
             "maximum_output_providers": int(self.config["maximum_top_k"]),
             "fixture_policy": "development_only",
             "required_handoff_fields": [
+                "source",
                 "request_id",
                 "user_id",
                 "component_version",
@@ -458,6 +459,32 @@ class Component4RankingEngine:
             "detail": (
                 "Component 4 passed its in-process operational gate. Production remains "
                 "closed until real Component 2 UAT and infrastructure load testing pass."
+            ),
+        }
+
+    def handoff_readiness(self) -> dict[str, Any]:
+        require(self.ready, "Component 4 artifacts are not loaded")
+        return {
+            "phase": "phase11",
+            "status": "contract_ready_awaiting_component2",
+            "contract_version": "component2-to-component4-v1",
+            "contract_enforced": True,
+            "identity_binding_enforced": True,
+            "lineage_persistence_enabled": True,
+            "fixture_blocked_in_production": True,
+            "component2_connected": False,
+            "production_ready": False,
+            "required_handoff_fields": [
+                "source",
+                "request_id",
+                "user_id",
+                "component_version",
+                "model_version",
+                "provider_ids",
+            ],
+            "detail": (
+                "Component 4 enforces and persists the handoff lineage contract. "
+                "Production remains closed until the real Component 2 adapter passes UAT."
             ),
         }
 
@@ -545,7 +572,11 @@ class Component4RankingEngine:
             for rank, provider in enumerate(ranked, start=1)
         ]
         canonical = {
+            "source": payload.source,
             "request_id": payload.request_id,
+            "user_id": payload.user_id,
+            "source_component_version": payload.component_version,
+            "source_model_version": payload.model_version,
             "provider_ids": sorted(payload.provider_ids),
             "top_k": payload.top_k,
             **self.versions,
@@ -557,6 +588,13 @@ class Component4RankingEngine:
             "component_version": COMPONENT_VERSION,
             "request_id": payload.request_id,
             "run_id": f"C4RUN-{digest.upper()}",
+            "handoff": {
+                "source": payload.source,
+                "request_id": payload.request_id,
+                "user_id": payload.user_id,
+                "component_version": payload.component_version,
+                "model_version": payload.model_version,
+            },
             "input_count": len(payload.provider_ids),
             "output_count": len(providers),
             "requested_top_k": payload.top_k,
@@ -607,6 +645,7 @@ class Component4RankingOrchestrator:
             "run_id": response.run_id,
             "request_id": response.request_id,
             "user_id": user_id,
+            "handoff": response.handoff.model_dump(),
             "candidate_provider_ids": response.candidate_provider_ids,
             "input_count": response.input_count,
             "output_count": response.output_count,
@@ -623,6 +662,7 @@ class Component4RankingOrchestrator:
                 "run_id": response.run_id,
                 "request_id": response.request_id,
                 "user_id": user_id,
+                "handoff": response.handoff.model_dump(),
                 "provider_id": provider.provider_id,
                 "provider_name": provider.provider_name,
                 "category": provider.category,

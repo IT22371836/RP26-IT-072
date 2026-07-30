@@ -72,3 +72,10 @@ GET /api/v1/component4/release-readiness
 This evidence must pass before the post-merge UAT starts. It covers immutable artifact
 integrity and in-process sequential/concurrent ranking performance. It does not satisfy steps
 1-9 above and does not measure production network or shared MongoDB latency.
+
+## Phase 11 receiving boundary
+
+The strict handoff payload, customer-identity binding, production fixture rejection, upstream
+version lineage, and MongoDB audit fields are documented in
+[`component4-phase11-handoff.md`](component4-phase11-handoff.md). These controls make the
+Component 4 side of the adapter ready, but do not satisfy the real Component 2 steps above.

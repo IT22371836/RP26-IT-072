@@ -24,6 +24,19 @@ def engine() -> Component4RankingEngine:
     return instance
 
 
+def rank_request(**overrides) -> Component4RankRequest:
+    values = {
+        "source": "development_fixture",
+        "request_id": "RTEST1",
+        "user_id": "UTEST1",
+        "component_version": "not-component2",
+        "model_version": "not-component2",
+        "provider_ids": ["P00001"],
+        **overrides,
+    }
+    return Component4RankRequest.model_validate(values)
+
+
 def test_engine_loads_versioned_phase5_snapshot(engine: Component4RankingEngine) -> None:
     status = engine.status()
 
@@ -36,7 +49,7 @@ def test_engine_loads_versioned_phase5_snapshot(engine: Component4RankingEngine)
         "absa_model_version": "absa-v1",
         "credibility_model_version": "credibility-v1",
     }
-    assert status["component_version"] == "component4-phase10"
+    assert status["component_version"] == "component4-phase11"
     assert status["evaluation_version"] == "ranking-evaluation-v1"
     assert status["ranking_ground_truth_validation"] == "held_out_proxy_validated_phase8"
     assert status["production_ground_truth_validation"] == (
@@ -72,6 +85,21 @@ def test_phase10_release_evidence_passes_without_claiming_production_ready(
     assert all(readiness["checks"].values())
     assert readiness["performance"]["sequential"]["p95_ms"] <= 5
     assert readiness["performance"]["concurrent"]["p95_ms"] <= 20
+
+
+def test_phase11_handoff_boundary_is_ready_without_claiming_component2_connection(
+    engine: Component4RankingEngine,
+) -> None:
+    readiness = engine.handoff_readiness()
+
+    assert readiness["phase"] == "phase11"
+    assert readiness["status"] == "contract_ready_awaiting_component2"
+    assert readiness["contract_enforced"] is True
+    assert readiness["identity_binding_enforced"] is True
+    assert readiness["lineage_persistence_enabled"] is True
+    assert readiness["fixture_blocked_in_production"] is True
+    assert readiness["component2_connected"] is False
+    assert readiness["production_ready"] is False
 
 
 def test_engine_rejects_a_tampered_artifact(
@@ -126,14 +154,14 @@ def test_ranking_is_deterministic_and_never_adds_candidates(
 ) -> None:
     candidates = [f"P{index:05d}" for index in range(1, 11)]
     first = engine.rank(
-        Component4RankRequest(
+        rank_request(
             request_id="RDETERMINISTIC1",
             provider_ids=candidates,
         ),
         [],
     )
     second = engine.rank(
-        Component4RankRequest(
+        rank_request(
             request_id="RDETERMINISTIC1",
             provider_ids=list(reversed(candidates)),
         ),
@@ -148,11 +176,40 @@ def test_ranking_is_deterministic_and_never_adds_candidates(
     }.issubset(candidates)
 
 
+def test_run_identity_includes_the_upstream_handoff_versions(
+    engine: Component4RankingEngine,
+) -> None:
+    first = engine.rank(
+        rank_request(
+            source="component2",
+            request_id="RLINEAGE2",
+            component_version="component2-v1",
+            model_version="context-v1",
+            provider_ids=["P00001", "P00002"],
+        ),
+        [],
+    )
+    changed_model = engine.rank(
+        rank_request(
+            source="component2",
+            request_id="RLINEAGE2",
+            component_version="component2-v1",
+            model_version="context-v2",
+            provider_ids=["P00001", "P00002"],
+        ),
+        [],
+    )
+
+    assert first["run_id"] != changed_model["run_id"]
+    assert first["handoff"]["model_version"] == "context-v1"
+    assert changed_model["handoff"]["model_version"] == "context-v2"
+
+
 def test_fewer_than_five_candidates_returns_every_candidate(
     engine: Component4RankingEngine,
 ) -> None:
     result = engine.rank(
-        Component4RankRequest(
+        rank_request(
             request_id="RTHREE1",
             provider_ids=["P00001", "P00002", "P00003"],
         ),
@@ -176,7 +233,7 @@ def test_registered_provider_uses_category_prior_fallback(
         "review_count": 9,
     }
     result = engine.rank(
-        Component4RankRequest(
+        rank_request(
             request_id="RLIVE1",
             provider_ids=["PNEW123"],
         ),
@@ -194,7 +251,7 @@ def test_registered_provider_uses_category_prior_fallback(
 def test_unknown_provider_is_rejected(engine: Component4RankingEngine) -> None:
     with pytest.raises(UnknownProviderError, match="PUNKNOWN1"):
         engine.rank(
-            Component4RankRequest(
+            rank_request(
                 request_id="RUNKNOWN1",
                 provider_ids=["PUNKNOWN1"],
             ),
@@ -240,7 +297,7 @@ def test_orchestrator_persists_and_reuses_the_completed_run(
     async def run_test() -> None:
         repository = InMemoryComponent4Repository()
         orchestrator = Component4RankingOrchestrator(engine, repository)  # type: ignore[arg-type]
-        payload = Component4RankRequest(
+        payload = rank_request(
             request_id="RCACHE1",
             provider_ids=[f"P{index:05d}" for index in range(1, 11)],
         )
@@ -253,6 +310,9 @@ def test_orchestrator_persists_and_reuses_the_completed_run(
         assert first.providers == second.providers
         assert repository.persist_count == 1
         assert len(repository.provider_documents) == 5
+        assert first.handoff.source == "development_fixture"
+        assert first.handoff.user_id == "UTEST1"
+        assert repository.provider_documents[0]["handoff"] == first.handoff.model_dump()
         assert [
             document["final_catf_score"] for document in repository.provider_documents
         ] == [provider.final_score for provider in first.providers]
@@ -266,7 +326,7 @@ def test_force_recalculate_bypasses_the_completed_run(
     async def run_test() -> None:
         repository = InMemoryComponent4Repository()
         orchestrator = Component4RankingOrchestrator(engine, repository)  # type: ignore[arg-type]
-        payload = Component4RankRequest(
+        payload = rank_request(
             request_id="RFORCE1",
             provider_ids=["P00001", "P00002"],
             force_recalculate=True,

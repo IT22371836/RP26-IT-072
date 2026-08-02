@@ -24,7 +24,10 @@ provider_user = require_role(UserRole.PROVIDER)
 
 
 def next_interaction(
-    source: dict, interaction_type: InteractionType, rating: int | None = None
+    source: dict,
+    interaction_type: InteractionType,
+    rating: int | None = None,
+    review_text: str | None = None,
 ) -> dict:
     return {
         "interaction_id": new_public_id("I"),
@@ -35,6 +38,7 @@ def next_interaction(
         "category": source["category"],
         "interaction_type": interaction_type.value,
         "rating": rating,
+        "review_text": review_text,
         "timestamp": utc_now(),
     }
 
@@ -79,6 +83,20 @@ async def create_interaction(
     current_user: Annotated[UserPublic, Depends(customer_user)],
     repository: Annotated[InteractionRepository, Depends(get_interaction_repository)],
 ) -> InteractionPublic:
+    allowed_customer_events = {
+        InteractionType.CLICK,
+        InteractionType.SELECTED,
+        InteractionType.BOOKING_REQUESTED,
+    }
+    if (
+        payload.interaction_type not in allowed_customer_events
+        or payload.rating is not None
+        or payload.review_text is not None
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail="Ratings and reviews require a completed booking",
+        )
     document = {
         **payload.model_dump(mode="json"),
         "interaction_id": new_public_id("I"),
@@ -177,7 +195,12 @@ async def rate_completed_booking(
             status_code=status.HTTP_404_NOT_FOUND, detail="Completed booking not found"
         )
     await reject_duplicate_transition(repository, source, InteractionType.RATED)
-    document = next_interaction(source, InteractionType.RATED, payload.rating)
+    document = next_interaction(
+        source,
+        InteractionType.RATED,
+        payload.rating,
+        payload.review_text,
+    )
     await repository.create(document)
     await refresh_provider_statistics(repository, providers, source["provider_id"])
     return InteractionPublic.model_validate(document)

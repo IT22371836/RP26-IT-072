@@ -32,6 +32,7 @@ import type {
   ProviderRecommendation,
   ProviderProfile,
   ProviderProfileInput,
+  ProviderTrustProfile,
   CustomerProfile,
   CustomerProfileUpdate,
   Interaction,
@@ -177,6 +178,65 @@ function ScoreBar({ label, value, tone }: { label: string; value: number; tone: 
   return <div className="score-item"><div><span>{label}</span><strong>{Math.round(value * 100)}</strong></div><div className="score-track"><i style={{ width: `${value * 100}%`, background: tone }} /></div></div>;
 }
 
+function ProviderTrustProfileView({ profile }: { profile: ProviderTrustProfile }) {
+  const aspects = [
+    ["Quality", profile.aspect_performance.quality, "#0f766e"],
+    ["Communication", profile.aspect_performance.communication, "#2563eb"],
+    ["Professionalism", profile.aspect_performance.professionalism, "#7c3aed"],
+    ["Punctuality", profile.aspect_performance.punctuality, "#d97706"],
+  ] as const;
+
+  return (
+    <section className="trust-profile" aria-label={`${profile.provider_name} trust profile`}>
+      <div className="trust-profile-heading">
+        <div>
+          <div className="eyebrow"><ShieldCheck size={15} /> Verified trust profile</div>
+          <h2>{profile.provider_name}</h2>
+          <p><MapPin size={14} />{profile.city}, {profile.district}<span />{profile.category}</p>
+        </div>
+        <span className={`evidence-pill ${profile.evidence_status}`}>{profile.evidence_status} evidence</span>
+      </div>
+
+      <div className="trust-metric-grid">
+        <article><Star size={19} fill="currentColor" /><strong>{profile.average_rating.toFixed(1)}</strong><span>Average Rating</span></article>
+        <article><MessageSquare size={19} /><strong>{profile.review_count}</strong><span>Review Count</span></article>
+        <article><ShieldCheck size={19} /><strong>{Math.round(profile.overall_trust_score * 100)}%</strong><span>Overall Trust Score</span></article>
+      </div>
+
+      <div className="trust-profile-section">
+        <div className="trust-section-heading"><div><h3>Aspect Performance</h3><p>Review intelligence across the four service-quality aspects.</p></div></div>
+        <div className="aspect-performance-grid">
+          {aspects.map(([label, value, tone]) => (
+            <ScoreBar key={label} label={label} value={value} tone={tone} />
+          ))}
+        </div>
+        <div className="trust-evidence-note">
+          <ShieldCheck size={16} />
+          <span>{profile.analyzed_review_count} reviews analysed · {Math.round(profile.mean_review_credibility * 100)}% mean credibility · {profile.score_source === "category_prior" ? "Category-prior fallback" : "CATF evidence score"}</span>
+        </div>
+      </div>
+
+      <div className="trust-profile-section">
+        <div className="trust-section-heading"><div><h3>Customer Reviews</h3><p>Latest verified platform feedback and credible research evidence.</p></div></div>
+        {profile.customer_reviews.length ? (
+          <div className="customer-review-list">
+            {profile.customer_reviews.map((review, index) => (
+              <article className="customer-review" key={`${review.reviewed_at}-${index}`}>
+                <div className="customer-review-meta">
+                  <strong><Star size={14} fill="currentColor" />{review.rating.toFixed(1)}</strong>
+                  <span>{new Date(review.reviewed_at).toLocaleDateString()}</span>
+                  <span>{review.source === "platform" ? "Verified platform booking" : "Credible research review"}</span>
+                </div>
+                <p>{review.review_text ?? "Rating submitted without a written comment."}</p>
+              </article>
+            ))}
+          </div>
+        ) : <div className="empty-reviews"><MessageSquare size={21} /><span>No customer reviews yet.</span></div>}
+      </div>
+    </section>
+  );
+}
+
 function ProviderCard({ provider, rank }: { provider: ProviderRecommendation; rank: number }) {
   return (
     <article className="provider-card">
@@ -200,12 +260,16 @@ function TrustProviderCard({
   provider,
   selected,
   selecting,
+  profileLoading,
   onSelect,
+  onViewProfile,
 }: {
   provider: Component4RankedProvider;
   selected: boolean;
   selecting: boolean;
+  profileLoading: boolean;
   onSelect: () => Promise<void>;
+  onViewProfile: () => Promise<void>;
 }) {
   const aspectValues = [
     ["Quality", provider.aspect_scores.quality, "#0f766e"],
@@ -234,15 +298,16 @@ function TrustProviderCard({
           <span className={`evidence-pill ${provider.evidence_status}`}>{provider.evidence_status} evidence</span>
           <small>Effective reviews {provider.effective_review_count.toFixed(1)} · Reliability {Math.round(provider.reliability_factor * 100)}%</small>
         </div>
-        <button
-          type="button"
-          className="select-provider"
-          disabled={selected || selecting}
-          onClick={onSelect}
-        >
-          {selected ? <Check size={14} /> : selecting ? <LoaderCircle className="spin" size={14} /> : <Heart size={14} />}
-          {selected ? "Selected" : selecting ? "Saving..." : "Select this provider"}
-        </button>
+        <div className="provider-actions">
+          <button type="button" className="view-provider" disabled={profileLoading} onClick={onViewProfile}>
+            {profileLoading ? <LoaderCircle className="spin" size={14} /> : <CircleUserRound size={14} />}
+            {profileLoading ? "Loading profile..." : "View full profile"}
+          </button>
+          <button type="button" className="select-provider" disabled={selected || selecting} onClick={onSelect}>
+            {selected ? <Check size={14} /> : selecting ? <LoaderCircle className="spin" size={14} /> : <Heart size={14} />}
+            {selected ? "Selected" : selecting ? "Saving..." : "Select this provider"}
+          </button>
+        </div>
       </div>
       <div className="score-panel trust-score-panel">
         {aspectValues.map(([label, value, tone]) => (
@@ -273,8 +338,23 @@ function InteractionPage({ title, subtitle, interactions, empty, onAction, actio
 
 function RatingAction({ interaction, token, onSaved }: { interaction: Interaction; token: string; onSaved: () => Promise<void> }) {
   const [rating, setRating] = useState(5);
+  const [reviewText, setReviewText] = useState("");
   const [saving, setSaving] = useState(false);
-  return <div className="rating-action"><select aria-label="Rating" value={rating} onChange={(event) => setRating(Number(event.target.value))}>{[5, 4, 3, 2, 1].map((value) => <option key={value} value={value}>{value} stars</option>)}</select><button className="small-action" disabled={saving} onClick={async () => { setSaving(true); try { await api.rateBooking(interaction.interaction_id, rating, token); await onSaved(); } finally { setSaving(false); } }}>{saving ? "Saving..." : "Submit rating"}</button></div>;
+  return (
+    <div className="rating-action">
+      <select aria-label="Rating" value={rating} onChange={(event) => setRating(Number(event.target.value))}>
+        {[5, 4, 3, 2, 1].map((value) => <option key={value} value={value}>{value} stars</option>)}
+      </select>
+      <input aria-label="Written review" maxLength={2000} value={reviewText} onChange={(event) => setReviewText(event.target.value)} placeholder="Share your experience (optional)" />
+      <button className="small-action" disabled={saving} onClick={async () => {
+        setSaving(true);
+        try {
+          await api.rateBooking(interaction.interaction_id, rating, reviewText, token);
+          await onSaved();
+        } finally { setSaving(false); }
+      }}>{saving ? "Saving..." : "Submit review"}</button>
+    </div>
+  );
 }
 
 function CustomerDashboard({ session }: { session: Session }) {
@@ -286,6 +366,8 @@ function CustomerDashboard({ session }: { session: Session }) {
   const [loading, setLoading] = useState(false);
   const [loadingStage, setLoadingStage] = useState<"component1" | "component4">("component1");
   const [selectingProviderId, setSelectingProviderId] = useState<string | null>(null);
+  const [profileLoadingProviderId, setProfileLoadingProviderId] = useState<string | null>(null);
+  const [viewingProvider, setViewingProvider] = useState<ProviderTrustProfile | null>(null);
   const [error, setError] = useState("");
   const [profile, setProfile] = useState<CustomerProfile | null>(null);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -369,6 +451,18 @@ function CustomerDashboard({ session }: { session: Session }) {
     }
   }
 
+  async function viewProviderProfile(providerId: string) {
+    setProfileLoadingProviderId(providerId);
+    setError("");
+    try {
+      setViewingProvider(await api.getProviderTrustProfile(providerId, session.token));
+    } catch (reason) {
+      setError(reason instanceof ApiError ? reason.message : "Unable to load provider profile.");
+    } finally {
+      setProfileLoadingProviderId(null);
+    }
+  }
+
   async function saveProfile(event: FormEvent) {
     event.preventDefault(); setProfileSaving(true); setError("");
     try { setProfile(await api.updateCustomerProfile(profileForm, session.token)); setProfileOpen(false); }
@@ -435,7 +529,9 @@ function CustomerDashboard({ session }: { session: Session }) {
                     && item.interaction_type === "selected",
                 )}
                 selecting={selectingProviderId === provider.provider_id}
+                profileLoading={profileLoadingProviderId === provider.provider_id}
                 onSelect={() => selectProvider(provider)}
+                onViewProfile={() => viewProviderProfile(provider.provider_id)}
               />
             ))}
           </div>
@@ -450,18 +546,28 @@ function CustomerDashboard({ session }: { session: Session }) {
       )}
       </>}
       {section === "requests" && <HistoryPage title="My Requests" subtitle="Every service request you have submitted." icon={<ClipboardList size={24} />} empty="No service requests yet.">{requests.map((request) => <HistoryCard key={request.request_id} title={request.request_text} meta={`${request.category} · ${request.city}, ${request.district}`} status={request.urgency} date={request.created_at} />)}</HistoryPage>}
-      {section === "selected" && <InteractionPage title="Selected Providers" subtitle="Provider selection starts after Component 4 returns the final Top-5." interactions={interactions.filter((item) => item.interaction_type === "selected")} empty="No final Top-5 provider has been selected yet." />}
+      {section === "selected" && <InteractionPage title="Selected Providers" subtitle="Provider selection starts after Component 4 returns the final Top-5." interactions={interactions.filter((item) => item.interaction_type === "selected")} empty="No final Top-5 provider has been selected yet." renderAction={(item) => <button className="small-action" onClick={() => viewProviderProfile(item.provider_id)}>View profile<ChevronRight size={13} /></button>} />}
       {section === "bookings" && <InteractionPage title="My Bookings" subtitle="Track booking requests and completed service history." interactions={interactions.filter((item) => item.interaction_type.startsWith("booking_"))} empty="No booking activity yet." renderAction={(item) => item.interaction_type === "booking_completed" && !interactions.some((event) => event.interaction_type === "rated" && event.request_id === item.request_id && event.provider_id === item.provider_id) ? <RatingAction interaction={item} token={session.token} onSaved={refreshHistory} /> : undefined} />}
-      {section === "ratings" && <InteractionPage title="Ratings & Reviews" subtitle="Your provider feedback history." interactions={interactions.filter((item) => item.interaction_type === "rated")} empty="You have not rated a provider yet." />}
+      {section === "ratings" && <InteractionPage title="Ratings & Reviews" subtitle="Your provider feedback history." interactions={interactions.filter((item) => item.interaction_type === "rated")} empty="You have not rated a provider yet." renderAction={(item) => <button className="small-action" onClick={() => viewProviderProfile(item.provider_id)}>View profile<ChevronRight size={13} /></button>} />}
       {section === "profile" && <HistoryPage title="My Profile" subtitle="Contact and location preferences used across your requests." icon={<UserRound size={24} />} empty=""><section className="profile-editor standalone"><form onSubmit={saveProfile}><label>Phone number<input required minLength={7} value={profileForm.phone ?? ""} onChange={(e) => setProfileForm((current) => ({ ...current, phone: e.target.value }))} /></label><label>District<select value={profileForm.district ?? ""} onChange={(e) => setProfileForm((current) => ({ ...current, district: e.target.value }))}>{districts.map((item) => <option key={item}>{item}</option>)}</select></label><label>City<input required value={profileForm.city ?? ""} onChange={(e) => setProfileForm((current) => ({ ...current, city: e.target.value }))} /></label><label>Language<select value={profileForm.preferred_language} onChange={(e) => setProfileForm((current) => ({ ...current, preferred_language: e.target.value }))}><option>English</option><option>Sinhala</option><option>Tamil</option></select></label><button className="primary-button" disabled={profileSaving}>Save profile</button></form></section></HistoryPage>}
       {error && section !== "find" && <div className="notice error request-error">{error}</div>}
       </div>
+      {viewingProvider && (
+        <div className="profile-modal" role="dialog" aria-modal="true" aria-label="Provider trust profile">
+          <div className="profile-modal-panel">
+            <button type="button" className="profile-modal-close" onClick={() => setViewingProvider(null)} aria-label="Close provider profile">×</button>
+            <ProviderTrustProfileView profile={viewingProvider} />
+          </div>
+        </div>
+      )}
     </main>
   );
 }
 
 function ProviderProfilePage({ session }: { session: Session }) {
   const [profile, setProfile] = useState<ProviderProfile | null>(null);
+  const [trustProfile, setTrustProfile] = useState<ProviderTrustProfile | null>(null);
+  const [trustLoading, setTrustLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -476,16 +582,30 @@ function ProviderProfilePage({ session }: { session: Session }) {
   });
   const [skillsText, setSkillsText] = useState("");
 
+  const loadTrustProfile = useCallback(async (providerId: string) => {
+    setTrustLoading(true);
+    try {
+      setTrustProfile(await api.getProviderTrustProfile(providerId, session.token));
+    } catch (reason) {
+      setError(reason instanceof ApiError ? reason.message : "Unable to load your trust profile.");
+    } finally {
+      setTrustLoading(false);
+    }
+  }, [session.token]);
+
   useEffect(() => {
     api.getProviderProfile(session.token)
-      .then(setProfile)
+      .then((value) => {
+        setProfile(value);
+        void loadTrustProfile(value.provider_id);
+      })
       .catch((reason) => {
         if (!(reason instanceof ApiError) || reason.status !== 404) {
           setError(reason instanceof ApiError ? reason.message : "Unable to load your profile.");
         }
       })
       .finally(() => setLoading(false));
-  }, [session.token]);
+  }, [loadTrustProfile, session.token]);
 
   function update<K extends keyof ProviderProfileInput>(key: K, value: ProviderProfileInput[K]) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -496,7 +616,9 @@ function ProviderProfilePage({ session }: { session: Session }) {
     setSaving(true); setError("");
     try {
       const skills = skillsText.split(",").map((skill) => skill.trim()).filter(Boolean);
-      setProfile(await api.createProviderProfile({ ...form, skills }, session.token));
+      const created = await api.createProviderProfile({ ...form, skills }, session.token);
+      setProfile(created);
+      await loadTrustProfile(created.provider_id);
     } catch (reason) {
       setError(reason instanceof ApiError ? reason.message : "Unable to create your profile.");
     } finally { setSaving(false); }
@@ -512,6 +634,9 @@ function ProviderProfilePage({ session }: { session: Session }) {
           <div className="profile-index-note"><Sparkles size={17} /><div><strong>Your profile is recommendation-ready</strong><small>It is scored live alongside the 10,000 research providers. New profiles use a neutral history score until interactions are recorded.</small></div></div>
         </div>
       </section>
+      {trustLoading && <section className="loading-panel compact"><LoaderCircle className="spin" /><h2>Loading trust intelligence</h2></section>}
+      {trustProfile && <ProviderTrustProfileView profile={trustProfile} />}
+      {error && <div className="notice error request-error">{error}</div>}
     </main>
   );
 

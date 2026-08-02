@@ -61,4 +61,38 @@ describe("Component 4 API client", () => {
       force_recalculate: false,
     });
   });
+
+  it("fetches the public provider trust profile", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ provider_id: "P00001" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+
+    await api.getProviderTrustProfile("P00001", "test-token");
+
+    const [url, options] = fetchMock.mock.calls[0];
+    expect(new URL(String(url)).pathname).toBe("/api/v1/providers/P00001/trust-profile");
+    expect(options?.headers).toMatchObject({ Authorization: "Bearer test-token" });
+  });
+
+  it("submits a written review only through the completed-booking rating route", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ interaction_id: "IRATED1" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+
+    await api.rateBooking("ICOMPLETE1", 5, " Excellent work. ", "test-token");
+
+    const [url, options] = fetchMock.mock.calls[0];
+    expect(new URL(String(url)).pathname).toBe("/api/v1/interactions/ICOMPLETE1/rate");
+    expect(options?.method).toBe("POST");
+    expect(JSON.parse(String(options?.body))).toEqual({
+      rating: 5,
+      review_text: "Excellent work.",
+    });
+  });
 });

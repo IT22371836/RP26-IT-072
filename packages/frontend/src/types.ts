@@ -144,6 +144,42 @@ export interface ProviderProfile extends ProviderProfileInput {
   updated_at: string;
 }
 
+export interface ProviderAspectPerformance {
+  quality: number;
+  communication: number;
+  professionalism: number;
+  punctuality: number;
+}
+
+export interface ProviderCustomerReview {
+  rating: number;
+  review_text: string | null;
+  reviewed_at: string;
+  verified_booking: boolean;
+  source: "platform" | "research_dataset";
+  credibility_score: number | null;
+}
+
+export interface ProviderTrustProfile {
+  provider_id: string;
+  provider_name: string;
+  category: string;
+  district: string;
+  city: string;
+  description: string;
+  skills: string[];
+  experience_years: number;
+  average_rating: number;
+  review_count: number;
+  overall_trust_score: number;
+  aspect_performance: ProviderAspectPerformance;
+  mean_review_credibility: number;
+  analyzed_review_count: number;
+  evidence_status: "insufficient" | "limited" | "sufficient";
+  score_source: "catf_evidence" | "category_prior";
+  customer_reviews: ProviderCustomerReview[];
+}
+
 export interface CustomerProfileUpdate {
   phone: string | null;
   district: string | null;
@@ -176,6 +212,7 @@ export interface Interaction {
   category: string;
   interaction_type: InteractionType;
   rating: number | null;
+  review_text: string | null;
   timestamp: string;
 }
 

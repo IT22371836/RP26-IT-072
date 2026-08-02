@@ -565,6 +565,18 @@ class Component4RankingEngine:
             "platform_review_count": int(provider.get("review_count", 0)),
         }
 
+    def provider_trust_snapshot(
+        self,
+        provider_id: str,
+        live_provider: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        require(self.ready, "Component 4 artifacts are not loaded")
+        if provider_id in self.provider_scores:
+            return dict(self.provider_scores[provider_id])
+        if live_provider is not None and live_provider.get("provider_id") == provider_id:
+            return self._live_provider_fallback(live_provider)
+        raise UnknownProviderError([provider_id])
+
     def rank(
         self,
         payload: Component4RankRequest,

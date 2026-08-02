@@ -134,6 +134,38 @@ describe("authentication entry flow", () => {
             cached: false,
             processing_time_ms: 3,
           };
+        } else if (path.endsWith("/providers/P00001/trust-profile")) {
+          body = {
+            provider_id: "P00001",
+            provider_name: "Trust Provider 1",
+            category: "Electricians",
+            district: "Colombo",
+            city: "Kottawa",
+            description: "Reliable residential electrical services.",
+            skills: ["wiring", "safety inspections"],
+            experience_years: 7,
+            average_rating: 4.6,
+            review_count: 45,
+            overall_trust_score: 0.88,
+            aspect_performance: {
+              quality: 0.9,
+              communication: 0.8,
+              professionalism: 0.85,
+              punctuality: 0.75,
+            },
+            mean_review_credibility: 0.91,
+            analyzed_review_count: 8,
+            evidence_status: "limited",
+            score_source: "catf_evidence",
+            customer_reviews: [{
+              rating: 5,
+              review_text: "Excellent work and clear communication.",
+              reviewed_at: "2026-07-29T10:00:00Z",
+              verified_booking: true,
+              source: "platform",
+              credibility_score: null,
+            }],
+          };
         } else if (path.endsWith("/interactions") && method === "POST") {
           const payload = JSON.parse(String(options?.body));
           const interaction = {
@@ -141,6 +173,7 @@ describe("authentication entry flow", () => {
             interaction_id: "ITEST1",
             user_id: user.user_id,
             rating: null,
+            review_text: null,
             timestamp: "2026-07-30T10:01:00Z",
           };
           selectedInteractions.push(interaction);
@@ -175,6 +208,7 @@ describe("authentication entry flow", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("Component 2 integration fixture")).toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: "Select this provider" })).toHaveLength(5);
+    expect(screen.getAllByRole("button", { name: "View full profile" })).toHaveLength(5);
     const rankCall = fetchMock.mock.calls.find(([url]) =>
       new URL(String(url)).pathname.endsWith("/component4/rank"),
     );
@@ -188,6 +222,15 @@ describe("authentication entry flow", () => {
       component_version: "not-component2",
       model_version: "not-component2",
     });
+
+    fireEvent.click(screen.getAllByRole("button", { name: "View full profile" })[0]);
+    expect(await screen.findByRole("dialog", { name: "Provider trust profile" })).toBeInTheDocument();
+    expect(screen.getByText("Average Rating")).toBeInTheDocument();
+    expect(screen.getByText("Review Count")).toBeInTheDocument();
+    expect(screen.getByText("Overall Trust Score")).toBeInTheDocument();
+    expect(screen.getByText("Aspect Performance")).toBeInTheDocument();
+    expect(screen.getByText("Excellent work and clear communication.")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Close provider profile" }));
 
     fireEvent.click(screen.getAllByRole("button", { name: "Select this provider" })[0]);
     await waitFor(() =>

@@ -4,6 +4,7 @@ import type {
   Component4RankResponse,
   ProviderProfile,
   ProviderProfileInput,
+  ProviderTrustProfile,
   CustomerProfile,
   CustomerProfileUpdate,
   InteractionType,
@@ -94,6 +95,8 @@ export const api = {
       token,
     ),
   getProviderProfile: (token: string) => request<ProviderProfile>("/providers/me", {}, token),
+  getProviderTrustProfile: (providerId: string, token?: string) =>
+    request<ProviderTrustProfile>(`/providers/${providerId}/trust-profile`, {}, token),
   createProviderProfile: (payload: ProviderProfileInput, token: string) =>
     request<ProviderProfile>(
       "/providers/me",
@@ -126,10 +129,13 @@ export const api = {
     request<Interaction>(`/interactions/${interactionId}/complete`, { method: "POST" }, token),
   cancelBooking: (interactionId: string, token: string) =>
     request<Interaction>(`/interactions/${interactionId}/cancel`, { method: "POST" }, token),
-  rateBooking: (interactionId: string, rating: number, token: string) =>
+  rateBooking: (interactionId: string, rating: number, reviewText: string, token: string) =>
     request<Interaction>(
       `/interactions/${interactionId}/rate`,
-      { method: "POST", body: JSON.stringify({ rating }) },
+      {
+        method: "POST",
+        body: JSON.stringify({ rating, review_text: reviewText.trim() || null }),
+      },
       token,
     ),
   getAdminOverview: (token: string) => request<AdminOverview>("/admin/overview", {}, token),

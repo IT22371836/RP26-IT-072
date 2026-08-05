@@ -8,6 +8,7 @@ from app.api.interactions import router as interactions_router
 from app.api.providers import router as providers_router
 from app.api.service_requests import router as service_requests_router
 from app.components.component1.router import router as component1_router
+from app.components.component4.router import router as component4_router
 
 api_router = APIRouter()
 api_router.include_router(admin_router)
@@ -18,3 +19,4 @@ api_router.include_router(interactions_router)
 api_router.include_router(providers_router)
 api_router.include_router(service_requests_router)
 api_router.include_router(component1_router)
+api_router.include_router(component4_router)

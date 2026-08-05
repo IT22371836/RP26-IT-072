@@ -1,0 +1,77 @@
+{
+  "version": "category-priors-v1",
+  "method": "mean_trust_sentiment_score_for_source_providers_with_reviews",
+  "default_prior": 0.5,
+  "categories": {
+    "A/C": {
+      "prior": 0.454207,
+      "source_provider_count": 357,
+      "source_review_count": 1824
+    },
+    "CCTV": {
+      "prior": 0.454894,
+      "source_provider_count": 357,
+      "source_review_count": 1775
+    },
+    "Carpenters": {
+      "prior": 0.459888,
+      "source_provider_count": 356,
+      "source_review_count": 1820
+    },
+    "Ceiling": {
+      "prior": 0.457545,
+      "source_provider_count": 356,
+      "source_review_count": 1784
+    },
+    "Cleaners": {
+      "prior": 0.464619,
+      "source_provider_count": 354,
+      "source_review_count": 1805
+    },
+    "Cushion Works": {
+      "prior": 0.447542,
+      "source_provider_count": 354,
+      "source_review_count": 1793
+    },
+    "Electricians": {
+      "prior": 0.468579,
+      "source_provider_count": 354,
+      "source_review_count": 1763
+    },
+    "Masons": {
+      "prior": 0.446042,
+      "source_provider_count": 356,
+      "source_review_count": 1781
+    },
+    "Painters": {
+      "prior": 0.468201,
+      "source_provider_count": 353,
+      "source_review_count": 1737
+    },
+    "Plumbers": {
+      "prior": 0.470486,
+      "source_provider_count": 354,
+      "source_review_count": 1788
+    },
+    "Technicians": {
+      "prior": 0.456078,
+      "source_provider_count": 357,
+      "source_review_count": 1781
+    },
+    "Tile": {
+      "prior": 0.462767,
+      "source_provider_count": 356,
+      "source_review_count": 1809
+    },
+    "Vehicle Repairs": {
+      "prior": 0.465899,
+      "source_provider_count": 355,
+      "source_review_count": 1763
+    },
+    "Wells": {
+      "prior": 0.465936,
+      "source_provider_count": 357,
+      "source_review_count": 1777
+    }
+  }
+}

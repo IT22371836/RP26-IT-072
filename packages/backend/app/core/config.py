@@ -2,10 +2,11 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
-from pydantic import Field, model_validator
+from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BACKEND_DIR = Path(__file__).resolve().parents[2]
+REPOSITORY_DIR = BACKEND_DIR.parents[1]
 
 
 class Settings(BaseSettings):
@@ -27,6 +28,18 @@ class Settings(BaseSettings):
     component1_artifact_dir: Path = (
         BACKEND_DIR / "app" / "components" / "component1" / "artifacts"
     )
+    component4_artifact_dir: Path = (
+        REPOSITORY_DIR / "ml" / "components" / "component4" / "artifacts" / "catf-v1"
+    )
+    component4_category_priors_path: Path = (
+        REPOSITORY_DIR
+        / "ml"
+        / "components"
+        / "component4"
+        / "data"
+        / "processed"
+        / "category_priors.json"
+    )
 
     cors_origins: str = "http://localhost:5173"
 
@@ -44,6 +57,17 @@ class Settings(BaseSettings):
     @property
     def cors_origin_list(self) -> list[str]:
         return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
+
+    @field_validator(
+        "component1_artifact_dir",
+        "component4_artifact_dir",
+        "component4_category_priors_path",
+    )
+    @classmethod
+    def resolve_backend_relative_paths(cls, value: Path) -> Path:
+        if value.is_absolute():
+            return value
+        return (BACKEND_DIR / value).resolve()
 
     @model_validator(mode="after")
     def reject_development_secret_in_production(self) -> "Settings":

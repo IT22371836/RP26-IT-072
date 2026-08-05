@@ -1,7 +1,7 @@
 from datetime import datetime
 from enum import StrEnum
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class InteractionType(StrEnum):
@@ -21,6 +21,15 @@ class InteractionCreate(BaseModel):
     provider_name: str | None = None
     interaction_type: InteractionType
     rating: int | None = Field(default=None, ge=1, le=5)
+    review_text: str | None = Field(default=None, max_length=2000)
+
+    @field_validator("review_text")
+    @classmethod
+    def normalize_review_text(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        normalized = " ".join(value.split())
+        return normalized or None
 
 
 class InteractionPublic(InteractionCreate):
@@ -33,6 +42,15 @@ class InteractionPublic(InteractionCreate):
 
 class RatingCreate(BaseModel):
     rating: int = Field(ge=1, le=5)
+    review_text: str | None = Field(default=None, max_length=2000)
+
+    @field_validator("review_text")
+    @classmethod
+    def normalize_review_text(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        normalized = " ".join(value.split())
+        return normalized or None
 
 
 class InteractionDatasetRecord(BaseModel):

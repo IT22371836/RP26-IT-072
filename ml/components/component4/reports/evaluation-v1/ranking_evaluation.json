@@ -1,0 +1,88 @@
+{
+  "phase": 8,
+  "evaluation_version": "ranking-evaluation-v1",
+  "status": "passed",
+  "validation_scope": "held_out_proxy_not_production_ground_truth",
+  "ranking_ground_truth_validation": "held_out_proxy_validated_phase8",
+  "production_ground_truth_validation": "pending_real_component2_and_independent_relevance_judgements",
+  "candidate_source": "deterministic_category_fixture_not_component2",
+  "proxy_definition": {
+    "version": "heldout-rating-credibility-v1",
+    "formula": "mean((rating / 5) * actual_credibility_score) over held-out test reviews",
+    "uses_model_predictions": false,
+    "uses_ranking_scores": false,
+    "production_ground_truth": false
+  },
+  "summary": {
+    "total_reviews": 25000,
+    "ranking_evidence_reviews": 21004,
+    "heldout_proxy_reviews": 3996,
+    "split_overlap_records": 0,
+    "heldout_proxy_providers": 2731,
+    "component1_providers": 10000,
+    "categories": 14,
+    "evaluation_queries": 278,
+    "candidate_assignments": 2780,
+    "unique_candidate_providers": 2731,
+    "supplemental_assignments": 49,
+    "category_mismatches": 0,
+    "candidate_count_per_query": 10,
+    "top_k": 5,
+    "methods_evaluated": 4
+  },
+  "method_metrics": {
+    "catf": {
+      "ndcg_at_5": 0.7219648077359637,
+      "precision_at_5": 0.5050359712230216,
+      "recall_at_5": 0.5050359712230216,
+      "map_at_5": 0.3493884892086331,
+      "selected_mean_proxy_relevance": 0.5666722589928058
+    },
+    "average_rating": {
+      "ndcg_at_5": 0.7091665982367412,
+      "precision_at_5": 0.4805755395683454,
+      "recall_at_5": 0.4805755395683454,
+      "map_at_5": 0.33278177458033575,
+      "selected_mean_proxy_relevance": 0.5578288129496404
+    },
+    "catf_no_credibility": {
+      "ndcg_at_5": 0.7219744804293549,
+      "precision_at_5": 0.4985611510791368,
+      "recall_at_5": 0.4985611510791368,
+      "map_at_5": 0.3474820143884892,
+      "selected_mean_proxy_relevance": 0.5643044172661871
+    },
+    "catf_uniform_weights": {
+      "ndcg_at_5": 0.7231204257670313,
+      "precision_at_5": 0.5064748201438849,
+      "recall_at_5": 0.5064748201438849,
+      "map_at_5": 0.3537529976019185,
+      "selected_mean_proxy_relevance": 0.5681834676258992
+    }
+  },
+  "paired_catf_mean_deltas": {
+    "average_rating": {
+      "ndcg_at_5": 0.012798209499222396,
+      "precision_at_5": 0.02446043165467626,
+      "recall_at_5": 0.02446043165467626,
+      "map_at_5": 0.016606714628297364
+    },
+    "catf_no_credibility": {
+      "ndcg_at_5": -9.672693391205901e-06,
+      "precision_at_5": 0.006474820143884891,
+      "recall_at_5": 0.006474820143884891,
+      "map_at_5": 0.001906474820143885
+    },
+    "catf_uniform_weights": {
+      "ndcg_at_5": -0.001155618031067639,
+      "precision_at_5": -0.0014388489208633074,
+      "recall_at_5": -0.0014388489208633074,
+      "map_at_5": -0.004364508393285372
+    }
+  },
+  "limitations": [
+    "The held-out rating/actual-credibility target is a proxy, not human relevance ground truth.",
+    "Candidate groups are category-consistent offline fixtures, not Component 2 output.",
+    "Production validation requires real Component 2 candidates and independent judgements."
+  ]
+}

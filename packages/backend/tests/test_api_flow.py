@@ -251,6 +251,20 @@ def test_customer_and_provider_authenticated_api_flow() -> None:
                 assert interaction.status_code == 201
                 assert interaction.json()["interaction_id"].startswith("I")
 
+                direct_rating = await client.post(
+                    "/api/v1/interactions",
+                    headers=customer_headers,
+                    json={
+                        "request_id": service_request.json()["request_id"],
+                        "provider_id": "PTEST123",
+                        "category": "CCTV",
+                        "interaction_type": "rated",
+                        "rating": 5,
+                        "review_text": "This must not bypass booking verification.",
+                    },
+                )
+                assert direct_rating.status_code == 422
+
                 customer_provider_attempt = await client.post(
                     "/api/v1/providers/me",
                     headers=customer_headers,
@@ -318,10 +332,16 @@ def test_customer_and_provider_authenticated_api_flow() -> None:
                 rating = await client.post(
                     f"/api/v1/interactions/{completed.json()['interaction_id']}/rate",
                     headers=customer_headers,
-                    json={"rating": 5},
+                    json={
+                        "rating": 5,
+                        "review_text": "Excellent installation and helpful explanation.",
+                    },
                 )
                 assert rating.status_code == 200
                 assert rating.json()["rating"] == 5
+                assert rating.json()["review_text"] == (
+                    "Excellent installation and helpful explanation."
+                )
                 refreshed_provider = await client.get(
                     "/api/v1/providers/me", headers=provider_headers
                 )

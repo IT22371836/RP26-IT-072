@@ -1,0 +1,12 @@
+Component 4 Phase 4 Review Credibility Model
+model_version: credibility-v1
+pipeline: StandardScaler -> IsolationForest -> validation-calibrated threshold
+features (11): word_count, exclamation_count, caps_word_count, repeated_char_count, unique_word_ratio, url_count, duplicate_pattern, extreme_rating, verified_booking, reviewer_review_count_24h, rating
+excluded leakage columns: is_fake_review, credibility_score, dataset_split, review_id, provider_id, source_provider_id
+n_estimators: 300
+random_seed: 42
+normality_threshold: -0.637586776660
+validation_fake_f1: 0.996732026144
+normalization_lower_bound: -0.723760364358
+normalization_upper_bound: -0.356826788591
+split_counts: {'train': 17347, 'validation': 3657, 'test': 3996}

@@ -1,0 +1,30 @@
+{
+  "release_evidence_version": "component4-release-evidence-v1",
+  "status": "passed",
+  "inputs": {
+    "release_config": {
+      "path": "ml/components/component4/artifacts/release-v1/release_config.json",
+      "bytes": 827,
+      "sha256": "dda446ba879d58b51f52d049827ce86329426cb666d96ff8978d73ecd8e9b2a6"
+    },
+    "catf_manifest": {
+      "path": "ml/components/component4/artifacts/catf-v1/manifest.json",
+      "bytes": 4444,
+      "sha256": "ca18aa3280f1531f0ada28fafb183adad42e77d9c41d64018c63592a94978d8d"
+    },
+    "evaluation_manifest": {
+      "path": "ml/components/component4/artifacts/evaluation-v1/manifest.json",
+      "bytes": 4847,
+      "sha256": "c89264fc6c31697ae92d981b5e4f0699f41b389e745348eb503052073e4025ef"
+    }
+  },
+  "reports": {
+    "release_readiness": {
+      "path": "ml/components/component4/reports/release-v1/release_readiness.json",
+      "bytes": 2511,
+      "sha256": "b96c16f3c9caa5bbe880d6b027e8f482dd22a024dc7c36d81d1894b4c8e1afba"
+    }
+  },
+  "component4_operationally_ready": true,
+  "production_ready": false
+}

@@ -1,6 +1,6 @@
 from typing import Any
 
-from pymongo import ASCENDING, DESCENDING, ReplaceOne
+from pymongo import ASCENDING, DESCENDING, UpdateOne
 
 from app.schemas.common import utc_now
 
@@ -67,12 +67,12 @@ class Component4Repository:
             if provider_documents:
                 await self.provider_scores.bulk_write(
                     [
-                        ReplaceOne(
+                        UpdateOne(
                             {
                                 "run_id": run_id,
                                 "provider_id": document["provider_id"],
                             },
-                            document,
+                            {"$set": document},
                             upsert=True,
                         )
                         for document in provider_documents
@@ -97,9 +97,9 @@ class Component4Repository:
                 {
                     "$set": {
                         "status": "failed",
+                        "response": None,
                         "updated_at": utc_now(),
-                    },
-                    "$unset": {"response": ""},
+                    }
                 },
             )
             raise

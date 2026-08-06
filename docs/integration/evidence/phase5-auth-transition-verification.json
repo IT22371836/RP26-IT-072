@@ -1,0 +1,33 @@
+{
+  "controls": {
+    "account_link_is_one_time": true,
+    "administrators_cannot_link_through_firebase": true,
+    "ambiguous_email_links_rejected": true,
+    "firebase_id_tokens_verified_server_side": true,
+    "firebase_revocation_check_configurable": true,
+    "jwt_role_and_auth_version_bound_to_database_user": true,
+    "password_changes_increment_auth_version": true,
+    "production_jwt_transport": "secure_httponly_samesite_cookie"
+  },
+  "database": {
+    "active_administrators": 1,
+    "administrator_records": 1,
+    "administrators_missing_active_flag": 0,
+    "inactive_administrators": 0
+  },
+  "generated_at": "2026-08-05T10:55:58.236629+00:00",
+  "missing_routes": [],
+  "mode": "read-only-auth-transition-verification",
+  "summary": {
+    "backend_administrator_seed_present": true,
+    "cookie_credentials_enabled": true,
+    "firebase_admin_version": "7.5.0",
+    "hard_coded_admin_credentials_absent": true,
+    "passed": true,
+    "production_cookie_policy_enforced": true,
+    "required_auth_routes_expected": 5,
+    "required_auth_routes_present": 5,
+    "service_account_material_absent": true,
+    "source_database_writes": 0
+  }
+}

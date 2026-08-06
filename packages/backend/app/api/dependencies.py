@@ -1,15 +1,16 @@
 from collections.abc import Callable, Coroutine
 from typing import Annotated, Any
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from app.core.config import Settings, get_settings
 from app.core.database import get_database
-from app.core.security import InvalidAccessTokenError, decode_access_token
+from app.core.security import InvalidAccessTokenError, decode_access_token_claims
 from app.repositories.component1 import Component1Repository
 from app.repositories.component4 import Component4Repository
 from app.repositories.customers import CustomerProfileRepository
+from app.repositories.integration import IntegrationReadRepository
 from app.repositories.interactions import InteractionRepository
 from app.repositories.providers import ProviderRepository
 from app.repositories.service_requests import ServiceRequestRepository
@@ -52,6 +53,12 @@ def get_interaction_repository(
     return InteractionRepository(database)
 
 
+def get_integration_read_repository(
+    database: Annotated[Any, Depends(get_database)],
+) -> IntegrationReadRepository:
+    return IntegrationReadRepository(database)
+
+
 def get_service_request_repository(
     database: Annotated[Any, Depends(get_database)],
 ) -> ServiceRequestRepository:
@@ -59,6 +66,7 @@ def get_service_request_repository(
 
 
 async def get_current_user(
+    request: Request,
     credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer_scheme)],
     repository: Annotated[UserRepository, Depends(get_user_repository)],
     settings: Annotated[Settings, Depends(get_settings)],
@@ -68,15 +76,24 @@ async def get_current_user(
         detail="Invalid or missing authentication token",
         headers={"WWW-Authenticate": "Bearer"},
     )
-    if credentials is None:
+    token = (
+        credentials.credentials
+        if credentials is not None
+        else request.cookies.get(settings.auth_cookie_name)
+    )
+    if not token:
         raise unauthorized
     try:
-        user_id, _ = decode_access_token(credentials.credentials, settings)
+        claims = decode_access_token_claims(token, settings)
     except InvalidAccessTokenError as error:
         raise unauthorized from error
 
-    document = await repository.find_by_id(user_id)
+    document = await repository.find_by_id(claims.user_id)
     if document is None or not document.get("is_active", True):
+        raise unauthorized
+    if str(document.get("role")) != claims.role.value:
+        raise unauthorized
+    if int(document.get("auth_version", 1)) != claims.auth_version:
         raise unauthorized
     return UserPublic.model_validate(document)
 

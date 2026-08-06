@@ -1,0 +1,41 @@
+{
+  "additive_fields": {},
+  "conflict_fields": {},
+  "generated_at": "2026-08-05T10:11:08.484501+00:00",
+  "mode": "read-only-dry-run",
+  "request_model": {
+    "context_filter_results_decision": "deferred until an active-read API requires projection; immutable filter snapshots remain the source of truth",
+    "context_filter_results_required_now": false,
+    "link_collection": "legacy_identity_map",
+    "link_method": "exact request_id",
+    "service_request_updates_planned": 0
+  },
+  "review_reasons": {
+    "no_service_request": 2
+  },
+  "source_database_writes": 0,
+  "summary": {
+    "additive_update_paths": 0,
+    "conflicting_paths_for_review": 0,
+    "filter_snapshots_exact": 2,
+    "firebase_entities": 8,
+    "identity_decisions": {
+      "planned_new": 8,
+      "planned_new_customer": 2,
+      "planned_new_provider": 6
+    },
+    "passed": true,
+    "planned_public_ids": {
+      "C": 2,
+      "P": 6,
+      "U": 8
+    },
+    "provider_fields_unchanged": true,
+    "public_ids_generated_only_for_unmatched": true,
+    "request_decisions": {
+      "unmatched": 2
+    },
+    "service_request_fields_unchanged": true,
+    "source_documents_unchanged": true
+  }
+}

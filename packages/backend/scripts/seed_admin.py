@@ -25,20 +25,31 @@ async def seed(email: str, full_name: str, password: str) -> None:
     try:
         repository = UserRepository(MongoDatabase.get_database())
         existing = await repository.find_by_email(email)
+        now = utc_now()
         document = {
             "email": email,
             "full_name": " ".join(full_name.split()),
             "hashed_password": hash_password(password),
             "role": UserRole.ADMIN.value,
             "is_active": True,
+            "updated_at": now,
         }
         if existing is None:
-            document.update({"user_id": new_public_id("U"), "created_at": utc_now()})
+            document.update(
+                {
+                    "user_id": new_public_id("U"),
+                    "auth_version": 1,
+                    "created_at": now,
+                    "auth_transition.password_established_at": now,
+                }
+            )
             await repository.create(document)
             action = "created"
         elif existing["role"] != UserRole.ADMIN.value:
             raise RuntimeError("That email already belongs to a non-admin account.")
         else:
+            document["auth_version"] = int(existing.get("auth_version", 1)) + 1
+            document["auth_transition.password_changed_at"] = now
             await repository.collection.update_one(
                 {"user_id": existing["user_id"]}, {"$set": document}
             )

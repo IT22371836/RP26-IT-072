@@ -31,6 +31,7 @@ export class ApiError extends Error {
 async function request<T>(path: string, options: RequestInit = {}, token?: string): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
       ...options.headers,
@@ -42,6 +43,7 @@ async function request<T>(path: string, options: RequestInit = {}, token?: strin
     const body = (await response.json().catch(() => null)) as { detail?: string } | null;
     throw new ApiError(body?.detail ?? "Something went wrong. Please try again.", response.status);
   }
+  if (response.status === 204) return undefined as T;
   return response.json() as Promise<T>;
 }
 
@@ -51,6 +53,7 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ email, password }),
     }),
+  logout: () => request<void>("/auth/logout", { method: "POST" }),
   register: (role: Exclude<UserRole, "admin">, fullName: string, email: string, password: string) =>
     request<User>(`/auth/register/${role}`, {
       method: "POST",

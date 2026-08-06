@@ -1,0 +1,4669 @@
+{
+  "firebase": {
+    "customers": {
+      "city": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 2
+      },
+      "createdAt": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 2
+      },
+      "createdTimestamp": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 2
+      },
+      "customerImage": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 2
+      },
+      "district": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 2
+      },
+      "email": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 2
+      },
+      "fullName": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 2
+      },
+      "id": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 2
+      },
+      "location": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 2,
+        "present_records": 2,
+        "scalar_values": 0
+      },
+      "location.latitude": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 2
+      },
+      "location.longitude": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 2
+      },
+      "phone": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 2
+      },
+      "preferredLanguage": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 2
+      },
+      "role": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 2
+      }
+    },
+    "daily_demand": {
+      "by_category": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 1,
+        "present_records": 1,
+        "scalar_values": 0
+      },
+      "by_category.A_C Services": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 1,
+        "present_records": 1,
+        "scalar_values": 0
+      },
+      "by_category.A_C Services.Friday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.A_C Services.Monday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.A_C Services.Saturday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.A_C Services.Sunday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.A_C Services.Thursday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.A_C Services.Tuesday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.A_C Services.Wednesday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.A_C Services.avg_daily": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.A_C Services.demand_level": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.A_C Services.service_category": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.A_C Services.total_weekly": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.CCTV Installation": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 1,
+        "present_records": 1,
+        "scalar_values": 0
+      },
+      "by_category.CCTV Installation.Friday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.CCTV Installation.Monday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.CCTV Installation.Saturday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.CCTV Installation.Sunday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.CCTV Installation.Thursday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.CCTV Installation.Tuesday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.CCTV Installation.Wednesday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.CCTV Installation.avg_daily": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.CCTV Installation.demand_level": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.CCTV Installation.service_category": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.CCTV Installation.total_weekly": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Carpenters": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 1,
+        "present_records": 1,
+        "scalar_values": 0
+      },
+      "by_category.Carpenters.Friday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Carpenters.Monday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Carpenters.Saturday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Carpenters.Sunday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Carpenters.Thursday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Carpenters.Tuesday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Carpenters.Wednesday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Carpenters.avg_daily": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Carpenters.demand_level": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Carpenters.service_category": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Carpenters.total_weekly": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Ceiling Works": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 1,
+        "present_records": 1,
+        "scalar_values": 0
+      },
+      "by_category.Ceiling Works.Friday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Ceiling Works.Monday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Ceiling Works.Saturday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Ceiling Works.Sunday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Ceiling Works.Thursday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Ceiling Works.Tuesday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Ceiling Works.Wednesday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Ceiling Works.avg_daily": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Ceiling Works.demand_level": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Ceiling Works.service_category": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Ceiling Works.total_weekly": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Cleaners": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 1,
+        "present_records": 1,
+        "scalar_values": 0
+      },
+      "by_category.Cleaners.Friday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Cleaners.Monday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Cleaners.Saturday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Cleaners.Sunday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Cleaners.Thursday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Cleaners.Tuesday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Cleaners.Wednesday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Cleaners.avg_daily": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Cleaners.demand_level": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Cleaners.service_category": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Cleaners.total_weekly": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Cushion Works": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 1,
+        "present_records": 1,
+        "scalar_values": 0
+      },
+      "by_category.Cushion Works.Friday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Cushion Works.Monday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Cushion Works.Saturday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Cushion Works.Sunday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Cushion Works.Thursday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Cushion Works.Tuesday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Cushion Works.Wednesday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Cushion Works.avg_daily": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Cushion Works.demand_level": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Cushion Works.service_category": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Cushion Works.total_weekly": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Electricians": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 1,
+        "present_records": 1,
+        "scalar_values": 0
+      },
+      "by_category.Electricians.Friday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Electricians.Monday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Electricians.Saturday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Electricians.Sunday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Electricians.Thursday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Electricians.Tuesday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Electricians.Wednesday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Electricians.avg_daily": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Electricians.demand_level": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Electricians.service_category": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Electricians.total_weekly": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Masons": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 1,
+        "present_records": 1,
+        "scalar_values": 0
+      },
+      "by_category.Masons.Friday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Masons.Monday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Masons.Saturday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Masons.Sunday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Masons.Thursday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Masons.Tuesday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Masons.Wednesday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Masons.avg_daily": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Masons.demand_level": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Masons.service_category": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Masons.total_weekly": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Painters": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 1,
+        "present_records": 1,
+        "scalar_values": 0
+      },
+      "by_category.Painters.Friday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Painters.Monday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Painters.Saturday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Painters.Sunday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Painters.Thursday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Painters.Tuesday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Painters.Wednesday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Painters.avg_daily": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Painters.demand_level": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Painters.service_category": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Painters.total_weekly": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Plumbers": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 1,
+        "present_records": 1,
+        "scalar_values": 0
+      },
+      "by_category.Plumbers.Friday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Plumbers.Monday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Plumbers.Saturday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Plumbers.Sunday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Plumbers.Thursday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Plumbers.Tuesday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Plumbers.Wednesday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Plumbers.avg_daily": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Plumbers.demand_level": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Plumbers.service_category": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Plumbers.total_weekly": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Technicians": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 1,
+        "present_records": 1,
+        "scalar_values": 0
+      },
+      "by_category.Technicians.Friday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Technicians.Monday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Technicians.Saturday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Technicians.Sunday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Technicians.Thursday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Technicians.Tuesday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Technicians.Wednesday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Technicians.avg_daily": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Technicians.demand_level": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Technicians.service_category": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Technicians.total_weekly": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Tile Workers": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 1,
+        "present_records": 1,
+        "scalar_values": 0
+      },
+      "by_category.Tile Workers.Friday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Tile Workers.Monday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Tile Workers.Saturday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Tile Workers.Sunday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Tile Workers.Thursday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Tile Workers.Tuesday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Tile Workers.Wednesday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Tile Workers.avg_daily": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Tile Workers.demand_level": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Tile Workers.service_category": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Tile Workers.total_weekly": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Vehicle Repairs": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 1,
+        "present_records": 1,
+        "scalar_values": 0
+      },
+      "by_category.Vehicle Repairs.Friday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Vehicle Repairs.Monday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Vehicle Repairs.Saturday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Vehicle Repairs.Sunday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Vehicle Repairs.Thursday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Vehicle Repairs.Tuesday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Vehicle Repairs.Wednesday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Vehicle Repairs.avg_daily": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Vehicle Repairs.demand_level": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Vehicle Repairs.service_category": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Vehicle Repairs.total_weekly": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Well Services": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 1,
+        "present_records": 1,
+        "scalar_values": 0
+      },
+      "by_category.Well Services.Friday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Well Services.Monday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Well Services.Saturday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Well Services.Sunday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Well Services.Thursday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Well Services.Tuesday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Well Services.Wednesday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Well Services.avg_daily": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Well Services.demand_level": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Well Services.service_category": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "by_category.Well Services.total_weekly": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "compile_date": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "end_date": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "last_updated": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "start_date": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "summary": {
+        "array_values": 1,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 0
+      },
+      "summary[]": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 14,
+        "present_records": 1,
+        "scalar_values": 0
+      },
+      "summary[].Avg Daily Orders": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 14
+      },
+      "summary[].Friday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 14
+      },
+      "summary[].Monday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 14
+      },
+      "summary[].Saturday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 14
+      },
+      "summary[].Service Category": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 14
+      },
+      "summary[].Sunday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 14
+      },
+      "summary[].Thursday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 14
+      },
+      "summary[].Total Weekly Orders": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 14
+      },
+      "summary[].Tuesday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 14
+      },
+      "summary[].Wednesday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 14
+      },
+      "summary[].Weekly Demand Level": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 14
+      },
+      "target_week": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      }
+    },
+    "filter_requests": {
+      "isNewRequest": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 2
+      },
+      "location_type": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 2
+      },
+      "output_results": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 2,
+        "present_records": 2,
+        "scalar_values": 0
+      },
+      "output_results.evaluated_at": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 2
+      },
+      "output_results.evaluated_providers": {
+        "array_values": 2,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 0
+      },
+      "output_results.evaluated_providers[]": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 5,
+        "present_records": 2,
+        "scalar_values": 0
+      },
+      "output_results.evaluated_providers[].distance_km": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 5
+      },
+      "output_results.evaluated_providers[].is_available": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 5
+      },
+      "output_results.evaluated_providers[].location_type": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 5
+      },
+      "output_results.evaluated_providers[].provider_id": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 5
+      },
+      "output_results.evaluated_providers[].provider_location": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 5,
+        "present_records": 2,
+        "scalar_values": 0
+      },
+      "output_results.evaluated_providers[].provider_location.latitude": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 5
+      },
+      "output_results.evaluated_providers[].provider_location.longitude": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 5
+      },
+      "output_results.evaluated_providers[].provider_name": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 5
+      },
+      "output_results.evaluated_providers[].recommendation": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 5
+      },
+      "output_results.evaluated_providers[].request_id": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 5
+      },
+      "output_results.evaluated_providers[].service_day": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 5
+      },
+      "output_results.evaluated_providers[].user_id": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 5
+      },
+      "output_results.evaluated_providers[].weather_risk": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 5
+      },
+      "output_results.evaluated_providers[].working_hours_status": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 5
+      },
+      "output_results.provider_ids": {
+        "array_values": 2,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 0
+      },
+      "output_results.provider_ids[]": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 5
+      },
+      "output_results.recommendation": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 2
+      },
+      "output_results.weather_risk": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 2
+      },
+      "output_results.weather_summary": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 2
+      },
+      "request_id": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 2
+      },
+      "results": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 2,
+        "present_records": 2,
+        "scalar_values": 0
+      },
+      "results.provider_ids": {
+        "array_values": 2,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 0
+      },
+      "results.provider_ids[]": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 6
+      },
+      "service_date": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 2
+      },
+      "service_time": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 2,
+        "present_records": 2,
+        "scalar_values": 0
+      },
+      "service_time.end_time": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 2
+      },
+      "service_time.start_time": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 2
+      },
+      "user_id": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 2
+      }
+    },
+    "providers": {
+      "category": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "city": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "createdAt": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "createdTimestamp": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "description": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "district": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "documents": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 6,
+        "present_records": 6,
+        "scalar_values": 0
+      },
+      "documents.businessRegistration": {
+        "array_values": 4,
+        "empty_string_values": 0,
+        "missing_records": 2,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 4,
+        "scalar_values": 0
+      },
+      "documents.businessRegistration[]": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 2,
+        "null_values": 0,
+        "object_values": 4,
+        "present_records": 4,
+        "scalar_values": 0
+      },
+      "documents.businessRegistration[].fileId": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 2,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 4,
+        "scalar_values": 4
+      },
+      "documents.businessRegistration[].fileName": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 2,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 4,
+        "scalar_values": 4
+      },
+      "documents.businessRegistration[].fileUrl": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 2,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 4,
+        "scalar_values": 4
+      },
+      "documents.businessRegistration[].format": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 2,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 4,
+        "scalar_values": 4
+      },
+      "documents.businessRegistration[].uploadedAt": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 2,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 4,
+        "scalar_values": 4
+      },
+      "documents.certification": {
+        "array_values": 6,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 0
+      },
+      "documents.certification[]": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 10,
+        "present_records": 6,
+        "scalar_values": 0
+      },
+      "documents.certification[].fileId": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 10
+      },
+      "documents.certification[].fileName": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 10
+      },
+      "documents.certification[].fileUrl": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 10
+      },
+      "documents.certification[].format": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 10
+      },
+      "documents.certification[].uploadedAt": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 10
+      },
+      "documents.experienceProof": {
+        "array_values": 6,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 0
+      },
+      "documents.experienceProof[]": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 10,
+        "present_records": 6,
+        "scalar_values": 0
+      },
+      "documents.experienceProof[].fileId": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 10
+      },
+      "documents.experienceProof[].fileName": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 10
+      },
+      "documents.experienceProof[].fileUrl": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 10
+      },
+      "documents.experienceProof[].format": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 10
+      },
+      "documents.experienceProof[].uploadedAt": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 10
+      },
+      "documents.extractedFeatures": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 4,
+        "null_values": 0,
+        "object_values": 2,
+        "present_records": 2,
+        "scalar_values": 0
+      },
+      "documents.extractedFeatures.business_registered": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 4,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 2
+      },
+      "documents.extractedFeatures.cert_issuer_reputation": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 4,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 2
+      },
+      "documents.extractedFeatures.certification_count": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 4,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 2
+      },
+      "documents.extractedFeatures.credibility": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 4,
+        "null_values": 0,
+        "object_values": 2,
+        "present_records": 2,
+        "scalar_values": 0
+      },
+      "documents.extractedFeatures.credibility.credibilityLevel": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 4,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 2
+      },
+      "documents.extractedFeatures.credibility.credibilityScore": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 4,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 2
+      },
+      "documents.extractedFeatures.credibility.lastEvaluatedAt": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 4,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 2
+      },
+      "documents.extractedFeatures.experience_reference_count": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 4,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 2
+      },
+      "documents.extractedFeatures.experience_years": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 4,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 2
+      },
+      "documents.extractedFeatures.highest_cert_level": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 4,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 2
+      },
+      "documents.extractedFeatures.identity_verified": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 4,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 2
+      },
+      "documents.extractedFeatures.portfolio_count": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 4,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 2
+      },
+      "documents.extractedFeatures.portfolio_quality_score": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 4,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 2
+      },
+      "documents.extractedFeatures.provider_id": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 4,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 2
+      },
+      "documents.extractedFeatures.service_category": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 4,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 2
+      },
+      "documents.identityDocument": {
+        "array_values": 6,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 0
+      },
+      "documents.identityDocument[]": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 6,
+        "present_records": 6,
+        "scalar_values": 0
+      },
+      "documents.identityDocument[].fileId": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "documents.identityDocument[].fileName": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "documents.identityDocument[].fileUrl": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "documents.identityDocument[].format": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "documents.identityDocument[].uploadedAt": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "documents.portfolioWork": {
+        "array_values": 6,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 0
+      },
+      "documents.portfolioWork[]": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 6,
+        "present_records": 6,
+        "scalar_values": 0
+      },
+      "documents.portfolioWork[].fileId": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "documents.portfolioWork[].fileName": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "documents.portfolioWork[].fileUrl": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "documents.portfolioWork[].format": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "documents.portfolioWork[].uploadedAt": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "documents.status": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "documents.verified": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "email": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "experienceYears": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "extractedFeatures": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 6,
+        "present_records": 6,
+        "scalar_values": 0
+      },
+      "extractedFeatures.business_registered": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "extractedFeatures.cert_issuer_reputation": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "extractedFeatures.certification_count": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "extractedFeatures.credibility": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 6,
+        "present_records": 6,
+        "scalar_values": 0
+      },
+      "extractedFeatures.credibility.credibilityLevel": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "extractedFeatures.credibility.credibilityScore": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "extractedFeatures.credibility.lastEvaluatedAt": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "extractedFeatures.experience_reference_count": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "extractedFeatures.experience_years": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "extractedFeatures.highest_cert_level": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "extractedFeatures.identity_verified": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "extractedFeatures.portfolio_count": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "extractedFeatures.portfolio_quality_score": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "extractedFeatures.provider_id": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "extractedFeatures.service_category": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "fullName": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "id": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "location": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 6,
+        "present_records": 6,
+        "scalar_values": 0
+      },
+      "location.latitude": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "location.longitude": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "nic": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "phone": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "preferredLanguage": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "providerImage": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "role": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "skills": {
+        "array_values": 6,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 0
+      },
+      "skills[]": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 22
+      },
+      "uid": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "verified": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "workingHours": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 6,
+        "present_records": 6,
+        "scalar_values": 0
+      },
+      "workingHours.Friday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 6,
+        "present_records": 6,
+        "scalar_values": 0
+      },
+      "workingHours.Friday.end": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "workingHours.Friday.isOpen": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "workingHours.Friday.start": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "workingHours.Monday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 6,
+        "present_records": 6,
+        "scalar_values": 0
+      },
+      "workingHours.Monday.end": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "workingHours.Monday.isOpen": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "workingHours.Monday.start": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "workingHours.Saturday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 6,
+        "present_records": 6,
+        "scalar_values": 0
+      },
+      "workingHours.Saturday.end": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "workingHours.Saturday.isOpen": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "workingHours.Saturday.start": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "workingHours.Sunday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 6,
+        "present_records": 6,
+        "scalar_values": 0
+      },
+      "workingHours.Sunday.end": {
+        "array_values": 0,
+        "empty_string_values": 6,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 0
+      },
+      "workingHours.Sunday.isOpen": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "workingHours.Sunday.start": {
+        "array_values": 0,
+        "empty_string_values": 6,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 0
+      },
+      "workingHours.Thursday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 6,
+        "present_records": 6,
+        "scalar_values": 0
+      },
+      "workingHours.Thursday.end": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "workingHours.Thursday.isOpen": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "workingHours.Thursday.start": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "workingHours.Tuesday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 6,
+        "present_records": 6,
+        "scalar_values": 0
+      },
+      "workingHours.Tuesday.end": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "workingHours.Tuesday.isOpen": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "workingHours.Tuesday.start": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "workingHours.Wednesday": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 6,
+        "present_records": 6,
+        "scalar_values": 0
+      },
+      "workingHours.Wednesday.end": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "workingHours.Wednesday.isOpen": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      },
+      "workingHours.Wednesday.start": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 6,
+        "scalar_values": 6
+      }
+    }
+  },
+  "mongodb": {
+    "component4_provider_scores": {
+      "_id": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 5,
+        "scalar_values": 5
+      },
+      "absa_model_version": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 5,
+        "scalar_values": 5
+      },
+      "aspect_scores": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 5,
+        "present_records": 5,
+        "scalar_values": 0
+      },
+      "aspect_scores.communication": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 5,
+        "scalar_values": 5
+      },
+      "aspect_scores.professionalism": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 5,
+        "scalar_values": 5
+      },
+      "aspect_scores.punctuality": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 5,
+        "scalar_values": 5
+      },
+      "aspect_scores.quality": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 5,
+        "scalar_values": 5
+      },
+      "category": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 5,
+        "scalar_values": 5
+      },
+      "category_prior_version": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 5,
+        "scalar_values": 5
+      },
+      "catf_version": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 5,
+        "scalar_values": 5
+      },
+      "created_at": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 5,
+        "scalar_values": 5
+      },
+      "credibility_model_version": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 5,
+        "scalar_values": 5
+      },
+      "effective_review_count": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 5,
+        "scalar_values": 5
+      },
+      "evidence_status": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 5,
+        "scalar_values": 5
+      },
+      "final_catf_score": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 5,
+        "scalar_values": 5
+      },
+      "handoff": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 5,
+        "present_records": 5,
+        "scalar_values": 0
+      },
+      "handoff.component_version": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 5,
+        "scalar_values": 5
+      },
+      "handoff.model_version": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 5,
+        "scalar_values": 5
+      },
+      "handoff.request_id": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 5,
+        "scalar_values": 5
+      },
+      "handoff.source": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 5,
+        "scalar_values": 5
+      },
+      "handoff.user_id": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 5,
+        "scalar_values": 5
+      },
+      "mean_credibility": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 5,
+        "scalar_values": 5
+      },
+      "provider_id": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 5,
+        "scalar_values": 5
+      },
+      "provider_name": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 5,
+        "scalar_values": 5
+      },
+      "rank": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 5,
+        "scalar_values": 5
+      },
+      "reliability_factor": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 5,
+        "scalar_values": 5
+      },
+      "request_id": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 5,
+        "scalar_values": 5
+      },
+      "review_count": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 5,
+        "scalar_values": 5
+      },
+      "run_id": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 5,
+        "scalar_values": 5
+      },
+      "score_source": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 5,
+        "scalar_values": 5
+      },
+      "user_id": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 5,
+        "scalar_values": 5
+      },
+      "weight_version": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 5,
+        "scalar_values": 5
+      }
+    },
+    "component4_runs": {
+      "_id": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "absa_model_version": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "candidate_provider_ids": {
+        "array_values": 1,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 0
+      },
+      "candidate_provider_ids[]": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 10
+      },
+      "category_prior_version": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "catf_version": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "completed_at": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "component_version": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "created_at": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "credibility_model_version": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "force_recalculate": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "handoff": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 1,
+        "present_records": 1,
+        "scalar_values": 0
+      },
+      "handoff.component_version": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "handoff.model_version": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "handoff.request_id": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "handoff.source": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "handoff.user_id": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "input_count": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "output_count": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "processing_time_ms": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "request_id": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "requested_top_k": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "response": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 1,
+        "present_records": 1,
+        "scalar_values": 0
+      },
+      "response.cached": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "response.candidate_provider_ids": {
+        "array_values": 1,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 0
+      },
+      "response.candidate_provider_ids[]": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 10
+      },
+      "response.component_version": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "response.handoff": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 1,
+        "present_records": 1,
+        "scalar_values": 0
+      },
+      "response.handoff.component_version": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "response.handoff.model_version": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "response.handoff.request_id": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "response.handoff.source": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "response.handoff.user_id": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "response.input_count": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "response.output_count": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "response.processing_time_ms": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "response.providers": {
+        "array_values": 1,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 0
+      },
+      "response.providers[]": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 5,
+        "present_records": 1,
+        "scalar_values": 0
+      },
+      "response.providers[].aspect_scores": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 5,
+        "present_records": 1,
+        "scalar_values": 0
+      },
+      "response.providers[].aspect_scores.communication": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 5
+      },
+      "response.providers[].aspect_scores.professionalism": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 5
+      },
+      "response.providers[].aspect_scores.punctuality": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 5
+      },
+      "response.providers[].aspect_scores.quality": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 5
+      },
+      "response.providers[].category": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 5
+      },
+      "response.providers[].city": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 5
+      },
+      "response.providers[].district": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 5
+      },
+      "response.providers[].effective_review_count": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 5
+      },
+      "response.providers[].evidence_status": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 5
+      },
+      "response.providers[].final_score": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 5
+      },
+      "response.providers[].mean_credibility": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 5
+      },
+      "response.providers[].platform_rating": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 5
+      },
+      "response.providers[].platform_review_count": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 5
+      },
+      "response.providers[].provider_id": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 5
+      },
+      "response.providers[].provider_name": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 5
+      },
+      "response.providers[].rank": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 5
+      },
+      "response.providers[].reliability_factor": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 5
+      },
+      "response.providers[].review_count": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 5
+      },
+      "response.providers[].score_source": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 5
+      },
+      "response.request_id": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "response.requested_top_k": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "response.run_id": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "response.user_id": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "response.versions": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 1,
+        "present_records": 1,
+        "scalar_values": 0
+      },
+      "response.versions.absa_model_version": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "response.versions.category_prior_version": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "response.versions.catf_version": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "response.versions.credibility_model_version": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "response.versions.weight_version": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "run_id": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "started_at": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "status": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "updated_at": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "user_id": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "weight_version": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      }
+    },
+    "customer_profiles": {
+      "_id": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 2
+      },
+      "city": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 2
+      },
+      "created_at": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 2
+      },
+      "customer_id": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 2
+      },
+      "district": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 2
+      },
+      "phone": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 2
+      },
+      "preferred_language": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 2
+      },
+      "updated_at": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 2
+      },
+      "user_id": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 2,
+        "scalar_values": 2
+      }
+    },
+    "interactions": {
+      "_id": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 105,
+        "scalar_values": 105
+      },
+      "category": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 105,
+        "scalar_values": 105
+      },
+      "interaction_id": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 105,
+        "scalar_values": 105
+      },
+      "interaction_type": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 105,
+        "scalar_values": 105
+      },
+      "provider_id": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 105,
+        "scalar_values": 105
+      },
+      "provider_name": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 105,
+        "scalar_values": 105
+      },
+      "rating": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 105,
+        "object_values": 0,
+        "present_records": 105,
+        "scalar_values": 0
+      },
+      "request_id": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 105,
+        "scalar_values": 105
+      },
+      "timestamp": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 105,
+        "scalar_values": 105
+      },
+      "user_id": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 105,
+        "scalar_values": 105
+      }
+    },
+    "legacy_firebase_customers": {},
+    "legacy_firebase_daily_demand": {},
+    "legacy_firebase_filter_requests": {},
+    "legacy_firebase_providers": {},
+    "legacy_identity_map": {},
+    "provider_verification_events": {},
+    "providers": {
+      "_id": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "booking_success_rate": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "category": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "city": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "created_at": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "description": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "district": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "experience_years": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "interaction_count": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "provider_id": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "provider_name": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "rating": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "review_count": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "skills": {
+        "array_values": 1,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 0
+      },
+      "skills[]": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 2
+      },
+      "updated_at": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      },
+      "user_id": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 1,
+        "scalar_values": 1
+      }
+    },
+    "service_requests": {
+      "_id": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 9,
+        "scalar_values": 9
+      },
+      "category": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 9,
+        "scalar_values": 9
+      },
+      "city": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 9,
+        "scalar_values": 9
+      },
+      "created_at": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 9,
+        "scalar_values": 9
+      },
+      "district": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 9,
+        "scalar_values": 9
+      },
+      "request_id": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 9,
+        "scalar_values": 9
+      },
+      "request_text": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 9,
+        "scalar_values": 9
+      },
+      "urgency": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 9,
+        "scalar_values": 9
+      },
+      "user_id": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 9,
+        "scalar_values": 9
+      }
+    },
+    "users": {
+      "_id": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 4,
+        "scalar_values": 4
+      },
+      "created_at": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 4,
+        "scalar_values": 4
+      },
+      "email": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 4,
+        "scalar_values": 4
+      },
+      "full_name": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 4,
+        "scalar_values": 4
+      },
+      "hashed_password": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 4,
+        "scalar_values": 4
+      },
+      "is_active": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 4,
+        "scalar_values": 4
+      },
+      "role": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 4,
+        "scalar_values": 4
+      },
+      "user_id": {
+        "array_values": 0,
+        "empty_string_values": 0,
+        "missing_records": 0,
+        "null_values": 0,
+        "object_values": 0,
+        "present_records": 4,
+        "scalar_values": 4
+      }
+    }
+  }
+}

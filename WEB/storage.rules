@@ -1,0 +1,42 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    function signedInAs(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    function validPublicProfileImage() {
+      return request.resource.size <= 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/(jpeg|png|webp)');
+    }
+
+    // Existing public profile images remain readable during the rollback window.
+    match /customers/{uid}/{fileName} {
+      allow read: if true;
+      allow create, update: if signedInAs(uid) && validPublicProfileImage();
+      allow delete: if false;
+    }
+
+    match /providers/{uid}/{fileName} {
+      allow read: if true;
+      allow create, update: if signedInAs(uid) && validPublicProfileImage();
+      allow delete: if false;
+    }
+
+    // Private provider documents are served only through role-checked FastAPI routes.
+    // Firebase Admin writes bypass client rules; browser SDK access is denied.
+    match /private/providers/{providerId}/{allPaths=**} {
+      allow read, write: if false;
+    }
+
+    // Deny SDK access to the old browser-upload document prefix as well.
+    match /providers/{providerId}/documents/{allPaths=**} {
+      allow read, write: if false;
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

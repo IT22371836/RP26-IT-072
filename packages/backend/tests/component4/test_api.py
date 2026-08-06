@@ -337,6 +337,10 @@ def test_rank_endpoint_enforces_identity_and_production_fixture_policy() -> None
         production = Settings(
             app_env="production",
             jwt_secret_key="phase11-production-test-secret-key",
+            auth_cookie_enabled=True,
+            auth_cookie_secure=True,
+            firebase_project_id="phase11-test-project",
+            firebase_storage_bucket="phase11-test-project.firebasestorage.app",
         )
         app.dependency_overrides[customer_user] = lambda: customer
         app.dependency_overrides[engine_dependency] = loaded_engine

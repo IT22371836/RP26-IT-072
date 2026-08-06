@@ -11,10 +11,11 @@ export interface User {
 }
 
 export interface TokenResponse {
-  access_token: string;
+  access_token: string | null;
   token_type: string;
   expires_in: number;
   user: User;
+  token_transport: "bearer" | "cookie";
 }
 
 export interface ServiceRequestInput {

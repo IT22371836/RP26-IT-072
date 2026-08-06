@@ -1,0 +1,8 @@
+{
+  "backup_location": "C:\\tmp\\weda-phase0-backups\\2026-08-05",
+  "firebase_project_id": "service-e333a",
+  "generated_at": "2026-08-05T09:13:09.229882+00:00",
+  "git_branch": "integration/web-fastapi-nondestructive",
+  "mongodb_database": "Weda_platform_renew_dev",
+  "raw_personal_data_in_evidence": false
+}

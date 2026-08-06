@@ -7,6 +7,7 @@ from app.api.dependencies import (
     get_component1_repository,
     get_interaction_repository,
     get_provider_repository,
+    get_service_request_repository,
     require_role,
 )
 from app.components.component1.schemas import (
@@ -24,6 +25,7 @@ from app.core.config import Settings, get_settings
 from app.repositories.component1 import Component1Repository
 from app.repositories.interactions import InteractionRepository
 from app.repositories.providers import ProviderRepository
+from app.repositories.service_requests import ServiceRequestRepository
 from app.schemas.auth import UserPublic
 from app.schemas.common import UserRole, new_public_id, utc_now
 
@@ -51,11 +53,26 @@ async def recommend(
     engine: Annotated[HybridRecommendationEngine, Depends(engine_dependency)],
     provider_repository: Annotated[ProviderRepository, Depends(get_provider_repository)],
     interaction_repository: Annotated[InteractionRepository, Depends(get_interaction_repository)],
+    service_request_repository: Annotated[
+        ServiceRequestRepository,
+        Depends(get_service_request_repository),
+    ],
     component1_repository: Annotated[
         Component1Repository,
         Depends(get_component1_repository),
     ],
 ) -> RecommendationResponse:
+    request = await service_request_repository.find_by_id(payload.request_id)
+    if request is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Service request not found",
+        )
+    if request.get("user_id") != current_user.user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="The service request belongs to another customer",
+        )
     try:
         started_at = utc_now()
         started_timer = perf_counter()

@@ -46,6 +46,15 @@ class Settings(BaseSettings):
     jwt_secret_key: str = Field(default="development-only-change-me-32-bytes", min_length=32)
     jwt_algorithm: Literal["HS256"] = "HS256"
     jwt_access_token_expire_minutes: int = Field(default=60, ge=5, le=10080)
+    auth_cookie_enabled: bool = False
+    auth_cookie_name: str = Field(default="weda_access_token", min_length=1, max_length=100)
+    auth_cookie_secure: bool = False
+    auth_cookie_samesite: Literal["lax", "strict"] = "lax"
+
+    firebase_project_id: str | None = None
+    firebase_storage_bucket: str | None = None
+    firebase_check_revoked: bool = True
+    document_upload_max_bytes: int = Field(default=10 * 1024 * 1024, ge=1024)
 
     model_config = SettingsConfigDict(
         env_file=BACKEND_DIR / ".env",
@@ -75,6 +84,14 @@ class Settings(BaseSettings):
             "development-only"
         ):
             raise ValueError("JWT_SECRET_KEY must be configured for production")
+        if self.app_env.lower() == "production" and not self.auth_cookie_enabled:
+            raise ValueError("AUTH_COOKIE_ENABLED must be true in production")
+        if self.app_env.lower() == "production" and not self.auth_cookie_secure:
+            raise ValueError("AUTH_COOKIE_SECURE must be true in production")
+        if self.app_env.lower() == "production" and not self.firebase_project_id:
+            raise ValueError("FIREBASE_PROJECT_ID must be configured in production")
+        if self.app_env.lower() == "production" and not self.firebase_storage_bucket:
+            raise ValueError("FIREBASE_STORAGE_BUCKET must be configured in production")
         return self
 
 

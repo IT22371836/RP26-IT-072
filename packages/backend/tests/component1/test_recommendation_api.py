@@ -3,7 +3,11 @@ from datetime import UTC, datetime
 
 from httpx import ASGITransport, AsyncClient
 
-from app.api.dependencies import get_interaction_repository, get_provider_repository
+from app.api.dependencies import (
+    get_component1_repository,
+    get_interaction_repository,
+    get_provider_repository,
+)
 from app.components.component1.router import customer_user, engine_dependency
 from app.main import app
 from app.schemas.auth import UserPublic
@@ -39,6 +43,15 @@ class EmptyInteractionRepository:
         return None
 
 
+class RecordingComponent1Repository:
+    async def persist_completed(
+        self,
+        _run_document: dict[str, object],
+        _provider_documents: list[dict[str, object]],
+    ) -> None:
+        return None
+
+
 def test_recommendation_api_preserves_pipeline_identifiers() -> None:
     async def run_test() -> None:
         customer = UserPublic(
@@ -53,6 +66,7 @@ def test_recommendation_api_preserves_pipeline_identifiers() -> None:
         app.dependency_overrides[engine_dependency] = ReadyEngine
         app.dependency_overrides[get_provider_repository] = EmptyProviderRepository
         app.dependency_overrides[get_interaction_repository] = EmptyInteractionRepository
+        app.dependency_overrides[get_component1_repository] = RecordingComponent1Repository
 
         try:
             transport = ASGITransport(app=app)

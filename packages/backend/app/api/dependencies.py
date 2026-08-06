@@ -7,6 +7,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from app.core.config import Settings, get_settings
 from app.core.database import get_database
 from app.core.security import InvalidAccessTokenError, decode_access_token
+from app.repositories.component1 import Component1Repository
 from app.repositories.component4 import Component4Repository
 from app.repositories.customers import CustomerProfileRepository
 from app.repositories.interactions import InteractionRepository
@@ -31,6 +32,12 @@ def get_component4_repository(
     database: Annotated[Any, Depends(get_database)],
 ) -> Component4Repository:
     return Component4Repository(database)
+
+
+def get_component1_repository(
+    database: Annotated[Any, Depends(get_database)],
+) -> Component1Repository:
+    return Component1Repository(database)
 
 
 def get_customer_profile_repository(

@@ -1,0 +1,35 @@
+{
+  "phase": 5,
+  "status": "passed",
+  "summary": {
+    "total_reviews": 25000,
+    "unique_source_providers": 4976,
+    "unique_mapped_review_providers": 4976,
+    "component1_providers": 10000,
+    "providers_with_reviews": 4976,
+    "providers_with_no_reviews": 5024,
+    "unmapped_review_records": 0,
+    "category_mismatches": 0,
+    "review_count_preserved": true,
+    "review_id_order_preserved": true,
+    "mapped_provider_ids_preserved": true,
+    "source_provider_ids_preserved": true,
+    "all_provider_scores_finite_and_bounded": true,
+    "all_no_review_providers_use_category_prior": true
+  },
+  "evidence_status_counts": {
+    "insufficient": 8800,
+    "limited": 1200
+  },
+  "score_source_counts": {
+    "category_prior": 5024,
+    "catf_evidence": 4976
+  },
+  "score_statistics": {
+    "minimum": 0.4214059429627695,
+    "mean": 0.470374134398305,
+    "maximum": 0.5468755823506938
+  },
+  "weight_validation_status": "structural_validation_passed_ranking_ground_truth_pending_phase8",
+  "ranking_ground_truth_validation": "pending_phase8"
+}

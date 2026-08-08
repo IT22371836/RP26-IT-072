@@ -10,9 +10,12 @@ from app.api.dependencies import (
     get_service_request_repository,
     get_user_repository,
 )
+from app.api.providers import document_storage_service
 from app.main import app
 from app.repositories.providers import ProviderProfileExistsError
 from app.repositories.users import DuplicateEmailError
+from app.schemas.common import utc_now
+from app.services.file_storage import DownloadedDocument, StoredDocument
 
 
 class InMemoryUserRepository:
@@ -38,6 +41,7 @@ class InMemoryProviderRepository:
     def __init__(self) -> None:
         self.by_id: dict[str, dict[str, Any]] = {}
         self.by_user_id: dict[str, dict[str, Any]] = {}
+        self.verification_events: list[dict[str, Any]] = []
 
     async def create(self, document: dict[str, Any]) -> dict[str, Any]:
         if document["user_id"] in self.by_user_id:
@@ -52,6 +56,102 @@ class InMemoryProviderRepository:
     async def find_by_user_id(self, user_id: str) -> dict[str, Any] | None:
         return self.by_user_id.get(user_id)
 
+    async def update_by_user_id(
+        self, user_id: str, updates: dict[str, Any]
+    ) -> dict[str, Any] | None:
+        provider = self.by_user_id.get(user_id)
+        if provider is not None:
+            provider.update(updates)
+        return provider
+
+    async def add_document(
+        self,
+        user_id: str,
+        category: str,
+        document: dict[str, Any],
+    ) -> dict[str, Any] | None:
+        provider = self.by_user_id.get(user_id)
+        if provider is None or provider.get("verified") or provider["documents"].get("status"):
+            return None
+        provider["documents"].setdefault(category, []).append(document)
+        provider["updated_at"] = utc_now()
+        return provider
+
+    async def soft_delete_document(
+        self,
+        user_id: str,
+        category: str,
+        file_id: str,
+    ) -> dict[str, Any] | None:
+        provider = self.by_user_id.get(user_id)
+        if provider is None or provider.get("verified") or provider["documents"].get("status"):
+            return None
+        item = next(
+            (
+                item
+                for item in provider["documents"].get(category, [])
+                if item["file_id"] == file_id and item.get("deleted_at") is None
+            ),
+            None,
+        )
+        if item is None:
+            return None
+        item["deleted_at"] = utc_now()
+        provider["updated_at"] = utc_now()
+        return provider
+
+    async def request_document_verification(self, user_id: str) -> dict[str, Any] | None:
+        provider = self.by_user_id.get(user_id)
+        if provider is None or provider.get("verified") or provider["documents"].get("status"):
+            return None
+        provider["documents"]["status"] = True
+        provider["documents"]["verified"] = False
+        provider["updated_at"] = utc_now()
+        return provider
+
+    async def set_verification(
+        self,
+        provider_id: str,
+        admin_user_id: str,
+        verified: bool,
+        reason: str | None,
+    ) -> tuple[dict[str, Any], dict[str, Any]] | None:
+        provider = self.by_id.get(provider_id)
+        if provider is None:
+            return None
+        now = utc_now()
+        event = {
+            "event_id": f"V{len(self.verification_events) + 1}",
+            "provider_id": provider_id,
+            "admin_user_id": admin_user_id,
+            "previous_verified": bool(provider.get("verified")),
+            "verified": verified,
+            "reason": reason,
+            "created_at": now,
+        }
+        provider["verified"] = verified
+        provider["documents"]["status"] = False
+        provider["documents"]["verified"] = verified
+        provider["verification"] = {
+            **provider.get("verification", {}),
+            "status": "verified" if verified else "revoked",
+            "last_action_by": admin_user_id,
+            "last_action_at": now,
+            "last_reason": reason,
+        }
+        provider["updated_at"] = now
+        self.verification_events.append(event)
+        return provider, event
+
+    async def list_verification_events(
+        self, provider_id: str, limit: int = 100
+    ) -> list[dict[str, Any]]:
+        return [
+            event
+            for event in reversed(self.verification_events)
+            if event["provider_id"] == provider_id
+        ][:limit]
+
     async def list_all(self, limit: int = 10_000) -> list[dict[str, Any]]:
         return list(self.by_id.values())[:limit]
 
@@ -62,6 +162,37 @@ class InMemoryProviderRepository:
         if provider is not None:
             provider.update(statistics)
         return provider
+
+
+class InMemoryPrivateDocumentStorage:
+    def __init__(self) -> None:
+        self.download_calls: list[tuple[str, str | None]] = []
+
+    def upload(self, **values: Any) -> StoredDocument:
+        content = b"private-document"
+        storage_path = (
+            f"private/providers/{values['provider_id']}/{values['category']}/"
+            f"{values['file_id']}_document.pdf"
+        )
+        url = f"gs://test-bucket/{storage_path}"
+        return StoredDocument(
+            file_url=url,
+            current_url=url,
+            storage_path=storage_path,
+            content_sha256=(
+                "d52953e6a7ff8b2f6f6d42c29de5133d6887d8ea675b516d56767f26d3379c77"
+            ),
+            content_type="application/pdf",
+            format="PDF",
+            size_bytes=len(content),
+        )
+
+    def download(self, file_url: str, expected_sha256: str | None) -> DownloadedDocument:
+        self.download_calls.append((file_url, expected_sha256))
+        return DownloadedDocument(
+            content=b"private-document",
+            content_type="application/pdf",
+        )
 
 
 class InMemoryServiceRequestRepository:
@@ -187,12 +318,14 @@ def test_customer_and_provider_authenticated_api_flow() -> None:
         requests = InMemoryServiceRequestRepository()
         customers = InMemoryCustomerProfileRepository()
         interactions = InMemoryInteractionRepository()
+        private_storage = InMemoryPrivateDocumentStorage()
 
         app.dependency_overrides[get_user_repository] = lambda: users
         app.dependency_overrides[get_provider_repository] = lambda: providers
         app.dependency_overrides[get_service_request_repository] = lambda: requests
         app.dependency_overrides[get_customer_profile_repository] = lambda: customers
         app.dependency_overrides[get_interaction_repository] = lambda: interactions
+        app.dependency_overrides[document_storage_service] = lambda: private_storage
 
         try:
             transport = ASGITransport(app=app)
@@ -219,10 +352,30 @@ def test_customer_and_provider_authenticated_api_flow() -> None:
                         "district": "Colombo",
                         "city": "Kottawa",
                         "preferred_language": "Sinhala",
+                        "location": {"latitude": 6.8412, "longitude": 79.9654},
                     },
                 )
                 assert updated_profile.status_code == 200
                 assert updated_profile.json()["city"] == "Kottawa"
+                assert updated_profile.json()["location"] == {
+                    "latitude": 6.8412,
+                    "longitude": 79.9654,
+                }
+
+                image_update = await client.patch(
+                    "/api/v1/customers/me",
+                    headers=customer_headers,
+                    json={"customerImage": "https://example.com/customer.png"},
+                )
+                assert image_update.status_code == 200
+                assert image_update.json()["customer_image"] == (
+                    "https://example.com/customer.png"
+                )
+                assert image_update.json()["preferred_language"] == "Sinhala"
+                assert image_update.json()["location"] == {
+                    "latitude": 6.8412,
+                    "longitude": 79.9654,
+                }
 
                 service_request = await client.post(
                     "/api/v1/service-requests",
@@ -250,6 +403,20 @@ def test_customer_and_provider_authenticated_api_flow() -> None:
                 )
                 assert interaction.status_code == 201
                 assert interaction.json()["interaction_id"].startswith("I")
+
+                direct_rating = await client.post(
+                    "/api/v1/interactions",
+                    headers=customer_headers,
+                    json={
+                        "request_id": service_request.json()["request_id"],
+                        "provider_id": "PTEST123",
+                        "category": "CCTV",
+                        "interaction_type": "rated",
+                        "rating": 5,
+                        "review_text": "This must not bypass booking verification.",
+                    },
+                )
+                assert direct_rating.status_code == 422
 
                 customer_provider_attempt = await client.post(
                     "/api/v1/providers/me",
@@ -289,6 +456,226 @@ def test_customer_and_provider_authenticated_api_flow() -> None:
                 assert provider_profile.status_code == 201
                 assert provider_profile.json()["provider_id"].startswith("P")
 
+                working_hours = {
+                    day: {"isOpen": day != "Sunday", "start": "08:00 AM", "end": "06:00 PM"}
+                    for day in (
+                        "Monday",
+                        "Tuesday",
+                        "Wednesday",
+                        "Thursday",
+                        "Friday",
+                        "Saturday",
+                        "Sunday",
+                    )
+                }
+                updated_provider = await client.patch(
+                    "/api/v1/providers/me",
+                    headers=provider_headers,
+                    json={
+                        "phone": "+94770001122",
+                        "location": {"latitude": 6.8412, "longitude": 79.9654},
+                        "providerImage": "https://example.com/provider.png",
+                        "preferredLanguage": "Sinhala, English",
+                        "nic": "199012345678",
+                        "workingHours": working_hours,
+                    },
+                )
+                assert updated_provider.status_code == 200
+                private_provider = updated_provider.json()
+                assert private_provider["phone"] == "+94770001122"
+                assert private_provider["provider_image"] == "https://example.com/provider.png"
+                assert private_provider["working_hours"]["monday"]["is_open"] is True
+                assert private_provider["working_hours"]["sunday"]["is_open"] is False
+                assert private_provider["nic"] == "199012345678"
+
+                public_provider = await client.get(
+                    f"/api/v1/providers/{provider_profile.json()['provider_id']}"
+                )
+                assert public_provider.status_code == 200
+                assert "nic" not in public_provider.json()
+                assert "working_hours" not in public_provider.json()
+                assert "phone" not in public_provider.json()
+                assert "documents" not in public_provider.json()
+
+                empty_documents = await client.get(
+                    "/api/v1/providers/me/documents",
+                    headers=provider_headers,
+                )
+                assert empty_documents.status_code == 200
+                assert empty_documents.json()["certification"] == []
+
+                protected_upload = await client.post(
+                    "/api/v1/providers/me/documents/certification/upload",
+                    headers=provider_headers,
+                    json={
+                        "fileName": "Protected NVQ.pdf",
+                        "dataUrl": "data:application/pdf;base64,JVBERi0xLjQ=",
+                    },
+                )
+                assert protected_upload.status_code == 200
+                protected_item = protected_upload.json()["documents"]["certification"][0]
+                assert protected_item["file_url"].startswith("gs://test-bucket/private/")
+                assert protected_item["current_url"] == protected_item["file_url"]
+                assert protected_item["legacy_url"] is None
+                assert len(protected_item["content_sha256"]) == 64
+
+                protected_download = await client.get(
+                    (
+                        "/api/v1/providers/me/documents/certification/"
+                        f"{protected_item['file_id']}/content"
+                    ),
+                    headers=provider_headers,
+                )
+                assert protected_download.status_code == 200
+                assert protected_download.content == b"private-document"
+                assert protected_download.headers["cache-control"] == "private, no-store"
+
+                first_document = await client.post(
+                    "/api/v1/providers/me/documents/certification",
+                    headers=provider_headers,
+                    json={
+                        "fileId": "firebase-doc-001",
+                        "fileName": "NVQ Level 4.pdf",
+                        "fileUrl": "https://storage.example.com/nvq-level-4.pdf",
+                        "format": "PDF",
+                    },
+                )
+                assert first_document.status_code == 200
+                first_item = next(
+                    item
+                    for item in first_document.json()["documents"]["certification"]
+                    if item["file_id"] == "firebase-doc-001"
+                )
+                assert first_item["file_id"] == "firebase-doc-001"
+                assert first_item["file_name"] == "NVQ Level 4.pdf"
+                assert first_item["deleted_at"] is None
+
+                deleted_document = await client.delete(
+                    f"/api/v1/providers/me/documents/certification/{first_item['file_id']}",
+                    headers=provider_headers,
+                )
+                assert deleted_document.status_code == 200
+                deleted_item = next(
+                    item
+                    for item in deleted_document.json()["documents"]["certification"]
+                    if item["file_id"] == "firebase-doc-001"
+                )
+                assert deleted_item["file_url"] == first_item["file_url"]
+                assert deleted_item["deleted_at"] is not None
+
+                active_document = await client.post(
+                    "/api/v1/providers/me/documents/identity_document",
+                    headers=provider_headers,
+                    json={
+                        "file_name": "Identity.png",
+                        "file_url": "https://storage.example.com/identity.png",
+                        "format": "PNG",
+                    },
+                )
+                assert active_document.status_code == 200
+                active_item = active_document.json()["documents"]["identity_document"][0]
+
+                verification_request = await client.post(
+                    "/api/v1/providers/me/request-document-verification",
+                    headers=provider_headers,
+                )
+                assert verification_request.status_code == 200
+                assert verification_request.json()["documents"]["status"] is True
+
+                locked_delete = await client.delete(
+                    f"/api/v1/providers/me/documents/identity_document/{active_item['file_id']}",
+                    headers=provider_headers,
+                )
+                assert locked_delete.status_code == 409
+
+                unauthorized_approval = await client.patch(
+                    f"/api/v1/admin/providers/{provider_profile.json()['provider_id']}/verification",
+                    headers=customer_headers,
+                    json={"verified": True, "reason": "Customer must not approve"},
+                )
+                assert unauthorized_approval.status_code == 403
+
+                admin, admin_headers = await register_and_login(
+                    client, "customer", "admin-flow@example.com"
+                )
+                users.by_id[admin["user_id"]]["role"] = "admin"
+                admin_login = await client.post(
+                    "/api/v1/auth/login",
+                    json={
+                        "email": "admin-flow@example.com",
+                        "password": "StrongPassword123!",
+                    },
+                )
+                assert admin_login.status_code == 200
+                admin_headers = {
+                    "Authorization": f"Bearer {admin_login.json()['access_token']}"
+                }
+
+                admin_providers = await client.get(
+                    "/api/v1/admin/providers",
+                    headers=admin_headers,
+                )
+                assert admin_providers.status_code == 200
+                admin_provider = next(
+                    item
+                    for item in admin_providers.json()
+                    if item["provider_id"] == provider_profile.json()["provider_id"]
+                )
+                assert admin_provider["nic"] == "199012345678"
+                assert admin_provider["documents"]["identity_document"][0]["file_url"] == (
+                    "https://storage.example.com/identity.png"
+                )
+
+                admin_protected_download = await client.get(
+                    (
+                        f"/api/v1/admin/providers/{admin_provider['provider_id']}/documents/"
+                        f"certification/{protected_item['file_id']}/content"
+                    ),
+                    headers=admin_headers,
+                )
+                assert admin_protected_download.status_code == 200
+                assert admin_protected_download.content == b"private-document"
+
+                approved = await client.patch(
+                    f"/api/v1/admin/providers/{provider_profile.json()['provider_id']}/verification",
+                    headers=admin_headers,
+                    json={"verified": True, "reason": "Identity document reviewed"},
+                )
+                assert approved.status_code == 200
+                assert approved.json()["verified"] is True
+                assert approved.json()["documents"]["verified"] is True
+                assert approved.json()["documents"]["status"] is False
+
+                verification_events = await client.get(
+                    f"/api/v1/admin/providers/{provider_profile.json()['provider_id']}/verification-events",
+                    headers=admin_headers,
+                )
+                assert verification_events.status_code == 200
+                assert verification_events.json()[0]["previous_verified"] is False
+                assert verification_events.json()[0]["verified"] is True
+                assert verification_events.json()[0]["reason"] == "Identity document reviewed"
+
+                public_after_approval = await client.get(
+                    f"/api/v1/providers/{provider_profile.json()['provider_id']}"
+                )
+                assert public_after_approval.json()["verified"] is True
+                assert "documents" not in public_after_approval.json()
+
+                revoked = await client.patch(
+                    f"/api/v1/admin/providers/{provider_profile.json()['provider_id']}/verification",
+                    headers=admin_headers,
+                    json={"verified": False, "reason": "Annual renewal required"},
+                )
+                assert revoked.status_code == 200
+                assert revoked.json()["verified"] is False
+
+                verification_events = await client.get(
+                    f"/api/v1/admin/providers/{provider_profile.json()['provider_id']}/verification-events",
+                    headers=admin_headers,
+                )
+                assert len(verification_events.json()) == 2
+                assert verification_events.json()[0]["previous_verified"] is True
+
                 booking = await client.post(
                     "/api/v1/interactions",
                     headers=customer_headers,
@@ -318,10 +705,16 @@ def test_customer_and_provider_authenticated_api_flow() -> None:
                 rating = await client.post(
                     f"/api/v1/interactions/{completed.json()['interaction_id']}/rate",
                     headers=customer_headers,
-                    json={"rating": 5},
+                    json={
+                        "rating": 5,
+                        "review_text": "Excellent installation and helpful explanation.",
+                    },
                 )
                 assert rating.status_code == 200
                 assert rating.json()["rating"] == 5
+                assert rating.json()["review_text"] == (
+                    "Excellent installation and helpful explanation."
+                )
                 refreshed_provider = await client.get(
                     "/api/v1/providers/me", headers=provider_headers
                 )

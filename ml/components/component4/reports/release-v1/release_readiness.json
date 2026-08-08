@@ -1,0 +1,79 @@
+{
+  "phase": 10,
+  "release_evidence_version": "component4-release-evidence-v1",
+  "status": "passed",
+  "component4_operationally_ready": true,
+  "component2_connected": false,
+  "production_ready": false,
+  "production_status": "component4_ready_awaiting_component2_uat",
+  "checks": {
+    "artifact_integrity": true,
+    "provider_snapshot_complete": true,
+    "sequential_determinism": true,
+    "concurrent_determinism": true,
+    "candidate_subset_preserved": true,
+    "top5_limit_preserved": true,
+    "cold_load_within_limit": true,
+    "sequential_p95_within_limit": true,
+    "concurrent_p95_within_limit": true,
+    "sequential_throughput_within_limit": true,
+    "concurrent_throughput_within_limit": true
+  },
+  "performance": {
+    "cold_load_ms": 105.01640000074985,
+    "sequential": {
+      "p50_ms": 0.0123,
+      "p95_ms": 0.0186,
+      "p99_ms": 0.03940699999999999,
+      "maximum_ms": 0.345,
+      "total_ms": 14.37649999934365,
+      "operations_per_second": 69557.95917265359
+    },
+    "concurrent": {
+      "p50_ms": 0.012750000000000001,
+      "p95_ms": 0.025314999999999987,
+      "p99_ms": 0.052801,
+      "maximum_ms": 0.2683,
+      "total_ms": 27.55079999769805,
+      "operations_per_second": 36296.586672022335
+    }
+  },
+  "thresholds": {
+    "cold_load_max_ms": 2000.0,
+    "sequential_p95_max_ms": 5.0,
+    "concurrent_p95_max_ms": 20.0,
+    "sequential_min_operations_per_second": 1000.0,
+    "concurrent_min_operations_per_second": 500.0
+  },
+  "benchmark": {
+    "request_count": 1000,
+    "candidate_count": 10,
+    "top_k": 5,
+    "concurrency_workers": 16,
+    "ranking_failures": 0
+  },
+  "versions": {
+    "catf_version": "catf-v1",
+    "weight_version": "category-weights-v1",
+    "category_prior_version": "category-priors-v1",
+    "absa_model_version": "absa-v1",
+    "credibility_model_version": "credibility-v1"
+  },
+  "environment": {
+    "python": "3.14.3",
+    "platform": "Windows-11-10.0.26200-SP0"
+  },
+  "validated_test_boundaries": [
+    "JWT authentication",
+    "service-request ownership isolation",
+    "tampered artifact rejection",
+    "MongoDB persistence failure response",
+    "deterministic cached-run persistence",
+    "development fixture blocked in production"
+  ],
+  "remaining_production_gates": [
+    "real Component 2 Top-10 API adapter",
+    "Component 2 to Component 4 integration UAT",
+    "production infrastructure load test with shared MongoDB"
+  ]
+}

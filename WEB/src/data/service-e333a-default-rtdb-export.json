@@ -1,0 +1,1135 @@
+{
+  "customers": {
+    "bpGw5thaYAfOFutLJdwsXigSa8I3": {
+      "city": "Moratuwa",
+      "createdAt": "2026-07-28T17:08:12.998Z",
+      "createdTimestamp": 1785258492998,
+      "customerImage": "https://firebasestorage.googleapis.com/v0/b/service-e333a.firebasestorage.app/o/customers%2FbpGw5thaYAfOFutLJdwsXigSa8I3%2Fprofile_4136.png?alt=media&token=5bffc01c-b446-4056-aa60-4cf947d86f7b",
+      "district": "Colombo",
+      "email": "chamith555rathnayaka@gmail.com",
+      "fullName": "Chamith Rathnayaka",
+      "id": "bpGw5thaYAfOFutLJdwsXigSa8I3",
+      "location": {
+        "latitude": 6.773,
+        "longitude": 79.8816
+      },
+      "phone": "+94719718093",
+      "preferredLanguage": "Sinhala, English",
+      "role": "customer"
+    }
+  },
+  "daily_demand": {
+    "current": {
+      "by_category": {
+        "A_C Services": {
+          "Friday": 23,
+          "Monday": 23,
+          "Saturday": 26,
+          "Sunday": 26,
+          "Thursday": 23,
+          "Tuesday": 23,
+          "Wednesday": 23,
+          "avg_daily": 23.9,
+          "demand_level": "MEDIUM",
+          "service_category": "A/C Services",
+          "total_weekly": 167
+        },
+        "CCTV Installation": {
+          "Friday": 13,
+          "Monday": 13,
+          "Saturday": 13,
+          "Sunday": 13,
+          "Thursday": 13,
+          "Tuesday": 13,
+          "Wednesday": 13,
+          "avg_daily": 13,
+          "demand_level": "MEDIUM",
+          "service_category": "CCTV Installation",
+          "total_weekly": 91
+        },
+        "Carpenters": {
+          "Friday": 16,
+          "Monday": 16,
+          "Saturday": 16,
+          "Sunday": 16,
+          "Thursday": 16,
+          "Tuesday": 16,
+          "Wednesday": 16,
+          "avg_daily": 16,
+          "demand_level": "MEDIUM",
+          "service_category": "Carpenters",
+          "total_weekly": 112
+        },
+        "Ceiling Works": {
+          "Friday": 11,
+          "Monday": 11,
+          "Saturday": 11,
+          "Sunday": 11,
+          "Thursday": 11,
+          "Tuesday": 11,
+          "Wednesday": 11,
+          "avg_daily": 11,
+          "demand_level": "MEDIUM",
+          "service_category": "Ceiling Works",
+          "total_weekly": 77
+        },
+        "Cleaners": {
+          "Friday": 33,
+          "Monday": 33,
+          "Saturday": 35,
+          "Sunday": 35,
+          "Thursday": 33,
+          "Tuesday": 33,
+          "Wednesday": 33,
+          "avg_daily": 33.6,
+          "demand_level": "HIGH",
+          "service_category": "Cleaners",
+          "total_weekly": 235
+        },
+        "Cushion Works": {
+          "Friday": 8,
+          "Monday": 8,
+          "Saturday": 8,
+          "Sunday": 8,
+          "Thursday": 8,
+          "Tuesday": 8,
+          "Wednesday": 8,
+          "avg_daily": 8,
+          "demand_level": "LOW",
+          "service_category": "Cushion Works",
+          "total_weekly": 56
+        },
+        "Electricians": {
+          "Friday": 34,
+          "Monday": 34,
+          "Saturday": 35,
+          "Sunday": 35,
+          "Thursday": 34,
+          "Tuesday": 34,
+          "Wednesday": 34,
+          "avg_daily": 34.3,
+          "demand_level": "HIGH",
+          "service_category": "Electricians",
+          "total_weekly": 240
+        },
+        "Masons": {
+          "Friday": 13,
+          "Monday": 13,
+          "Saturday": 13,
+          "Sunday": 13,
+          "Thursday": 13,
+          "Tuesday": 13,
+          "Wednesday": 13,
+          "avg_daily": 13,
+          "demand_level": "MEDIUM",
+          "service_category": "Masons",
+          "total_weekly": 91
+        },
+        "Painters": {
+          "Friday": 17,
+          "Monday": 17,
+          "Saturday": 18,
+          "Sunday": 18,
+          "Thursday": 17,
+          "Tuesday": 17,
+          "Wednesday": 17,
+          "avg_daily": 17.3,
+          "demand_level": "MEDIUM",
+          "service_category": "Painters",
+          "total_weekly": 121
+        },
+        "Plumbers": {
+          "Friday": 30,
+          "Monday": 30,
+          "Saturday": 31,
+          "Sunday": 31,
+          "Thursday": 30,
+          "Tuesday": 30,
+          "Wednesday": 30,
+          "avg_daily": 30.3,
+          "demand_level": "HIGH",
+          "service_category": "Plumbers",
+          "total_weekly": 212
+        },
+        "Technicians": {
+          "Friday": 27,
+          "Monday": 27,
+          "Saturday": 29,
+          "Sunday": 29,
+          "Thursday": 27,
+          "Tuesday": 27,
+          "Wednesday": 27,
+          "avg_daily": 27.6,
+          "demand_level": "HIGH",
+          "service_category": "Technicians",
+          "total_weekly": 193
+        },
+        "Tile Workers": {
+          "Friday": 14,
+          "Monday": 14,
+          "Saturday": 14,
+          "Sunday": 14,
+          "Thursday": 14,
+          "Tuesday": 14,
+          "Wednesday": 14,
+          "avg_daily": 14,
+          "demand_level": "MEDIUM",
+          "service_category": "Tile Workers",
+          "total_weekly": 98
+        },
+        "Vehicle Repairs": {
+          "Friday": 25,
+          "Monday": 25,
+          "Saturday": 28,
+          "Sunday": 28,
+          "Thursday": 25,
+          "Tuesday": 25,
+          "Wednesday": 25,
+          "avg_daily": 25.9,
+          "demand_level": "HIGH",
+          "service_category": "Vehicle Repairs",
+          "total_weekly": 181
+        },
+        "Well Services": {
+          "Friday": 8,
+          "Monday": 8,
+          "Saturday": 8,
+          "Sunday": 8,
+          "Thursday": 8,
+          "Tuesday": 8,
+          "Wednesday": 8,
+          "avg_daily": 8,
+          "demand_level": "LOW",
+          "service_category": "Well Services",
+          "total_weekly": 56
+        }
+      },
+      "compile_date": "2026-07-30",
+      "end_date": "2026-08-09",
+      "last_updated": "2026-07-30T05:59:28.926429",
+      "start_date": "2026-08-03",
+      "summary": [
+        {
+          "Avg Daily Orders": 34.3,
+          "Friday": 34,
+          "Monday": 34,
+          "Saturday": 35,
+          "Service Category": "Electricians",
+          "Sunday": 35,
+          "Thursday": 34,
+          "Total Weekly Orders": 240,
+          "Tuesday": 34,
+          "Wednesday": 34,
+          "Weekly Demand Level": "HIGH"
+        },
+        {
+          "Avg Daily Orders": 33.6,
+          "Friday": 33,
+          "Monday": 33,
+          "Saturday": 35,
+          "Service Category": "Cleaners",
+          "Sunday": 35,
+          "Thursday": 33,
+          "Total Weekly Orders": 235,
+          "Tuesday": 33,
+          "Wednesday": 33,
+          "Weekly Demand Level": "HIGH"
+        },
+        {
+          "Avg Daily Orders": 30.3,
+          "Friday": 30,
+          "Monday": 30,
+          "Saturday": 31,
+          "Service Category": "Plumbers",
+          "Sunday": 31,
+          "Thursday": 30,
+          "Total Weekly Orders": 212,
+          "Tuesday": 30,
+          "Wednesday": 30,
+          "Weekly Demand Level": "HIGH"
+        },
+        {
+          "Avg Daily Orders": 27.6,
+          "Friday": 27,
+          "Monday": 27,
+          "Saturday": 29,
+          "Service Category": "Technicians",
+          "Sunday": 29,
+          "Thursday": 27,
+          "Total Weekly Orders": 193,
+          "Tuesday": 27,
+          "Wednesday": 27,
+          "Weekly Demand Level": "HIGH"
+        },
+        {
+          "Avg Daily Orders": 25.9,
+          "Friday": 25,
+          "Monday": 25,
+          "Saturday": 28,
+          "Service Category": "Vehicle Repairs",
+          "Sunday": 28,
+          "Thursday": 25,
+          "Total Weekly Orders": 181,
+          "Tuesday": 25,
+          "Wednesday": 25,
+          "Weekly Demand Level": "HIGH"
+        },
+        {
+          "Avg Daily Orders": 23.9,
+          "Friday": 23,
+          "Monday": 23,
+          "Saturday": 26,
+          "Service Category": "A/C Services",
+          "Sunday": 26,
+          "Thursday": 23,
+          "Total Weekly Orders": 167,
+          "Tuesday": 23,
+          "Wednesday": 23,
+          "Weekly Demand Level": "MEDIUM"
+        },
+        {
+          "Avg Daily Orders": 17.3,
+          "Friday": 17,
+          "Monday": 17,
+          "Saturday": 18,
+          "Service Category": "Painters",
+          "Sunday": 18,
+          "Thursday": 17,
+          "Total Weekly Orders": 121,
+          "Tuesday": 17,
+          "Wednesday": 17,
+          "Weekly Demand Level": "MEDIUM"
+        },
+        {
+          "Avg Daily Orders": 16,
+          "Friday": 16,
+          "Monday": 16,
+          "Saturday": 16,
+          "Service Category": "Carpenters",
+          "Sunday": 16,
+          "Thursday": 16,
+          "Total Weekly Orders": 112,
+          "Tuesday": 16,
+          "Wednesday": 16,
+          "Weekly Demand Level": "MEDIUM"
+        },
+        {
+          "Avg Daily Orders": 14,
+          "Friday": 14,
+          "Monday": 14,
+          "Saturday": 14,
+          "Service Category": "Tile Workers",
+          "Sunday": 14,
+          "Thursday": 14,
+          "Total Weekly Orders": 98,
+          "Tuesday": 14,
+          "Wednesday": 14,
+          "Weekly Demand Level": "MEDIUM"
+        },
+        {
+          "Avg Daily Orders": 13,
+          "Friday": 13,
+          "Monday": 13,
+          "Saturday": 13,
+          "Service Category": "Masons",
+          "Sunday": 13,
+          "Thursday": 13,
+          "Total Weekly Orders": 91,
+          "Tuesday": 13,
+          "Wednesday": 13,
+          "Weekly Demand Level": "MEDIUM"
+        },
+        {
+          "Avg Daily Orders": 13,
+          "Friday": 13,
+          "Monday": 13,
+          "Saturday": 13,
+          "Service Category": "CCTV Installation",
+          "Sunday": 13,
+          "Thursday": 13,
+          "Total Weekly Orders": 91,
+          "Tuesday": 13,
+          "Wednesday": 13,
+          "Weekly Demand Level": "MEDIUM"
+        },
+        {
+          "Avg Daily Orders": 11,
+          "Friday": 11,
+          "Monday": 11,
+          "Saturday": 11,
+          "Service Category": "Ceiling Works",
+          "Sunday": 11,
+          "Thursday": 11,
+          "Total Weekly Orders": 77,
+          "Tuesday": 11,
+          "Wednesday": 11,
+          "Weekly Demand Level": "MEDIUM"
+        },
+        {
+          "Avg Daily Orders": 8,
+          "Friday": 8,
+          "Monday": 8,
+          "Saturday": 8,
+          "Service Category": "Well Services",
+          "Sunday": 8,
+          "Thursday": 8,
+          "Total Weekly Orders": 56,
+          "Tuesday": 8,
+          "Wednesday": 8,
+          "Weekly Demand Level": "LOW"
+        },
+        {
+          "Avg Daily Orders": 8,
+          "Friday": 8,
+          "Monday": 8,
+          "Saturday": 8,
+          "Service Category": "Cushion Works",
+          "Sunday": 8,
+          "Thursday": 8,
+          "Total Weekly Orders": 56,
+          "Tuesday": 8,
+          "Wednesday": 8,
+          "Weekly Demand Level": "LOW"
+        }
+      ],
+      "target_week": "2026-08-03 (Monday) to 2026-08-09 (Sunday)"
+    }
+  },
+  "filter_requests": {
+    "-OyeI0RS8CMJ1cs_34uW": {
+      "isNewRequest": false,
+      "location_type": "indoor",
+      "output_results": {
+        "evaluated_at": "2026-07-29T16:54:55.544882",
+        "evaluated_providers": [
+          {
+            "distance_km": 0,
+            "is_available": true,
+            "location_type": "indoor",
+            "provider_id": "2DbMuAfIleY24HDkc1UD2RsssKu2",
+            "provider_location": {
+              "latitude": 6.773,
+              "longitude": 79.8816
+            },
+            "provider_name": "Pawan Sameera",
+            "recommendation": "LOW RISK: Indoor service is completely protected from weather (Rain: 2.9mm, Max: 30.1°C). Safe to proceed.",
+            "request_id": "-OyeI0RS8CMJ1cs_34uW",
+            "service_day": "Monday",
+            "user_id": "bpGw5thaYAfOFutLJdwsXigSa8I3",
+            "weather_risk": "LOW_RISK",
+            "working_hours_status": "Available on Monday (isOpen=True, Hours: 08:00 AM - 06:00 PM)"
+          },
+          {
+            "distance_km": 6.65,
+            "is_available": true,
+            "location_type": "indoor",
+            "provider_id": "Rm7IWL0zdSYdGARJ2sfqiLo4nqB2",
+            "provider_location": {
+              "latitude": 6.83,
+              "longitude": 79.8633
+            },
+            "provider_name": "Kamal Sameera",
+            "recommendation": "LOW RISK: Indoor service is completely protected from weather (Rain: 2.9mm, Max: 30.1°C). Safe to proceed.",
+            "request_id": "-OyeI0RS8CMJ1cs_34uW",
+            "service_day": "Monday",
+            "user_id": "bpGw5thaYAfOFutLJdwsXigSa8I3",
+            "weather_risk": "LOW_RISK",
+            "working_hours_status": "Available on Monday (isOpen=True, Hours: 08:00 AM - 06:00 PM)"
+          },
+          {
+            "distance_km": 8.86,
+            "is_available": true,
+            "location_type": "indoor",
+            "provider_id": "YKXgKLk6WSQSJCbgq2ctGIDPG1e2",
+            "provider_location": {
+              "latitude": 6.8511,
+              "longitude": 79.8656
+            },
+            "provider_name": "Saman Sameera",
+            "recommendation": "LOW RISK: Indoor service is completely protected from weather (Rain: 2.9mm, Max: 30.1°C). Safe to proceed.",
+            "request_id": "-OyeI0RS8CMJ1cs_34uW",
+            "service_day": "Monday",
+            "user_id": "bpGw5thaYAfOFutLJdwsXigSa8I3",
+            "weather_risk": "LOW_RISK",
+            "working_hours_status": "Available on Monday (isOpen=True, Hours: 08:00 AM - 06:00 PM)"
+          }
+        ],
+        "provider_ids": [
+          "2DbMuAfIleY24HDkc1UD2RsssKu2",
+          "Rm7IWL0zdSYdGARJ2sfqiLo4nqB2",
+          "YKXgKLk6WSQSJCbgq2ctGIDPG1e2"
+        ],
+        "recommendation": "LOW RISK: Indoor service is completely protected from weather (Rain: 2.9mm, Max: 30.1°C). Safe to proceed.",
+        "weather_risk": "LOW_RISK",
+        "weather_summary": "Date: 2026-07-29, Max Temp: 30.1°C, Min Temp: 26.7°C, Rain: 2.9mm"
+      },
+      "request_id": "-OyeI0RS8CMJ1cs_34uW",
+      "results": {
+        "provider_ids": [
+          "2DbMuAfIleY24HDkc1UD2RsssKu2",
+          "Rm7IWL0zdSYdGARJ2sfqiLo4nqB2",
+          "YKXgKLk6WSQSJCbgq2ctGIDPG1e2"
+        ]
+      },
+      "service_date": "2026-07-29",
+      "service_time": {
+        "end_time": "12:00 PM",
+        "start_time": "10:00 AM"
+      },
+      "user_id": "bpGw5thaYAfOFutLJdwsXigSa8I3"
+    },
+    "-OyeI0RS8CMJ1cs_55mkb": {
+      "isNewRequest": false,
+      "location_type": "indoor",
+      "output_results": {
+        "evaluated_at": "2026-07-30T05:53:32.058188",
+        "evaluated_providers": [
+          {
+            "distance_km": 6.65,
+            "is_available": true,
+            "location_type": "indoor",
+            "provider_id": "Rm7IWL0zdSYdGARJ2sfqiLo4nqB2",
+            "provider_location": {
+              "latitude": 6.83,
+              "longitude": 79.8633
+            },
+            "provider_name": "Kamal Sameera",
+            "recommendation": "MODERATE TRAVEL RISK: Outdoor rain (67.8mm) forecast, but indoor site is protected. Allow extra travel time.",
+            "request_id": "-OyeI0RS8CMJ1cs_55mkb",
+            "service_day": "Friday",
+            "user_id": "bpGw5thaYAfOFutLJdwsXigSa8I3",
+            "weather_risk": "MODERATE_RISK",
+            "working_hours_status": "Available on Friday (isOpen=True, Hours: 08:00 AM - 06:00 PM)"
+          },
+          {
+            "distance_km": 8.86,
+            "is_available": true,
+            "location_type": "indoor",
+            "provider_id": "YKXgKLk6WSQSJCbgq2ctGIDPG1e2",
+            "provider_location": {
+              "latitude": 6.8511,
+              "longitude": 79.8656
+            },
+            "provider_name": "Saman Sameera",
+            "recommendation": "MODERATE TRAVEL RISK: Outdoor rain (67.8mm) forecast, but indoor site is protected. Allow extra travel time.",
+            "request_id": "-OyeI0RS8CMJ1cs_55mkb",
+            "service_day": "Friday",
+            "user_id": "bpGw5thaYAfOFutLJdwsXigSa8I3",
+            "weather_risk": "MODERATE_RISK",
+            "working_hours_status": "Available on Friday (isOpen=True, Hours: 08:00 AM - 06:00 PM)"
+          }
+        ],
+        "provider_ids": [
+          "Rm7IWL0zdSYdGARJ2sfqiLo4nqB2",
+          "YKXgKLk6WSQSJCbgq2ctGIDPG1e2"
+        ],
+        "recommendation": "MODERATE TRAVEL RISK: Outdoor rain (67.8mm) forecast, but indoor site is protected. Allow extra travel time.",
+        "weather_risk": "MODERATE_RISK",
+        "weather_summary": "Date: 2026-07-31, Max Temp: 28.0°C, Min Temp: 24.5°C, Rain: 67.8mm"
+      },
+      "request_id": "-OyeI0RS8CMJ1cs_55mkb",
+      "results": {
+        "provider_ids": [
+          "2DbMuAfIleY24HDkc1UD2RsssKu2",
+          "Rm7IWL0zdSYdGARJ2sfqiLo4nqB2",
+          "YKXgKLk6WSQSJCbgq2ctGIDPG1e2"
+        ]
+      },
+      "service_date": "2026-07-31",
+      "service_time": {
+        "end_time": "12:00 PM",
+        "start_time": "10:00 AM"
+      },
+      "user_id": "bpGw5thaYAfOFutLJdwsXigSa8I3"
+    }
+  },
+  "providers": {
+    "2DbMuAfIleY24HDkc1UD2RsssKu2": {
+      "category": "Electricians",
+      "city": "Moratuwa",
+      "createdAt": "2026-07-28T19:23:32.092Z",
+      "createdTimestamp": 1785266612092,
+      "description": "We are seeking a skilled Electrician to join our team. The ideal candidate will be responsible for installing, maintaining, and repairing electrical systems in residential, commercial, and industrial settings. Duties include diagnosing electrical issues, reading blueprints, and ensuring compliance with safety codes.",
+      "district": "Colombo",
+      "documents": {
+        "businessRegistration": [
+          {
+            "fileId": "doc_920341",
+            "fileName": "BR",
+            "fileUrl": "https://firebasestorage.googleapis.com/v0/b/service-e333a.firebasestorage.app/o/providers%2FPTygPQf3yzZlnRaG6Q9PZCKwm0s2%2Fdocuments%2Fdoc_920341_BR?alt=media&token=290fb2aa-4f13-4bdc-96e3-5d60e2ee3752",
+            "format": "PNG",
+            "uploadedAt": "2026-07-28T17:15:20.341Z"
+          }
+        ],
+        "certification": [
+          {
+            "fileId": "doc_862483",
+            "fileName": "NVQ-4",
+            "fileUrl": "https://firebasestorage.googleapis.com/v0/b/service-e333a.firebasestorage.app/o/providers%2FPTygPQf3yzZlnRaG6Q9PZCKwm0s2%2Fdocuments%2Fdoc_862483_NVQ-4?alt=media&token=9fad0970-83c5-4ff3-97ae-e0f05587de03",
+            "format": "PNG",
+            "uploadedAt": "2026-07-28T17:14:22.483Z"
+          },
+          {
+            "fileId": "doc_901714",
+            "fileName": "NVQ-5",
+            "fileUrl": "https://firebasestorage.googleapis.com/v0/b/service-e333a.firebasestorage.app/o/providers%2FPTygPQf3yzZlnRaG6Q9PZCKwm0s2%2Fdocuments%2Fdoc_901714_NVQ-5?alt=media&token=be9b58f9-44df-4aaf-98b3-99f8f2d18c27",
+            "format": "PNG",
+            "uploadedAt": "2026-07-28T17:15:01.714Z"
+          }
+        ],
+        "experienceProof": [
+          {
+            "fileId": "doc_972743",
+            "fileName": "LPG",
+            "fileUrl": "https://firebasestorage.googleapis.com/v0/b/service-e333a.firebasestorage.app/o/providers%2FPTygPQf3yzZlnRaG6Q9PZCKwm0s2%2Fdocuments%2Fdoc_972743_LPG?alt=media&token=19fcc6a3-9864-403a-aee9-4b9d61bfa54f",
+            "format": "PNG",
+            "uploadedAt": "2026-07-28T17:16:12.743Z"
+          },
+          {
+            "fileId": "doc_991745",
+            "fileName": "GHK",
+            "fileUrl": "https://firebasestorage.googleapis.com/v0/b/service-e333a.firebasestorage.app/o/providers%2FPTygPQf3yzZlnRaG6Q9PZCKwm0s2%2Fdocuments%2Fdoc_991745_GHK?alt=media&token=13bcff47-3439-4719-9312-9f55c0713e0d",
+            "format": "PNG",
+            "uploadedAt": "2026-07-28T17:16:31.745Z"
+          }
+        ],
+        "identityDocument": [
+          {
+            "fileId": "doc_008962",
+            "fileName": "ID",
+            "fileUrl": "https://firebasestorage.googleapis.com/v0/b/service-e333a.firebasestorage.app/o/providers%2FPTygPQf3yzZlnRaG6Q9PZCKwm0s2%2Fdocuments%2Fdoc_008962_ID?alt=media&token=adc3c066-b490-47a4-9a88-41653ed7c6ab",
+            "format": "PNG",
+            "uploadedAt": "2026-07-28T17:16:48.962Z"
+          }
+        ],
+        "portfolioWork": [
+          {
+            "fileId": "doc_076183",
+            "fileName": "CV",
+            "fileUrl": "https://firebasestorage.googleapis.com/v0/b/service-e333a.firebasestorage.app/o/providers%2FPTygPQf3yzZlnRaG6Q9PZCKwm0s2%2Fdocuments%2Fdoc_076183_CV?alt=media&token=d7bdab60-c65f-4334-8174-e1d294ae7596",
+            "format": "PNG",
+            "uploadedAt": "2026-07-28T17:17:56.183Z"
+          }
+        ],
+        "status": false,
+        "verified": true
+      },
+      "email": "pawan@gmail.com",
+      "experienceYears": 15,
+      "extractedFeatures": {
+        "business_registered": 1,
+        "cert_issuer_reputation": 0.92,
+        "certification_count": 2,
+        "credibility": {
+          "credibilityLevel": "Professional",
+          "credibilityScore": 91.23,
+          "lastEvaluatedAt": "2026-07-27T23:57:16+05:30"
+        },
+        "experience_reference_count": 1,
+        "experience_years": 5,
+        "highest_cert_level": "NVQ Level 4",
+        "identity_verified": 1,
+        "portfolio_count": 1,
+        "portfolio_quality_score": 0.85,
+        "provider_id": "2DbMuAfIleY24HDkc1UD2RsssKu2",
+        "service_category": "Electricians"
+      },
+      "fullName": "Pawan Sameera",
+      "id": "2DbMuAfIleY24HDkc1UD2RsssKu2",
+      "location": {
+        "latitude": 6.773,
+        "longitude": 79.8816
+      },
+      "nic": "123589623V",
+      "phone": "+94719718523",
+      "preferredLanguage": "English",
+      "providerImage": "https://api.dicebear.com/7.x/avataaars/svg?seed=Zack",
+      "role": "provider",
+      "skills": [
+        "House Wiring",
+        "Circuit Breaker Installation",
+        "Solar Panel Setup"
+      ],
+      "uid": "2DbMuAfIleY24HDkc1UD2RsssKu2",
+      "verified": true,
+      "workingHours": {
+        "Friday": {
+          "end": "06:00 PM",
+          "isOpen": false,
+          "start": "08:00 AM"
+        },
+        "Monday": {
+          "end": "06:00 PM",
+          "isOpen": true,
+          "start": "08:00 AM"
+        },
+        "Saturday": {
+          "end": "01:00 PM",
+          "isOpen": true,
+          "start": "08:00 AM"
+        },
+        "Sunday": {
+          "end": "",
+          "isOpen": false,
+          "start": ""
+        },
+        "Thursday": {
+          "end": "06:00 PM",
+          "isOpen": true,
+          "start": "08:00 AM"
+        },
+        "Tuesday": {
+          "end": "06:00 PM",
+          "isOpen": true,
+          "start": "08:00 AM"
+        },
+        "Wednesday": {
+          "end": "06:00 PM",
+          "isOpen": true,
+          "start": "08:00 AM"
+        }
+      }
+    },
+    "PTygPQf3yzZlnRaG6Q9PZCKwm0s2": {
+      "category": "Painters",
+      "city": "Dehiwala",
+      "createdAt": "2026-07-28T16:57:39.151Z",
+      "createdTimestamp": 1785257859151,
+      "description": "We are seeking a skilled and detail-oriented Painter to join our team. The ideal candidate will have experience in both residential and commercial painting projects and possess a solid understanding of various painting techniques, finishes, and materials.",
+      "district": "Colombo",
+      "documents": {
+        "businessRegistration": [
+          {
+            "fileId": "doc_920341",
+            "fileName": "BR",
+            "fileUrl": "https://firebasestorage.googleapis.com/v0/b/service-e333a.firebasestorage.app/o/providers%2FPTygPQf3yzZlnRaG6Q9PZCKwm0s2%2Fdocuments%2Fdoc_920341_BR?alt=media&token=290fb2aa-4f13-4bdc-96e3-5d60e2ee3752",
+            "format": "PNG",
+            "uploadedAt": "2026-07-28T17:15:20.341Z"
+          }
+        ],
+        "certification": [
+          {
+            "fileId": "doc_862483",
+            "fileName": "NVQ-4",
+            "fileUrl": "https://firebasestorage.googleapis.com/v0/b/service-e333a.firebasestorage.app/o/providers%2FPTygPQf3yzZlnRaG6Q9PZCKwm0s2%2Fdocuments%2Fdoc_862483_NVQ-4?alt=media&token=9fad0970-83c5-4ff3-97ae-e0f05587de03",
+            "format": "PNG",
+            "uploadedAt": "2026-07-28T17:14:22.483Z"
+          },
+          {
+            "fileId": "doc_901714",
+            "fileName": "NVQ-5",
+            "fileUrl": "https://firebasestorage.googleapis.com/v0/b/service-e333a.firebasestorage.app/o/providers%2FPTygPQf3yzZlnRaG6Q9PZCKwm0s2%2Fdocuments%2Fdoc_901714_NVQ-5?alt=media&token=be9b58f9-44df-4aaf-98b3-99f8f2d18c27",
+            "format": "PNG",
+            "uploadedAt": "2026-07-28T17:15:01.714Z"
+          }
+        ],
+        "experienceProof": [
+          {
+            "fileId": "doc_972743",
+            "fileName": "LPG",
+            "fileUrl": "https://firebasestorage.googleapis.com/v0/b/service-e333a.firebasestorage.app/o/providers%2FPTygPQf3yzZlnRaG6Q9PZCKwm0s2%2Fdocuments%2Fdoc_972743_LPG?alt=media&token=19fcc6a3-9864-403a-aee9-4b9d61bfa54f",
+            "format": "PNG",
+            "uploadedAt": "2026-07-28T17:16:12.743Z"
+          },
+          {
+            "fileId": "doc_991745",
+            "fileName": "GHK",
+            "fileUrl": "https://firebasestorage.googleapis.com/v0/b/service-e333a.firebasestorage.app/o/providers%2FPTygPQf3yzZlnRaG6Q9PZCKwm0s2%2Fdocuments%2Fdoc_991745_GHK?alt=media&token=13bcff47-3439-4719-9312-9f55c0713e0d",
+            "format": "PNG",
+            "uploadedAt": "2026-07-28T17:16:31.745Z"
+          }
+        ],
+        "identityDocument": [
+          {
+            "fileId": "doc_008962",
+            "fileName": "ID",
+            "fileUrl": "https://firebasestorage.googleapis.com/v0/b/service-e333a.firebasestorage.app/o/providers%2FPTygPQf3yzZlnRaG6Q9PZCKwm0s2%2Fdocuments%2Fdoc_008962_ID?alt=media&token=adc3c066-b490-47a4-9a88-41653ed7c6ab",
+            "format": "PNG",
+            "uploadedAt": "2026-07-28T17:16:48.962Z"
+          }
+        ],
+        "portfolioWork": [
+          {
+            "fileId": "doc_076183",
+            "fileName": "CV",
+            "fileUrl": "https://firebasestorage.googleapis.com/v0/b/service-e333a.firebasestorage.app/o/providers%2FPTygPQf3yzZlnRaG6Q9PZCKwm0s2%2Fdocuments%2Fdoc_076183_CV?alt=media&token=d7bdab60-c65f-4334-8174-e1d294ae7596",
+            "format": "PNG",
+            "uploadedAt": "2026-07-28T17:17:56.183Z"
+          }
+        ],
+        "status": false,
+        "verified": true
+      },
+      "email": "chamith@gmail.com",
+      "experienceYears": 5,
+      "extractedFeatures": {
+        "business_registered": 1,
+        "cert_issuer_reputation": 0.92,
+        "certification_count": 2,
+        "credibility": {
+          "credibilityLevel": "Professional",
+          "credibilityScore": 91.23,
+          "lastEvaluatedAt": "2026-07-27T23:57:16+05:30"
+        },
+        "experience_reference_count": 1,
+        "experience_years": 5,
+        "highest_cert_level": "NVQ Level 4",
+        "identity_verified": 1,
+        "portfolio_count": 1,
+        "portfolio_quality_score": 0.85,
+        "provider_id": "PTygPQf3yzZlnRaG6Q9PZCKwm0s2",
+        "service_category": "Painters"
+      },
+      "fullName": "Chamith Pramuditha Rathnayaka",
+      "id": "PTygPQf3yzZlnRaG6Q9PZCKwm0s2",
+      "location": {
+        "latitude": 6.8511,
+        "longitude": 79.8656
+      },
+      "nic": "971093597V",
+      "phone": "+94719718093",
+      "preferredLanguage": "English, Sinhala, Tamil",
+      "providerImage": "https://firebasestorage.googleapis.com/v0/b/service-e333a.firebasestorage.app/o/providers%2FPTygPQf3yzZlnRaG6Q9PZCKwm0s2%2Fprofile_0873.png?alt=media&token=cab083b4-73e9-4f0e-8ca8-27fb4b5a8a6f",
+      "role": "provider",
+      "skills": [
+        "House Wiring",
+        "Circuit Breaker Installation",
+        "Solar Panel Setup",
+        "Interior Painting",
+        "Exterior Weatherproofing"
+      ],
+      "uid": "PTygPQf3yzZlnRaG6Q9PZCKwm0s2",
+      "verified": true,
+      "workingHours": {
+        "Friday": {
+          "end": "06:00 PM",
+          "isOpen": true,
+          "start": "08:00 AM"
+        },
+        "Monday": {
+          "end": "06:00 PM",
+          "isOpen": false,
+          "start": "08:00 AM"
+        },
+        "Saturday": {
+          "end": "01:00 PM",
+          "isOpen": true,
+          "start": "08:00 AM"
+        },
+        "Sunday": {
+          "end": "",
+          "isOpen": false,
+          "start": ""
+        },
+        "Thursday": {
+          "end": "06:00 PM",
+          "isOpen": true,
+          "start": "08:00 AM"
+        },
+        "Tuesday": {
+          "end": "06:00 PM",
+          "isOpen": true,
+          "start": "08:00 AM"
+        },
+        "Wednesday": {
+          "end": "06:00 PM",
+          "isOpen": true,
+          "start": "08:00 AM"
+        }
+      }
+    },
+    "Rm7IWL0zdSYdGARJ2sfqiLo4nqB2": {
+      "category": "Electricians",
+      "city": "Mount Lavinia",
+      "createdAt": "2026-07-28T19:22:14.412Z",
+      "createdTimestamp": 1785266534412,
+      "description": "We are seeking a skilled Electrician to join our team. The ideal candidate will be responsible for installing, maintaining, and repairing electrical systems in residential, commercial, and industrial settings. Duties include diagnosing electrical issues, reading blueprints, and ensuring compliance with safety codes.",
+      "district": "Colombo",
+      "documents": {
+        "businessRegistration": [
+          {
+            "fileId": "doc_920341",
+            "fileName": "BR",
+            "fileUrl": "https://firebasestorage.googleapis.com/v0/b/service-e333a.firebasestorage.app/o/providers%2FPTygPQf3yzZlnRaG6Q9PZCKwm0s2%2Fdocuments%2Fdoc_920341_BR?alt=media&token=290fb2aa-4f13-4bdc-96e3-5d60e2ee3752",
+            "format": "PNG",
+            "uploadedAt": "2026-07-28T17:15:20.341Z"
+          }
+        ],
+        "certification": [
+          {
+            "fileId": "doc_862483",
+            "fileName": "NVQ-4",
+            "fileUrl": "https://firebasestorage.googleapis.com/v0/b/service-e333a.firebasestorage.app/o/providers%2FPTygPQf3yzZlnRaG6Q9PZCKwm0s2%2Fdocuments%2Fdoc_862483_NVQ-4?alt=media&token=9fad0970-83c5-4ff3-97ae-e0f05587de03",
+            "format": "PNG",
+            "uploadedAt": "2026-07-28T17:14:22.483Z"
+          },
+          {
+            "fileId": "doc_901714",
+            "fileName": "NVQ-5",
+            "fileUrl": "https://firebasestorage.googleapis.com/v0/b/service-e333a.firebasestorage.app/o/providers%2FPTygPQf3yzZlnRaG6Q9PZCKwm0s2%2Fdocuments%2Fdoc_901714_NVQ-5?alt=media&token=be9b58f9-44df-4aaf-98b3-99f8f2d18c27",
+            "format": "PNG",
+            "uploadedAt": "2026-07-28T17:15:01.714Z"
+          }
+        ],
+        "experienceProof": [
+          {
+            "fileId": "doc_972743",
+            "fileName": "LPG",
+            "fileUrl": "https://firebasestorage.googleapis.com/v0/b/service-e333a.firebasestorage.app/o/providers%2FPTygPQf3yzZlnRaG6Q9PZCKwm0s2%2Fdocuments%2Fdoc_972743_LPG?alt=media&token=19fcc6a3-9864-403a-aee9-4b9d61bfa54f",
+            "format": "PNG",
+            "uploadedAt": "2026-07-28T17:16:12.743Z"
+          },
+          {
+            "fileId": "doc_991745",
+            "fileName": "GHK",
+            "fileUrl": "https://firebasestorage.googleapis.com/v0/b/service-e333a.firebasestorage.app/o/providers%2FPTygPQf3yzZlnRaG6Q9PZCKwm0s2%2Fdocuments%2Fdoc_991745_GHK?alt=media&token=13bcff47-3439-4719-9312-9f55c0713e0d",
+            "format": "PNG",
+            "uploadedAt": "2026-07-28T17:16:31.745Z"
+          }
+        ],
+        "identityDocument": [
+          {
+            "fileId": "doc_008962",
+            "fileName": "ID",
+            "fileUrl": "https://firebasestorage.googleapis.com/v0/b/service-e333a.firebasestorage.app/o/providers%2FPTygPQf3yzZlnRaG6Q9PZCKwm0s2%2Fdocuments%2Fdoc_008962_ID?alt=media&token=adc3c066-b490-47a4-9a88-41653ed7c6ab",
+            "format": "PNG",
+            "uploadedAt": "2026-07-28T17:16:48.962Z"
+          }
+        ],
+        "portfolioWork": [
+          {
+            "fileId": "doc_076183",
+            "fileName": "CV",
+            "fileUrl": "https://firebasestorage.googleapis.com/v0/b/service-e333a.firebasestorage.app/o/providers%2FPTygPQf3yzZlnRaG6Q9PZCKwm0s2%2Fdocuments%2Fdoc_076183_CV?alt=media&token=d7bdab60-c65f-4334-8174-e1d294ae7596",
+            "format": "PNG",
+            "uploadedAt": "2026-07-28T17:17:56.183Z"
+          }
+        ],
+        "status": false,
+        "verified": true
+      },
+      "email": "kamal@gmail.com",
+      "experienceYears": 5,
+      "extractedFeatures": {
+        "business_registered": 1,
+        "cert_issuer_reputation": 0.92,
+        "certification_count": 2,
+        "credibility": {
+          "credibilityLevel": "Professional",
+          "credibilityScore": 91.23,
+          "lastEvaluatedAt": "2026-07-27T23:57:16+05:30"
+        },
+        "experience_reference_count": 1,
+        "experience_years": 5,
+        "highest_cert_level": "NVQ Level 4",
+        "identity_verified": 1,
+        "portfolio_count": 1,
+        "portfolio_quality_score": 0.85,
+        "provider_id": "Rm7IWL0zdSYdGARJ2sfqiLo4nqB2",
+        "service_category": "Electricians"
+      },
+      "fullName": "Kamal Sameera",
+      "id": "Rm7IWL0zdSYdGARJ2sfqiLo4nqB2",
+      "location": {
+        "latitude": 6.83,
+        "longitude": 79.8633
+      },
+      "nic": "97109356238V",
+      "phone": "+94719718093",
+      "preferredLanguage": "English, Sinhala, Tamil",
+      "providerImage": "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix",
+      "role": "provider",
+      "skills": [
+        "House Wiring",
+        "Circuit Breaker Installation",
+        "Solar Panel Setup"
+      ],
+      "uid": "Rm7IWL0zdSYdGARJ2sfqiLo4nqB2",
+      "verified": true,
+      "workingHours": {
+        "Friday": {
+          "end": "06:00 PM",
+          "isOpen": true,
+          "start": "08:00 AM"
+        },
+        "Monday": {
+          "end": "06:00 PM",
+          "isOpen": true,
+          "start": "08:00 AM"
+        },
+        "Saturday": {
+          "end": "01:00 PM",
+          "isOpen": true,
+          "start": "08:00 AM"
+        },
+        "Sunday": {
+          "end": "",
+          "isOpen": false,
+          "start": ""
+        },
+        "Thursday": {
+          "end": "06:00 PM",
+          "isOpen": true,
+          "start": "08:00 AM"
+        },
+        "Tuesday": {
+          "end": "06:00 PM",
+          "isOpen": true,
+          "start": "08:00 AM"
+        },
+        "Wednesday": {
+          "end": "06:00 PM",
+          "isOpen": true,
+          "start": "08:00 AM"
+        }
+      }
+    },
+    "YKXgKLk6WSQSJCbgq2ctGIDPG1e2": {
+      "category": "Electricians",
+      "city": "Dehiwala",
+      "createdAt": "2026-07-28T19:20:14.907Z",
+      "createdTimestamp": 1785266414907,
+      "description": "We are seeking a skilled Electrician to join our team. The ideal candidate will be responsible for installing, maintaining, and repairing electrical systems in residential, commercial, and industrial settings. Duties include diagnosing electrical issues, reading blueprints, and ensuring compliance with safety codes.",
+      "district": "Colombo",
+      "documents": {
+        "businessRegistration": [
+          {
+            "fileId": "doc_920341",
+            "fileName": "BR",
+            "fileUrl": "https://firebasestorage.googleapis.com/v0/b/service-e333a.firebasestorage.app/o/providers%2FPTygPQf3yzZlnRaG6Q9PZCKwm0s2%2Fdocuments%2Fdoc_920341_BR?alt=media&token=290fb2aa-4f13-4bdc-96e3-5d60e2ee3752",
+            "format": "PNG",
+            "uploadedAt": "2026-07-28T17:15:20.341Z"
+          }
+        ],
+        "certification": [
+          {
+            "fileId": "doc_862483",
+            "fileName": "NVQ-4",
+            "fileUrl": "https://firebasestorage.googleapis.com/v0/b/service-e333a.firebasestorage.app/o/providers%2FPTygPQf3yzZlnRaG6Q9PZCKwm0s2%2Fdocuments%2Fdoc_862483_NVQ-4?alt=media&token=9fad0970-83c5-4ff3-97ae-e0f05587de03",
+            "format": "PNG",
+            "uploadedAt": "2026-07-28T17:14:22.483Z"
+          },
+          {
+            "fileId": "doc_901714",
+            "fileName": "NVQ-5",
+            "fileUrl": "https://firebasestorage.googleapis.com/v0/b/service-e333a.firebasestorage.app/o/providers%2FPTygPQf3yzZlnRaG6Q9PZCKwm0s2%2Fdocuments%2Fdoc_901714_NVQ-5?alt=media&token=be9b58f9-44df-4aaf-98b3-99f8f2d18c27",
+            "format": "PNG",
+            "uploadedAt": "2026-07-28T17:15:01.714Z"
+          }
+        ],
+        "experienceProof": [
+          {
+            "fileId": "doc_972743",
+            "fileName": "LPG",
+            "fileUrl": "https://firebasestorage.googleapis.com/v0/b/service-e333a.firebasestorage.app/o/providers%2FPTygPQf3yzZlnRaG6Q9PZCKwm0s2%2Fdocuments%2Fdoc_972743_LPG?alt=media&token=19fcc6a3-9864-403a-aee9-4b9d61bfa54f",
+            "format": "PNG",
+            "uploadedAt": "2026-07-28T17:16:12.743Z"
+          },
+          {
+            "fileId": "doc_991745",
+            "fileName": "GHK",
+            "fileUrl": "https://firebasestorage.googleapis.com/v0/b/service-e333a.firebasestorage.app/o/providers%2FPTygPQf3yzZlnRaG6Q9PZCKwm0s2%2Fdocuments%2Fdoc_991745_GHK?alt=media&token=13bcff47-3439-4719-9312-9f55c0713e0d",
+            "format": "PNG",
+            "uploadedAt": "2026-07-28T17:16:31.745Z"
+          }
+        ],
+        "identityDocument": [
+          {
+            "fileId": "doc_008962",
+            "fileName": "ID",
+            "fileUrl": "https://firebasestorage.googleapis.com/v0/b/service-e333a.firebasestorage.app/o/providers%2FPTygPQf3yzZlnRaG6Q9PZCKwm0s2%2Fdocuments%2Fdoc_008962_ID?alt=media&token=adc3c066-b490-47a4-9a88-41653ed7c6ab",
+            "format": "PNG",
+            "uploadedAt": "2026-07-28T17:16:48.962Z"
+          }
+        ],
+        "portfolioWork": [
+          {
+            "fileId": "doc_076183",
+            "fileName": "CV",
+            "fileUrl": "https://firebasestorage.googleapis.com/v0/b/service-e333a.firebasestorage.app/o/providers%2FPTygPQf3yzZlnRaG6Q9PZCKwm0s2%2Fdocuments%2Fdoc_076183_CV?alt=media&token=d7bdab60-c65f-4334-8174-e1d294ae7596",
+            "format": "PNG",
+            "uploadedAt": "2026-07-28T17:17:56.183Z"
+          }
+        ],
+        "status": false,
+        "verified": true
+      },
+      "email": "saman@gmail.com",
+      "experienceYears": 10,
+      "extractedFeatures": {
+        "business_registered": 1,
+        "cert_issuer_reputation": 0.92,
+        "certification_count": 2,
+        "credibility": {
+          "credibilityLevel": "Professional",
+          "credibilityScore": 91.23,
+          "lastEvaluatedAt": "2026-07-27T23:57:16+05:30"
+        },
+        "experience_reference_count": 1,
+        "experience_years": 5,
+        "highest_cert_level": "NVQ Level 4",
+        "identity_verified": 1,
+        "portfolio_count": 1,
+        "portfolio_quality_score": 0.85,
+        "provider_id": "YKXgKLk6WSQSJCbgq2ctGIDPG1e2",
+        "service_category": "Electricians"
+      },
+      "fullName": "Saman Sameera",
+      "id": "YKXgKLk6WSQSJCbgq2ctGIDPG1e2",
+      "location": {
+        "latitude": 6.8511,
+        "longitude": 79.8656
+      },
+      "nic": "971523569V",
+      "phone": "+94719718093",
+      "preferredLanguage": "English, Sinhala",
+      "providerImage": "https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka",
+      "role": "provider",
+      "skills": [
+        "House Wiring",
+        "Circuit Breaker Installation",
+        "Solar Panel Setup",
+        "Lighting & Fixtures"
+      ],
+      "uid": "YKXgKLk6WSQSJCbgq2ctGIDPG1e2",
+      "verified": true,
+      "workingHours": {
+        "Friday": {
+          "end": "06:00 PM",
+          "isOpen": true,
+          "start": "08:00 AM"
+        },
+        "Monday": {
+          "end": "06:00 PM",
+          "isOpen": true,
+          "start": "08:00 AM"
+        },
+        "Saturday": {
+          "end": "01:00 PM",
+          "isOpen": true,
+          "start": "08:00 AM"
+        },
+        "Sunday": {
+          "end": "",
+          "isOpen": false,
+          "start": ""
+        },
+        "Thursday": {
+          "end": "06:00 PM",
+          "isOpen": true,
+          "start": "08:00 AM"
+        },
+        "Tuesday": {
+          "end": "06:00 PM",
+          "isOpen": true,
+          "start": "08:00 AM"
+        },
+        "Wednesday": {
+          "end": "06:00 PM",
+          "isOpen": true,
+          "start": "08:00 AM"
+        }
+      }
+    }
+  }
+}

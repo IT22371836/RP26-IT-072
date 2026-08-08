@@ -1,0 +1,312 @@
+{
+  "dataset_version": "component4-data-v1",
+  "phase": 1,
+  "generated_at_utc": "2026-07-30T05:30:26.761018+00:00",
+  "status": "passed",
+  "raw": {
+    "rows": {
+      "reviews": 25000,
+      "labels": 25000,
+      "credibility": 25000,
+      "providers": 4998
+    },
+    "duplicate_normalized_text_rows": 3239,
+    "duplicate_normalized_text_groups": 343,
+    "duplicate_booking_id_groups": 319,
+    "duplicate_booking_id_extra_rows": 323,
+    "zero_review_providers": 22,
+    "source_split_distribution": {
+      "train": {
+        "count": 17466,
+        "percent": 69.864
+      },
+      "test": {
+        "count": 3773,
+        "percent": 15.092
+      },
+      "validation": {
+        "count": 3761,
+        "percent": 15.044
+      }
+    },
+    "aspect_label_distribution": {
+      "quality_label": {
+        "Positive": {
+          "count": 11972,
+          "percent": 47.888
+        },
+        "Neutral": {
+          "count": 6749,
+          "percent": 26.996
+        },
+        "Negative": {
+          "count": 6279,
+          "percent": 25.116
+        }
+      },
+      "punctuality_label": {
+        "Positive": {
+          "count": 12042,
+          "percent": 48.168
+        },
+        "Neutral": {
+          "count": 6774,
+          "percent": 27.096
+        },
+        "Negative": {
+          "count": 6184,
+          "percent": 24.736
+        }
+      },
+      "communication_label": {
+        "Positive": {
+          "count": 12012,
+          "percent": 48.048
+        },
+        "Neutral": {
+          "count": 6862,
+          "percent": 27.448
+        },
+        "Negative": {
+          "count": 6126,
+          "percent": 24.504
+        }
+      },
+      "professionalism_label": {
+        "Positive": {
+          "count": 12024,
+          "percent": 48.096
+        },
+        "Neutral": {
+          "count": 6767,
+          "percent": 27.068
+        },
+        "Negative": {
+          "count": 6209,
+          "percent": 24.836
+        }
+      }
+    }
+  },
+  "processed": {
+    "rows": {
+      "reviews": 25000,
+      "labels": 25000,
+      "credibility": 25000,
+      "providers": 4998
+    },
+    "unique_booking_ids": 25000,
+    "unique_review_text_groups": 22104,
+    "cross_split_text_groups": 0,
+    "split_distribution": {
+      "train": {
+        "count": 17347,
+        "percent": 69.388
+      },
+      "test": {
+        "count": 3996,
+        "percent": 15.984
+      },
+      "validation": {
+        "count": 3657,
+        "percent": 14.628
+      }
+    },
+    "aspect_label_distribution_by_split": {
+      "test": {
+        "quality_label": {
+          "Positive": {
+            "count": 1918,
+            "percent": 47.998
+          },
+          "Neutral": {
+            "count": 1066,
+            "percent": 26.6767
+          },
+          "Negative": {
+            "count": 1012,
+            "percent": 25.3253
+          }
+        },
+        "punctuality_label": {
+          "Positive": {
+            "count": 2012,
+            "percent": 50.3504
+          },
+          "Neutral": {
+            "count": 1032,
+            "percent": 25.8258
+          },
+          "Negative": {
+            "count": 952,
+            "percent": 23.8238
+          }
+        },
+        "communication_label": {
+          "Positive": {
+            "count": 1992,
+            "percent": 49.8498
+          },
+          "Neutral": {
+            "count": 1043,
+            "percent": 26.1011
+          },
+          "Negative": {
+            "count": 961,
+            "percent": 24.049
+          }
+        },
+        "professionalism_label": {
+          "Positive": {
+            "count": 1915,
+            "percent": 47.9229
+          },
+          "Neutral": {
+            "count": 1073,
+            "percent": 26.8519
+          },
+          "Negative": {
+            "count": 1008,
+            "percent": 25.2252
+          }
+        }
+      },
+      "train": {
+        "quality_label": {
+          "Positive": {
+            "count": 8323,
+            "percent": 47.9795
+          },
+          "Neutral": {
+            "count": 4731,
+            "percent": 27.2727
+          },
+          "Negative": {
+            "count": 4293,
+            "percent": 24.7478
+          }
+        },
+        "punctuality_label": {
+          "Positive": {
+            "count": 8275,
+            "percent": 47.7028
+          },
+          "Neutral": {
+            "count": 4719,
+            "percent": 27.2036
+          },
+          "Negative": {
+            "count": 4353,
+            "percent": 25.0937
+          }
+        },
+        "communication_label": {
+          "Positive": {
+            "count": 8256,
+            "percent": 47.5932
+          },
+          "Neutral": {
+            "count": 4804,
+            "percent": 27.6935
+          },
+          "Negative": {
+            "count": 4287,
+            "percent": 24.7132
+          }
+        },
+        "professionalism_label": {
+          "Positive": {
+            "count": 8353,
+            "percent": 48.1524
+          },
+          "Neutral": {
+            "count": 4713,
+            "percent": 27.169
+          },
+          "Negative": {
+            "count": 4281,
+            "percent": 24.6786
+          }
+        }
+      },
+      "validation": {
+        "quality_label": {
+          "Positive": {
+            "count": 1731,
+            "percent": 47.3339
+          },
+          "Negative": {
+            "count": 974,
+            "percent": 26.6339
+          },
+          "Neutral": {
+            "count": 952,
+            "percent": 26.0323
+          }
+        },
+        "punctuality_label": {
+          "Positive": {
+            "count": 1755,
+            "percent": 47.9902
+          },
+          "Neutral": {
+            "count": 1023,
+            "percent": 27.9737
+          },
+          "Negative": {
+            "count": 879,
+            "percent": 24.0361
+          }
+        },
+        "communication_label": {
+          "Positive": {
+            "count": 1764,
+            "percent": 48.2363
+          },
+          "Neutral": {
+            "count": 1015,
+            "percent": 27.755
+          },
+          "Negative": {
+            "count": 878,
+            "percent": 24.0088
+          }
+        },
+        "professionalism_label": {
+          "Positive": {
+            "count": 1756,
+            "percent": 48.0175
+          },
+          "Neutral": {
+            "count": 981,
+            "percent": 26.8253
+          },
+          "Negative": {
+            "count": 920,
+            "percent": 25.1572
+          }
+        }
+      }
+    },
+    "max_aspect_label_delta_percentage_points": 2.1824,
+    "category_values": [
+      "A/C",
+      "CCTV",
+      "Carpenters",
+      "Ceiling",
+      "Cleaners",
+      "Cushion Works",
+      "Electricians",
+      "Masons",
+      "Painters",
+      "Plumbers",
+      "Technicians",
+      "Tile",
+      "Vehicle Repairs",
+      "Wells"
+    ],
+    "category_rows_normalized": 8969
+  },
+  "phase2_not_started": true,
+  "phase2_gate": "Provider-ID mapping requires explicit approval after Phase 1."
+}

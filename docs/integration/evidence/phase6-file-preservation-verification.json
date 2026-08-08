@@ -1,0 +1,49 @@
+{
+  "anonymous_access_audit": {
+    "anonymous_successes": 24,
+    "checked": 24,
+    "performed": true,
+    "response_body_bytes_read": 0,
+    "status_counts": {
+      "200": 24
+    },
+    "urls_or_tokens_logged": 0
+  },
+  "controls": {
+    "customer_nic_render_absent": true,
+    "customer_uses_sanitized_provider_read": true,
+    "firebase_public_sanitizer_removes_private_fields": true,
+    "private_storage_sdk_access_denied": true,
+    "public_provider_excludes_documents": true,
+    "public_provider_excludes_nic": true,
+    "required_private_routes_expected": 3,
+    "required_private_routes_present": 3
+  },
+  "copy_verification": {
+    "copies_declared": 0,
+    "copies_verified": 0,
+    "failures": [],
+    "status": "not_started_by_design"
+  },
+  "generated_at": "2026-08-05T11:13:00.795433+00:00",
+  "inventory": {
+    "preserved_value_counts": {
+      "customerImage": 1,
+      "fileUrl": 28,
+      "providerImage": 4
+    },
+    "private_document_urls": 24,
+    "tokenized_private_document_urls": 24,
+    "urls_or_tokens_in_report": 0,
+    "values_modified": 0
+  },
+  "mode": "read-only-file-preservation-verification",
+  "remaining_gate": "Copy private legacy objects to managed private paths, verify SHA-256, retain legacy_url/current_url, then revoke legacy download tokens after owner approval.",
+  "summary": {
+    "external_privacy_remediation_required": true,
+    "implementation_passed": true,
+    "phase_complete": false,
+    "source_database_writes": 0,
+    "source_storage_writes": 0
+  }
+}

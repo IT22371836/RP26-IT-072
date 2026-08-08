@@ -2,6 +2,8 @@ from typing import Any
 
 from pymongo import ASCENDING
 
+from app.repositories.concurrency import ProfileConcurrencyError
+
 
 class CustomerProfileRepository:
     def __init__(self, database: Any) -> None:
@@ -19,7 +21,18 @@ class CustomerProfileRepository:
         return await self.collection.find_one({"user_id": user_id})
 
     async def update_by_user_id(
-        self, user_id: str, updates: dict[str, Any]
+        self,
+        user_id: str,
+        updates: dict[str, Any],
+        *,
+        expected_updated_at: Any | None = None,
     ) -> dict[str, Any] | None:
-        await self.collection.update_one({"user_id": user_id}, {"$set": updates})
+        query = {"user_id": user_id}
+        if expected_updated_at is not None:
+            query["updated_at"] = expected_updated_at
+        result = await self.collection.update_one(query, {"$set": updates})
+        if expected_updated_at is not None and result.matched_count == 0:
+            if await self.find_by_user_id(user_id) is not None:
+                raise ProfileConcurrencyError
+            return None
         return await self.find_by_user_id(user_id)

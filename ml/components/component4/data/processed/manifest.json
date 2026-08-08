@@ -1,0 +1,110 @@
+{
+  "dataset_version": "component4-data-v1",
+  "phase": 1,
+  "generated_at_utc": "2026-07-30T05:30:26.761018+00:00",
+  "input_manifest_sha256": "99f28e3df0a7a678cb9f1fca0859b8ba441c1aa1d734c86b854098c70273eb61",
+  "split": {
+    "version": "normalized-text-sha256-v1",
+    "seed": "component4-phase1-v1",
+    "target_ratios": {
+      "train": 0.7,
+      "validation": 0.15,
+      "test": 0.15
+    },
+    "group_key": "SHA-256 of NFKC-normalized, whitespace-collapsed, case-folded review text"
+  },
+  "transformations": [
+    "preserve source booking ID and generate unique booking ID from review ID",
+    "normalize service categories to the active Component 1 vocabulary",
+    "preserve original split and deterministically split by normalized-text group",
+    "preserve original review text, labels, and credibility values"
+  ],
+  "files": {
+    "reviews": {
+      "path": "data/processed/customer_reviews_clean.csv",
+      "bytes": 6057508,
+      "sha256": "c4f83d0ff055413081d77c8b2856642aaa25a3b30521f4f626db05379d75bacf",
+      "rows": 25000,
+      "columns": [
+        "review_id",
+        "booking_id",
+        "source_booking_id",
+        "provider_id",
+        "user_id",
+        "service_type",
+        "source_service_type",
+        "district",
+        "rating",
+        "review_text",
+        "review_text_group_id",
+        "review_date",
+        "verified_booking",
+        "source_dataset_split",
+        "dataset_split"
+      ]
+    },
+    "labels": {
+      "path": "data/processed/aspect_sentiment_labels_clean.csv",
+      "bytes": 1259521,
+      "sha256": "a64ec84dea7e0583c7e136459456d290d07a219bc42691e077a978899a9de1fc",
+      "rows": 25000,
+      "columns": [
+        "review_id",
+        "quality_label",
+        "punctuality_label",
+        "communication_label",
+        "professionalism_label",
+        "overall_sentiment_label"
+      ]
+    },
+    "credibility": {
+      "path": "data/processed/review_credibility_clean.csv",
+      "bytes": 976835,
+      "sha256": "3ea82f7d1e2f13523e1f4470a6b47053006fc2305160744472eefb53a99bcc3e",
+      "rows": 25000,
+      "columns": [
+        "review_id",
+        "word_count",
+        "exclamation_count",
+        "caps_word_count",
+        "repeated_char_count",
+        "unique_word_ratio",
+        "url_count",
+        "duplicate_pattern",
+        "extreme_rating",
+        "verified_booking",
+        "reviewer_review_count_24h",
+        "is_fake_review",
+        "credibility_score"
+      ]
+    },
+    "providers": {
+      "path": "data/processed/provider_review_summary_clean.csv",
+      "bytes": 472645,
+      "sha256": "7336836bfcdd066aa3f615e7337d3a82e73c7bcdfdc8063c29418d128b76224c",
+      "rows": 4998,
+      "columns": [
+        "provider_id",
+        "service_type",
+        "source_service_type",
+        "district",
+        "total_reviews",
+        "average_rating",
+        "quality_score",
+        "punctuality_score",
+        "communication_score",
+        "professionalism_score",
+        "fake_review_ratio",
+        "average_credibility_score",
+        "trust_sentiment_score",
+        "provider_tier"
+      ]
+    }
+  },
+  "audit": {
+    "path": "reports/phase1_audit.json",
+    "bytes": 7313,
+    "sha256": "84f2ef239d9d0a8be6982493b74a575f82e4de83ddb9133e2bbbeef7bdea43e4"
+  },
+  "phase2_not_started": true
+}

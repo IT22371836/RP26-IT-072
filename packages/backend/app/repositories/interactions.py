@@ -50,6 +50,28 @@ class InteractionRepository:
             .to_list(length=limit)
         )
 
+    async def list_reviews_for_provider(
+        self,
+        provider_id: str,
+        limit: int = 50,
+    ) -> list[dict[str, Any]]:
+        return (
+            await self.collection.find(
+                {
+                    "provider_id": provider_id,
+                    "interaction_type": InteractionType.RATED.value,
+                },
+                {
+                    "rating": 1,
+                    "review_text": 1,
+                    "timestamp": 1,
+                },
+            )
+            .sort("timestamp", DESCENDING)
+            .limit(limit)
+            .to_list(length=limit)
+        )
+
     async def find_by_id(self, interaction_id: str) -> dict[str, Any] | None:
         return await self.collection.find_one({"interaction_id": interaction_id})
 

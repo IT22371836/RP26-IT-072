@@ -18,6 +18,7 @@ import { ProviderDocumentsView } from './ProviderDocumentsView';
 import { DocumentUploadModal } from './DocumentUploadModal';
 import { WeatherWidget } from './WeatherWidget';
 import { ProviderCategoryDemandWidget } from './ProviderCategoryDemandWidget';
+import { ProviderBookings } from './ProviderBookings';
 
 interface ProviderDashboardProps {
   currentUser: Provider;
@@ -215,6 +216,8 @@ export const ProviderDashboard: React.FC<ProviderDashboardProps> = ({
 
   return (
     <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+
+      <ProviderBookings />
 
       {/* Provider Session Banner */}
       <div className="glass-panel" style={{ padding: '30px', marginBottom: '32px', borderLeft: '6px solid var(--accent-provider)' }}>

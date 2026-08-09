@@ -6,7 +6,7 @@ import type {
   ProviderProfileUpdateDto,
   ProviderWorkingHoursDto
 } from '../config/api';
-import { requireBackendToken } from '../config/backendSession';
+import { requireFirebaseApiToken } from '../config/firebaseApiToken';
 import {
   deleteProviderDocument as deleteFirebaseProviderDocument,
   requestDocumentVerification as requestFirebaseDocumentVerification,
@@ -175,7 +175,7 @@ async function updateFastApiProvider(
     throw new Error('Upload the provider image to configured file storage before FastAPI profile update.');
   }
   const profile = await backendApi.updateProviderProfile(
-    requireBackendToken(),
+    await requireFirebaseApiToken(),
     toBackendUpdate(updates)
   );
   return mergeProviderProfile({ ...current, ...updates }, profile);
@@ -185,7 +185,7 @@ export async function syncProviderProfileFromConfiguredSource(
   current: Provider
 ): Promise<Provider> {
   if (runtimeConfig.dataSource === 'firebase') return current;
-  const profile = await backendApi.getProviderProfile(requireBackendToken());
+  const profile = await backendApi.getProviderProfile(await requireFirebaseApiToken());
   return mergeProviderProfile(current, profile);
 }
 
@@ -249,7 +249,7 @@ export async function uploadProviderDocumentForConfiguredSource(
 
   if (runtimeConfig.fileStorageSource === 'backend') {
     const profile = await backendApi.uploadProviderDocument(
-      requireBackendToken(),
+      await requireFirebaseApiToken(),
       DOCUMENT_CATEGORY_MAPPINGS[category],
       { file_name: fileName, data_url: fileDataUrl }
     );
@@ -263,7 +263,7 @@ export async function uploadProviderDocumentForConfiguredSource(
   if (runtimeConfig.dataSource === 'firebase') return withFirebaseDocument;
 
   const profile = await backendApi.addProviderDocument(
-    requireBackendToken(),
+    await requireFirebaseApiToken(),
     DOCUMENT_CATEGORY_MAPPINGS[category],
     {
       file_id: item.fileId,
@@ -292,7 +292,7 @@ export async function openProviderDocumentForConfiguredSource(
     window.open(item.legacyUrl || item.currentUrl || item.fileUrl, '_blank', 'noopener,noreferrer');
     return;
   }
-  const token = requireBackendToken();
+  const token = await requireFirebaseApiToken();
   const blob = asAdministrator
     ? await backendApi.downloadAdminProviderDocument(
         token,
@@ -321,7 +321,7 @@ export async function deleteProviderDocumentForConfiguredSource(
   if (runtimeConfig.dataSource === 'firebase') return withoutDocument;
 
   const profile = await backendApi.deleteProviderDocument(
-    requireBackendToken(),
+    await requireFirebaseApiToken(),
     DOCUMENT_CATEGORY_MAPPINGS[category],
     fileId
   );
@@ -341,7 +341,7 @@ export async function requestProviderVerificationForConfiguredSource(
   };
   if (runtimeConfig.dataSource === 'firebase') return withRequestStatus;
   const profile = await backendApi.requestProviderDocumentVerification(
-    requireBackendToken()
+    await requireFirebaseApiToken()
   );
   return mergeProviderProfile(withRequestStatus, profile);
 }

@@ -12,6 +12,7 @@ import { MasterProvidersMap } from './MasterProvidersMap';
 import { WorkingHoursView } from './WorkingHoursView';
 import { WeatherWidget } from './WeatherWidget';
 import { SERVICE_CATEGORIES } from '../data/categories';
+import { PipelineWorkspace } from './PipelineWorkspace';
 
 interface CustomerDashboardProps {
   currentUser: Customer;
@@ -155,6 +156,8 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
 
   return (
     <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+
+      <PipelineWorkspace currentUser={currentUser} />
 
       {/* Customer Session Header */}
       <div className="glass-panel" style={{ padding: '28px', marginBottom: '32px', borderLeft: '6px solid var(--accent-customer)' }}>

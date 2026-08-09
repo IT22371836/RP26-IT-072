@@ -1,5 +1,4 @@
 export type DataSource = 'firebase' | 'hybrid' | 'fastapi';
-export type AuthSource = 'firebase' | 'firebase-link' | 'fastapi';
 export type FileStorageSource = 'firebase' | 'backend';
 
 function readEnum<T extends string>(
@@ -21,12 +20,7 @@ export const runtimeConfig = Object.freeze({
     ['firebase', 'hybrid', 'fastapi'],
     'firebase'
   ),
-  authSource: readEnum<AuthSource>(
-    'VITE_AUTH_SOURCE',
-    import.meta.env.VITE_AUTH_SOURCE,
-    ['firebase', 'firebase-link', 'fastapi'],
-    'firebase'
-  ),
+  authSource: 'firebase' as const,
   fileStorageSource: readEnum<FileStorageSource>(
     'VITE_FILE_STORAGE_SOURCE',
     import.meta.env.VITE_FILE_STORAGE_SOURCE,

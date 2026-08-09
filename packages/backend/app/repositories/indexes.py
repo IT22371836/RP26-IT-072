@@ -5,6 +5,7 @@ from app.repositories.component4 import Component4Repository
 from app.repositories.customers import CustomerProfileRepository
 from app.repositories.interactions import InteractionRepository
 from app.repositories.legacy_firebase import LegacyFirebaseRepository
+from app.repositories.pipeline import PipelineRepository
 from app.repositories.providers import ProviderRepository
 from app.repositories.service_requests import ServiceRequestRepository
 from app.repositories.users import UserRepository
@@ -19,3 +20,4 @@ async def ensure_application_indexes(database: Any) -> None:
     await Component1Repository(database).ensure_indexes()
     await Component4Repository(database).ensure_indexes()
     await LegacyFirebaseRepository(database).ensure_indexes()
+    await PipelineRepository(database).ensure_indexes()

@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from app.api.dependencies import (
     get_interaction_repository,
     get_provider_repository,
-    require_role,
+    require_firebase_role,
 )
 from app.repositories.interactions import InteractionRepository
 from app.repositories.providers import ProviderRepository
@@ -19,8 +19,8 @@ from app.schemas.interaction import (
 )
 
 router = APIRouter(prefix="/interactions", tags=["interactions"])
-customer_user = require_role(UserRole.CUSTOMER)
-provider_user = require_role(UserRole.PROVIDER)
+customer_user = require_firebase_role(UserRole.CUSTOMER)
+provider_user = require_firebase_role(UserRole.PROVIDER)
 
 
 def next_interaction(

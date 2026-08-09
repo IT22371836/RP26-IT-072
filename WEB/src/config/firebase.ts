@@ -19,6 +19,7 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
+  deleteUser,
   updateProfile,
   onAuthStateChanged
 } from "firebase/auth";
@@ -37,14 +38,9 @@ const defaultFirebaseConfig = {
   measurementId: "G-9F0L8RHFS1"
 };
 
-// Allow runtime overrides via localStorage or environment variables
+// Firebase configuration is build-controlled. Authentication must never switch
+// projects from a browser-local override because FastAPI verifies service-e333a tokens.
 export const getStoredFirebaseConfig = () => {
-  try {
-    const saved = localStorage.getItem("custom_firebase_config");
-    if (saved) return JSON.parse(saved);
-  } catch (e) {
-    console.warn("Could not parse saved Firebase config", e);
-  }
   return {
     apiKey: import.meta.env.VITE_FIREBASE_API_KEY || defaultFirebaseConfig.apiKey,
     authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || defaultFirebaseConfig.authDomain,
@@ -280,16 +276,9 @@ export async function registerCustomer(
   password?: string
 ): Promise<Customer> {
   const now = new Date();
-  let authUid = "";
-
-  if (password) {
-    try {
-      const userCred = await createUserWithEmailAndPassword(auth, data.email, password);
-      authUid = userCred.user.uid;
-    } catch (authErr: any) {
-      console.warn("Firebase Auth sign up info:", authErr.message);
-    }
-  }
+  if (!password) throw new Error('A Firebase password is required.');
+  const userCred = await createUserWithEmailAndPassword(auth, data.email, password);
+  const authUid = userCred.user.uid;
 
   const customersRef = ref(db, "customers");
   const newRef = push(customersRef);
@@ -326,9 +315,11 @@ export async function registerCustomer(
     saveToLocalBackup(LOCAL_STORAGE_CUSTOMERS_KEY, key, newCustomer);
     return newCustomer;
   } catch (error) {
-    console.warn("Firebase RTDB operation failed, using local storage fallback:", error);
-    saveToLocalBackup(LOCAL_STORAGE_CUSTOMERS_KEY, key, newCustomer);
-    return newCustomer;
+    // Do not leave a Firebase Auth identity without its required RTDB profile.
+    try { await deleteUser(userCred.user); } catch (rollbackError) {
+      console.warn('Could not roll back incomplete Firebase customer:', rollbackError);
+    }
+    throw error;
   }
 }
 
@@ -338,16 +329,9 @@ export async function registerProvider(
   password?: string
 ): Promise<Provider> {
   const now = new Date();
-  let authUid = "";
-
-  if (password) {
-    try {
-      const userCred = await createUserWithEmailAndPassword(auth, data.email, password);
-      authUid = userCred.user.uid;
-    } catch (authErr: any) {
-      console.warn("Firebase Auth sign up info:", authErr.message);
-    }
-  }
+  if (!password) throw new Error('A Firebase password is required.');
+  const userCred = await createUserWithEmailAndPassword(auth, data.email, password);
+  const authUid = userCred.user.uid;
 
   const providersRef = ref(db, "providers");
   const newRef = push(providersRef);
@@ -389,9 +373,10 @@ export async function registerProvider(
     saveToLocalBackup(LOCAL_STORAGE_PROVIDERS_KEY, key, newProvider);
     return newProvider;
   } catch (error) {
-    console.warn("Firebase RTDB operation failed, using local storage fallback:", error);
-    saveToLocalBackup(LOCAL_STORAGE_PROVIDERS_KEY, key, newProvider);
-    return newProvider;
+    try { await deleteUser(userCred.user); } catch (rollbackError) {
+      console.warn('Could not roll back incomplete Firebase provider:', rollbackError);
+    }
+    throw error;
   }
 }
 
@@ -701,6 +686,29 @@ export async function fetchUserProfileByEmail(email: string): Promise<any | null
   return null;
 }
 
+async function fetchAuthenticatedProfile(
+  uid: string,
+  email?: string | null
+): Promise<any | null> {
+  const customerSnapshot = await get(child(ref(db), `customers/${uid}`));
+  if (customerSnapshot.exists()) {
+    return { id: uid, role: 'customer', ...customerSnapshot.val() };
+  }
+
+  const providerSnapshot = await get(child(ref(db), `providers/${uid}`));
+  if (providerSnapshot.exists()) {
+    return { id: uid, uid, role: 'provider', ...providerSnapshot.val() };
+  }
+
+  const adminSnapshot = await get(child(ref(db), `admins/${uid}`));
+  if (adminSnapshot.exists()) {
+    return { id: uid, uid, role: 'admin', ...adminSnapshot.val() };
+  }
+
+  // Compatibility for records imported before canonical UID keys were adopted.
+  return email ? fetchUserProfileByEmail(email) : null;
+}
+
 // Firebase login is only for customer/provider transition identities.
 export async function loginUser(
   emailOrPhone: string,
@@ -717,21 +725,11 @@ export async function loginUser(
     try {
       const userCred = await signInWithEmailAndPassword(auth, cleanQuery, password);
       const uid = userCred.user.uid;
-
-      const custSnapshot = await get(child(ref(db), `customers/${uid}`));
-      if (custSnapshot.exists()) {
-        const custVal = custSnapshot.val();
-        delete custVal.uid;
-        return { id: uid, role: "customer", ...custVal };
-      }
-
-      const provSnapshot = await get(child(ref(db), `providers/${uid}`));
-      if (provSnapshot.exists()) {
-        return { id: uid, uid, role: "provider", ...provSnapshot.val() };
-      }
-
-      const profile = await fetchUserProfileByEmail(cleanQuery);
+      const profile = await fetchAuthenticatedProfile(uid, userCred.user.email);
       if (profile) return profile;
+
+      await signOut(auth);
+      throw new Error('This Firebase account has no application profile.');
 
     } catch (authErr: any) {
       console.warn("Firebase Auth login attempt error:", authErr.code, authErr.message);
@@ -749,42 +747,58 @@ export async function loginUser(
 
 export async function getCurrentFirebaseIdToken(): Promise<string> {
   if (!auth.currentUser) {
-    throw new Error("A current Firebase session is required for account linking.");
+    throw new Error("A current Firebase session is required. Please sign in again.");
   }
-  return auth.currentUser.getIdToken(true);
+  const token = await auth.currentUser.getIdToken(true);
+  try {
+    const encodedPayload = token.split('.')[1];
+    const rawPayload = encodedPayload.replace(/-/g, '+').replace(/_/g, '/');
+    const normalizedPayload = rawPayload.padEnd(Math.ceil(rawPayload.length / 4) * 4, '=');
+    const payload = JSON.parse(atob(normalizedPayload)) as { aud?: string; iss?: string };
+    const expectedProject = firebaseConfig.projectId;
+    if (
+      payload.aud !== expectedProject
+      || payload.iss !== `https://securetoken.google.com/${expectedProject}`
+    ) {
+      localStorage.removeItem(ACTIVE_SESSION_KEY);
+      await signOut(auth);
+      throw new Error(
+        `Your Firebase session belongs to a different project. Sign in again to ${expectedProject}.`
+      );
+    }
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('different project')) throw error;
+    throw new Error('Firebase returned an invalid session token. Please sign out and sign in again.');
+  }
+  return token;
 }
 
 export async function logoutFirebaseUser() {
+  // Clear the UI cache before Firebase broadcasts the signed-out state. Firebase
+  // remains the session authority; this cache must never be able to restore a user.
+  localStorage.removeItem(ACTIVE_SESSION_KEY);
   try {
     await signOut(auth);
-    localStorage.removeItem(ACTIVE_SESSION_KEY);
   } catch (e) {
     console.warn("SignOut error", e);
-    localStorage.removeItem(ACTIVE_SESSION_KEY);
+    throw e;
   }
 }
 
 // Subscribe to Firebase Auth state changes for session persistence
 export function subscribeAuthState(callback: (user: any | null) => void) {
   return onAuthStateChanged(auth, async (authUser) => {
-    if (authUser && authUser.email) {
-      const profile = await fetchUserProfileByEmail(authUser.email);
-      if (profile) {
+    if (authUser) {
+      const profile = await fetchAuthenticatedProfile(authUser.uid, authUser.email);
+      if (profile && auth.currentUser?.uid === authUser.uid) {
         callback(profile);
         return;
       }
     }
-    
-    const saved = localStorage.getItem(ACTIVE_SESSION_KEY);
-    if (saved) {
-      try {
-        callback(JSON.parse(saved));
-        return;
-      } catch (e) {
-        console.warn("Failed to parse saved session", e);
-      }
-    }
 
+    // Never restore authentication from localStorage. A null Firebase user means
+    // signed out, even if a stale profile cache still exists.
+    localStorage.removeItem(ACTIVE_SESSION_KEY);
     callback(null);
   });
 }

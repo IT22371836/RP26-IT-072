@@ -15,6 +15,7 @@ import { WeeklyDemandTimetable } from './WeeklyDemandTimetable';
 import { SERVICE_CATEGORIES } from '../data/categories';
 import { AdminManualRelationsModal } from './AdminManualRelationsModal';
 import { openProviderDocumentForConfiguredSource } from '../services/provider-service';
+import { AdminPipelineAudit } from './AdminPipelineAudit';
 
 interface DashboardProps {
   currentUser: any | null;
@@ -33,7 +34,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [providers, setProviders] = useState<Provider[]>([]);
   const [filterRequests, setFilterRequests] = useState<FilterRequestItem[]>([]);
   const [demandData, setDemandData] = useState<DailyDemandData | null>(null);
-  const [activeTab, setActiveTab] = useState<'customers' | 'providers' | 'filterHistory' | 'weeklyDemand'>(
+  const [activeTab, setActiveTab] = useState<'customers' | 'providers' | 'filterHistory' | 'weeklyDemand' | 'pipelineAudit'>(
     currentUser && currentUser.role === 'customer' ? 'providers' : 'customers'
   );
   const [loading, setLoading] = useState(true);
@@ -274,6 +275,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
           >
             <Calendar size={18} /> Weekly Demand Timetable
           </button>
+          {currentUser?.role === 'admin' && <button
+            className={`btn ${activeTab === 'pipelineAudit' ? 'btn-customer' : 'btn-outline'}`}
+            onClick={() => setActiveTab('pipelineAudit')}
+          >
+            <Cpu size={18} /> Pipeline Audit
+          </button>}
         </div>
 
         {/* Search & Filter Bar when viewing Service Providers */}
@@ -333,6 +340,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <div style={{ textAlign: 'center', padding: '60px' }}>
             <p style={{ color: 'var(--text-muted)' }}>Loading database records from Firebase...</p>
           </div>
+        ) : activeTab === 'pipelineAudit' ? (
+          <AdminPipelineAudit />
         ) : activeTab === 'weeklyDemand' ? (
           /* Weekly Demand Timetable (daily_demand Node) View */
           <WeeklyDemandTimetable

@@ -7,12 +7,6 @@ import { Dashboard } from './components/Dashboard';
 import { CustomerDashboard } from './components/CustomerDashboard';
 import { ProviderDashboard } from './components/ProviderDashboard';
 import { subscribeAuthState, logoutFirebaseUser, ACTIVE_SESSION_KEY } from './config/firebase';
-import {
-  backendUserToWebUser,
-  logoutBackendSession,
-  restoreBackendUser
-} from './config/backendSession';
-import { runtimeConfig } from './config/runtime';
 import { syncCustomerProfileFromConfiguredSource } from './services/customer-service';
 import { syncProviderProfileFromConfiguredSource } from './services/provider-service';
 import { ThemeProvider } from './context/ThemeContext';
@@ -21,23 +15,16 @@ export function AppContent() {
   const [activeTab, setActiveTab] = useState<'customer' | 'provider' | 'login' | 'dashboard'>('login');
   const [currentUser, setCurrentUser] = useState<any | null>(null);
 
-  // Restore and maintain active user session via Firebase Auth state & localStorage
+  // Firebase Auth is the only session authority. localStorage holds profile UI data only.
   useEffect(() => {
-    if (runtimeConfig.authSource === 'fastapi') {
-      void restoreBackendUser().then((user) => {
-        if (!user) return;
-        const restored = backendUserToWebUser(user);
-        setCurrentUser(restored);
-        localStorage.setItem(ACTIVE_SESSION_KEY, JSON.stringify(restored));
-        setActiveTab('dashboard');
-      });
-      return;
-    }
     const unsubscribe = subscribeAuthState((user) => {
       if (user) {
         setCurrentUser(user);
         localStorage.setItem(ACTIVE_SESSION_KEY, JSON.stringify(user));
         setActiveTab((prevTab) => (prevTab === 'login' ? 'dashboard' : prevTab));
+      } else {
+        setCurrentUser(null);
+        setActiveTab('login');
       }
     });
 
@@ -62,10 +49,12 @@ export function AppContent() {
   };
 
   const handleLogout = async () => {
-    if (runtimeConfig.authSource !== 'fastapi') await logoutFirebaseUser();
-    await logoutBackendSession();
-    setCurrentUser(null);
-    setActiveTab('login');
+    try {
+      await logoutFirebaseUser();
+    } finally {
+      setCurrentUser(null);
+      setActiveTab('login');
+    }
   };
 
   return (

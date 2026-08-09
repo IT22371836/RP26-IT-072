@@ -1,6 +1,6 @@
 import { backendApi } from '../config/api';
 import type { CustomerProfileDto, CustomerProfileUpdateDto } from '../config/api';
-import { requireBackendToken } from '../config/backendSession';
+import { requireFirebaseApiToken } from '../config/firebaseApiToken';
 import { updateCustomerProfile as updateFirebaseCustomerProfile } from '../config/firebase';
 import type { Customer } from '../config/firebase';
 import { runtimeConfig } from '../config/runtime';
@@ -39,7 +39,7 @@ async function updateFastApiCustomer(
     throw new Error('Upload the customer image to configured file storage before FastAPI profile update.');
   }
   const profile = await backendApi.updateCustomerProfile(
-    requireBackendToken(),
+    await requireFirebaseApiToken(),
     toBackendUpdate(updates)
   );
   return mergeProfile({ ...current, ...updates }, profile);
@@ -49,7 +49,7 @@ export async function syncCustomerProfileFromConfiguredSource(
   current: Customer
 ): Promise<Customer> {
   if (runtimeConfig.dataSource === 'firebase') return current;
-  const profile = await backendApi.getCustomerProfile(requireBackendToken());
+  const profile = await backendApi.getCustomerProfile(await requireFirebaseApiToken());
   return mergeProfile(current, profile);
 }
 

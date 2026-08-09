@@ -1,12 +1,6 @@
 import React, { useState } from 'react';
 import { Mail, Loader2, Lock, Eye, EyeOff } from 'lucide-react';
-import { getCurrentFirebaseIdToken, loginUser } from '../config/firebase';
-import {
-  backendUserToWebUser,
-  linkBackendSessionIfConfigured,
-  loginBackendSession
-} from '../config/backendSession';
-import { runtimeConfig } from '../config/runtime';
+import { loginUser } from '../config/firebase';
 
 interface LoginFormProps {
   onLoginSuccess: (user: any) => void | Promise<void>;
@@ -39,33 +33,9 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 
     setLoading(true);
     try {
-      if (runtimeConfig.authSource === 'fastapi') {
-        const session = await loginBackendSession(inputVal, password);
-        await onLoginSuccess(backendUserToWebUser(session.user));
-        return;
-      }
-
       const user = await loginUser(inputVal, password);
       if (user) {
-        const firebaseIdToken = runtimeConfig.authSource === 'firebase-link'
-          ? await getCurrentFirebaseIdToken()
-          : undefined;
-        const backendSession = await linkBackendSessionIfConfigured(
-          user.email || inputVal,
-          password,
-          firebaseIdToken
-        );
-        const authenticatedUser = backendSession
-          ? {
-              ...backendUserToWebUser(backendSession.user),
-              ...user,
-              backendUserId: backendSession.user.user_id,
-              email: backendSession.user.email,
-              fullName: backendSession.user.full_name,
-              role: backendSession.user.role
-            }
-          : user;
-        await onLoginSuccess(authenticatedUser);
+        await onLoginSuccess(user);
       } else {
         setErrorMsg(`No registered account found for "${inputVal}". Please verify your credentials or register a new account.`);
       }

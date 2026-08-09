@@ -6,8 +6,15 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 ASPECTS = ("quality", "punctuality", "communication", "professionalism")
 
 
+Component4Source = Literal[
+    "component2",
+    "component2_zero_fallback",
+    "development_fixture",
+]
+
+
 class Component4RankRequest(BaseModel):
-    source: Literal["component2", "development_fixture"]
+    source: Component4Source
     request_id: str = Field(pattern=r"^R[A-Z0-9]+$", min_length=2, max_length=64)
     user_id: str = Field(pattern=r"^U[A-Z0-9]+$", min_length=2, max_length=64)
     component_version: str = Field(min_length=1, max_length=128)
@@ -36,7 +43,7 @@ class Component4RankRequest(BaseModel):
 
     @model_validator(mode="after")
     def reject_placeholder_component2_versions(self) -> Self:
-        if self.source == "component2" and (
+        if self.source in {"component2", "component2_zero_fallback"} and (
             self.component_version == "not-component2"
             or self.model_version == "not-component2"
         ):
@@ -45,7 +52,7 @@ class Component4RankRequest(BaseModel):
 
 
 class Component4HandoffLineage(BaseModel):
-    source: Literal["component2", "development_fixture"]
+    source: Component4Source
     request_id: str
     user_id: str
     component_version: str

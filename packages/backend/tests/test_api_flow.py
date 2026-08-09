@@ -1,19 +1,24 @@
 import asyncio
 from typing import Any
 
+from fastapi import Request
 from httpx import ASGITransport, AsyncClient
 
 from app.api.dependencies import (
     get_customer_profile_repository,
+    get_firebase_current_user,
     get_interaction_repository,
     get_provider_repository,
     get_service_request_repository,
     get_user_repository,
 )
 from app.api.providers import document_storage_service
+from app.core.config import get_settings
+from app.core.security import decode_access_token_claims
 from app.main import app
 from app.repositories.providers import ProviderProfileExistsError
 from app.repositories.users import DuplicateEmailError
+from app.schemas.auth import UserPublic
 from app.schemas.common import utc_now
 from app.services.file_storage import DownloadedDocument, StoredDocument
 
@@ -326,6 +331,13 @@ def test_customer_and_provider_authenticated_api_flow() -> None:
         app.dependency_overrides[get_customer_profile_repository] = lambda: customers
         app.dependency_overrides[get_interaction_repository] = lambda: interactions
         app.dependency_overrides[document_storage_service] = lambda: private_storage
+
+        async def firebase_boundary_stub(request: Request) -> UserPublic:
+            token = request.headers["Authorization"].removeprefix("Bearer ")
+            claims = decode_access_token_claims(token, get_settings())
+            return UserPublic.model_validate(users.by_id[claims.user_id])
+
+        app.dependency_overrides[get_firebase_current_user] = firebase_boundary_stub
 
         try:
             transport = ASGITransport(app=app)

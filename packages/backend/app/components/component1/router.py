@@ -8,7 +8,7 @@ from app.api.dependencies import (
     get_interaction_repository,
     get_provider_repository,
     get_service_request_repository,
-    require_role,
+    require_firebase_role,
 )
 from app.components.component1.schemas import (
     ComponentStatusResponse,
@@ -30,7 +30,7 @@ from app.schemas.auth import UserPublic
 from app.schemas.common import UserRole, new_public_id, utc_now
 
 router = APIRouter(prefix="/component1", tags=["component 1"])
-customer_user = require_role(UserRole.CUSTOMER)
+customer_user = require_firebase_role(UserRole.CUSTOMER)
 
 
 def engine_dependency(

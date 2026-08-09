@@ -593,7 +593,21 @@ class Component4RankingEngine:
         for provider_id in payload.provider_ids:
             static = self.provider_scores.get(provider_id)
             if static is not None:
-                candidates.append(dict(static))
+                candidate = dict(static)
+                live = live_index.get(provider_id)
+                if live is not None and int(live.get("review_count", 0)) > 0:
+                    platform_rating = finite_float(live.get("rating", 0), "rating")
+                    candidate["platform_rating"] = platform_rating
+                    candidate["platform_review_count"] = int(live.get("review_count", 0))
+                    candidate["final_score"] = min(
+                        1.0,
+                        max(
+                            0.0,
+                            float(candidate["final_score"]) * 0.90
+                            + (platform_rating / 5.0) * 0.10,
+                        ),
+                    )
+                candidates.append(candidate)
             elif provider_id in live_index:
                 candidates.append(self._live_provider_fallback(live_index[provider_id]))
             else:

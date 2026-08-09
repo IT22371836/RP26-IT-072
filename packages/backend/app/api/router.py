@@ -6,6 +6,7 @@ from app.api.customers import router as customers_router
 from app.api.health import router as health_router
 from app.api.integration import router as integration_router
 from app.api.interactions import router as interactions_router
+from app.api.pipeline import router as pipeline_router
 from app.api.providers import router as providers_router
 from app.api.service_requests import router as service_requests_router
 from app.components.component1.router import router as component1_router
@@ -17,6 +18,7 @@ api_router.include_router(health_router)
 api_router.include_router(auth_router)
 api_router.include_router(customers_router)
 api_router.include_router(interactions_router)
+api_router.include_router(pipeline_router)
 api_router.include_router(integration_router)
 api_router.include_router(providers_router)
 api_router.include_router(service_requests_router)

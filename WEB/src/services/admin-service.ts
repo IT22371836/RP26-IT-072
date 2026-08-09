@@ -1,6 +1,6 @@
 import { backendApi } from '../config/api';
 import type { ProviderPrivateDto } from '../config/api';
-import { requireBackendToken } from '../config/backendSession';
+import { requireFirebaseApiToken } from '../config/firebaseApiToken';
 import {
   fetchProviders as fetchFirebaseProviders,
   toggleProviderVerification as toggleFirebaseProviderVerification
@@ -36,7 +36,7 @@ function providerFromBackend(profile: ProviderPrivateDto): Provider {
 export async function listAdminProvidersForConfiguredSource(): Promise<Provider[]> {
   if (runtimeConfig.dataSource === 'firebase') return fetchFirebaseProviders();
 
-  const backendProfiles = await backendApi.listAdminProviders(requireBackendToken());
+  const backendProfiles = await backendApi.listAdminProviders(await requireFirebaseApiToken());
   if (runtimeConfig.dataSource === 'fastapi') {
     return backendProfiles.map(providerFromBackend);
   }
@@ -81,7 +81,7 @@ export async function setProviderVerificationForConfiguredSource(
     throw new Error('This Firebase provider is not linked to a FastAPI provider ID.');
   }
   const profile = await backendApi.setAdminProviderVerification(
-    requireBackendToken(),
+    await requireFirebaseApiToken(),
     backendProviderId,
     verified,
     verified ? 'Approved through WEB administrator review' : 'Revoked through WEB administrator review'

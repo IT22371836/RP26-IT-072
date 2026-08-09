@@ -1,0 +1,35 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "daily_demand": {
+      ".read": true,
+      ".write": false
+    },
+    "customers": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    },
+    "providers": {
+      "$providerId": {
+        ".read": "auth != null && auth.uid === $providerId",
+        ".write": "auth != null && auth.uid === $providerId",
+        "id": { ".validate": "newData.val() === $providerId" },
+        "uid": { ".validate": "newData.val() === $providerId" },
+        "role": { ".validate": "newData.val() === 'provider'" },
+        "pipelineSeed": { ".write": false },
+        "researchSeed": { ".write": false }
+      }
+    },
+    "filter_requests": {
+      ".read": false,
+      ".write": false
+    },
+    "pipeline": {
+      ".read": false,
+      ".write": false
+    }
+  }
+}

@@ -1,8 +1,8 @@
 # weda.lk Web Application (`WEB`)
 
-## Gradual FastAPI integration
+## Firebase authentication and ML integration
 
-Copy `.env.example` to `.env` and select the transition mode:
+Copy `.env.example` to `.env`:
 
 ```env
 VITE_API_BASE_URL=http://localhost:8000/api/v1
@@ -11,20 +11,11 @@ VITE_AUTH_SOURCE=firebase
 VITE_FILE_STORAGE_SOURCE=firebase
 ```
 
-- `firebase` keeps the original WEB behavior and is the rollback-safe default.
-- `hybrid` keeps Firebase authoritative and explicitly mirrors customer profile updates to
-  FastAPI. Use it with `VITE_AUTH_SOURCE=firebase-link` after the same user account exists in
-  both authentication systems.
-- `fastapi` is reserved for feature-by-feature cutover. FastAPI-only login remains disabled
-  until the customer, provider, and administrator dashboards all have complete backend
-  contracts.
-
-The adapters preserve the existing Firebase-shaped customer and provider objects and map
-only at `src/services/customer-service.ts` and `src/services/provider-service.ts`. Backend
-failures in hybrid/FastAPI mode are surfaced; they are not silently replaced with
-browser-local data. Provider file bytes remain in Firebase Storage, while protected FastAPI
-endpoints store private metadata, use soft deletion, and lock document changes after a
-verification request.
+Firebase Auth is the only browser session authority. Login, registration, restoration, and
+logout never call FastAPI or store a FastAPI access token. Firebase RTDB and Storage remain
+authoritative for application profiles and files. The Component 1 → 2 → 4 workspace sends
+the current Firebase ID token to FastAPI; Firebase Admin verifies it before Component 1 and
+Component 4 execute, while Component 2 continues to use its existing Firebase contract.
 
 This directory contains the React 19 + TypeScript + Vite web application for the **weda.lk** Service Provider Rating, Demand Forecasting & Recommendation System (SLIIT 2026).
 

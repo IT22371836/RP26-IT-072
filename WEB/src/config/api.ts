@@ -1,22 +1,5 @@
 import { runtimeConfig } from './runtime';
 
-export interface BackendUser {
-  user_id: string;
-  email: string;
-  full_name: string;
-  role: 'customer' | 'provider' | 'admin';
-  is_active: boolean;
-  created_at: string;
-}
-
-export interface BackendTokenResponse {
-  access_token: string | null;
-  token_type: 'bearer';
-  expires_in: number;
-  user: BackendUser;
-  token_transport: 'bearer' | 'cookie';
-}
-
 export interface CustomerLocationDto {
   latitude: number;
   longitude: number;
@@ -135,6 +118,78 @@ export interface ProviderProfileUpdateDto {
   working_hours?: ProviderWorkingHoursDto | null;
 }
 
+export type PipelineStatus =
+  | 'initializing' | 'created' | 'component1_running' | 'component1_completed'
+  | 'component2_running' | 'component2_completed' | 'component4_running'
+  | 'completed' | 'failed' | 'retry_pending' | 'cancelled';
+
+export interface PipelineProviderDto {
+  provider_id: string;
+  provider_name: string;
+  category: string;
+  district: string;
+  city: string;
+  rank: number;
+  hybrid_score?: number;
+  tfidf_score?: number;
+  bert_score?: number;
+  cf_score?: number;
+  final_score?: number;
+  aspect_scores?: Record<string, number>;
+  mean_credibility?: number;
+  evidence_status?: string;
+  platform_rating?: number;
+  platform_review_count?: number;
+}
+
+export interface PipelineRunDto {
+  run_id: string;
+  request_id: string;
+  user_id: string;
+  status: PipelineStatus;
+  request: Record<string, any>;
+  component1: { providers: PipelineProviderDto[]; component_version: string; model_version: string } | null;
+  component2: {
+    output_results: Record<string, any>;
+    all_evaluated_providers: Array<Record<string, any>>;
+    component_version: string;
+    model_version: string;
+  } | null;
+  component4: { providers: PipelineProviderDto[]; versions: Record<string, string> } | null;
+  fallback: { used: boolean; fallback_reason: string; source: string } | null;
+  error: { code: string; message: string; retryable: boolean } | null;
+  selected_provider_id: string | null;
+  booking_interaction_id: string | null;
+  attempt_count: number;
+  created_at: string;
+  updated_at: string;
+  completed_at: string | null;
+}
+
+export interface PipelineCreateDto {
+  request_text: string;
+  category: string;
+  district: string;
+  city: string;
+  urgency: 'normal' | 'urgent' | 'emergency';
+  service_date: string;
+  service_time: { start_time: string; end_time: string };
+  location_type: 'indoor' | 'outdoor' | 'indoor and outdoor';
+}
+
+export interface InteractionDto {
+  interaction_id: string;
+  request_id: string;
+  user_id: string;
+  provider_id: string;
+  provider_name: string | null;
+  category: string;
+  interaction_type: string;
+  rating: number | null;
+  review_text: string | null;
+  timestamp: string;
+}
+
 export class ApiError extends Error {
   readonly status: number;
   readonly details: unknown;
@@ -159,7 +214,7 @@ async function request<T>(
 
   const response = await fetch(`${runtimeConfig.apiBaseUrl}${path}`, {
     ...init,
-    credentials: 'include',
+    credentials: 'omit',
     headers
   });
   const contentType = response.headers.get('content-type') || '';
@@ -181,7 +236,7 @@ async function requestBlob(path: string, token?: string): Promise<Blob> {
   const headers = new Headers({ Accept: 'image/jpeg, image/png, application/pdf' });
   if (token) headers.set('Authorization', `Bearer ${token}`);
   const response = await fetch(`${runtimeConfig.apiBaseUrl}${path}`, {
-    credentials: 'include',
+    credentials: 'omit',
     headers
   });
   if (!response.ok) {
@@ -195,34 +250,6 @@ async function requestBlob(path: string, token?: string): Promise<Blob> {
 }
 
 export const backendApi = {
-  login(email: string, password: string): Promise<BackendTokenResponse> {
-    return request<BackendTokenResponse>('/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ email, password })
-    });
-  },
-
-  linkFirebaseAccount(
-    firebaseIdToken: string,
-    newPassword: string
-  ): Promise<BackendTokenResponse> {
-    return request<BackendTokenResponse>('/auth/link/firebase', {
-      method: 'POST',
-      body: JSON.stringify({
-        firebase_id_token: firebaseIdToken,
-        new_password: newPassword
-      })
-    });
-  },
-
-  getCurrentUser(token?: string): Promise<BackendUser> {
-    return request<BackendUser>('/auth/me', {}, token);
-  },
-
-  logout(): Promise<void> {
-    return request<void>('/auth/logout', { method: 'POST' });
-  },
-
   getCustomerProfile(token: string): Promise<CustomerProfileDto> {
     return request<CustomerProfileDto>('/customers/me', {}, token);
   },
@@ -337,5 +364,58 @@ export const backendApi = {
       },
       token
     );
+  },
+
+  startPipeline(token: string, payload: PipelineCreateDto, idempotencyKey: string): Promise<{ run_id: string }> {
+    return request<{ run_id: string }>('/pipeline/runs', {
+      method: 'POST',
+      headers: { 'Idempotency-Key': idempotencyKey },
+      body: JSON.stringify(payload)
+    }, token);
+  },
+
+  getPipeline(token: string, runId: string): Promise<PipelineRunDto> {
+    return request<PipelineRunDto>(`/pipeline/runs/${encodeURIComponent(runId)}`, {}, token);
+  },
+
+  listPipelines(token: string): Promise<PipelineRunDto[]> {
+    return request<PipelineRunDto[]>('/pipeline/runs?limit=50', {}, token);
+  },
+
+  retryPipeline(token: string, runId: string): Promise<PipelineRunDto> {
+    return request<PipelineRunDto>(`/pipeline/runs/${encodeURIComponent(runId)}/retry`, {
+      method: 'POST'
+    }, token);
+  },
+
+  selectPipelineProvider(token: string, runId: string, providerId: string): Promise<{ booking_interaction_id: string }> {
+    return request<{ booking_interaction_id: string }>(
+      `/pipeline/runs/${encodeURIComponent(runId)}/selection`,
+      { method: 'POST', body: JSON.stringify({ provider_id: providerId }) },
+      token
+    );
+  },
+
+  listCustomerInteractions(token: string): Promise<InteractionDto[]> {
+    return request<InteractionDto[]>('/interactions/me?limit=500', {}, token);
+  },
+
+  listProviderInteractions(token: string): Promise<InteractionDto[]> {
+    return request<InteractionDto[]>('/interactions/provider/me?limit=500', {}, token);
+  },
+
+  completeBooking(token: string, interactionId: string): Promise<InteractionDto> {
+    return request<InteractionDto>(`/interactions/${encodeURIComponent(interactionId)}/complete`, { method: 'POST' }, token);
+  },
+
+  cancelBooking(token: string, interactionId: string): Promise<InteractionDto> {
+    return request<InteractionDto>(`/interactions/${encodeURIComponent(interactionId)}/cancel`, { method: 'POST' }, token);
+  },
+
+  rateBooking(token: string, interactionId: string, rating: number, reviewText: string): Promise<InteractionDto> {
+    return request<InteractionDto>(`/interactions/${encodeURIComponent(interactionId)}/rate`, {
+      method: 'POST',
+      body: JSON.stringify({ rating, review_text: reviewText || null })
+    }, token);
   }
 };

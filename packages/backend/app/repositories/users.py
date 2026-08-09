@@ -58,6 +58,76 @@ class UserRepository:
     async def find_by_firebase_uid(self, firebase_uid: str) -> dict[str, Any] | None:
         return await self.collection.find_one({"legacy.firebase_uid": firebase_uid})
 
+    async def ensure_firebase_identity(
+        self,
+        *,
+        firebase_uid: str,
+        email: str,
+        full_name: str,
+        role: str,
+        now: Any,
+        user_id: str,
+    ) -> dict[str, Any]:
+        """Create/link a non-password Mongo shadow used only by the ML pipeline."""
+
+        existing = await self.find_by_firebase_uid(firebase_uid)
+        if existing is not None:
+            return existing
+
+        email_matches = await self.find_all_by_email(email)
+        if len(email_matches) > 1:
+            raise FirebaseLinkConflictError
+        if email_matches:
+            existing = email_matches[0]
+            if str(existing.get("role")) != role:
+                raise FirebaseLinkConflictError
+            try:
+                result = await self.collection.update_one(
+                    {
+                        "user_id": existing["user_id"],
+                        "$or": [
+                            {"legacy.firebase_uid": {"$exists": False}},
+                            {"legacy.firebase_uid": firebase_uid},
+                        ],
+                    },
+                    {
+                        "$set": {
+                            "legacy.firebase_uid": firebase_uid,
+                            "auth_source": "firebase",
+                            "updated_at": now,
+                        }
+                    },
+                )
+            except DuplicateKeyError as error:
+                raise FirebaseLinkConflictError from error
+            if result.matched_count != 1:
+                raise FirebaseLinkConflictError
+            linked = await self.find_by_firebase_uid(firebase_uid)
+            if linked is None:
+                raise FirebaseLinkConflictError
+            return linked
+
+        document = {
+            "user_id": user_id,
+            "email": email.strip().lower(),
+            "full_name": full_name,
+            "role": role,
+            "is_active": True,
+            "auth_source": "firebase",
+            "auth_version": 1,
+            "legacy": {"firebase_uid": firebase_uid},
+            "created_at": now,
+            "updated_at": now,
+        }
+        try:
+            await self.collection.insert_one(document)
+            return document
+        except DuplicateKeyError as error:
+            concurrent = await self.find_by_firebase_uid(firebase_uid)
+            if concurrent is not None:
+                return concurrent
+            raise FirebaseLinkConflictError from error
+
     async def list_all(self, limit: int = 500) -> list[dict[str, Any]]:
         return await self.collection.find({}).sort("created_at", DESCENDING).to_list(length=limit)
 

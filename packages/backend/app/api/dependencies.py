@@ -39,6 +39,12 @@ def get_firebase_token_verifier(
     return FirebaseTokenVerifier(settings)
 
 
+def get_firebase_rtdb_client(
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> FirebaseRtdbClient:
+    return FirebaseRtdbClient(settings)
+
+
 def get_provider_repository(database: Annotated[Any, Depends(get_database)]) -> ProviderRepository:
     return ProviderRepository(database)
 

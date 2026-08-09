@@ -9,7 +9,8 @@
     "customers": {
       "$uid": {
         ".read": "auth != null && auth.uid === $uid",
-        ".write": "auth != null && auth.uid === $uid"
+        ".write": "auth != null && auth.uid === $uid",
+        ".validate": "newData.child('bookingHistory').val() === data.child('bookingHistory').val()"
       }
     },
     "providers": {

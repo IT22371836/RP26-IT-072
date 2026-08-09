@@ -5,9 +5,11 @@ from httpx import ASGITransport, AsyncClient
 
 from app.api.dependencies import (
     get_component1_repository,
+    get_firebase_rtdb_client,
     get_interaction_repository,
     get_provider_repository,
     get_service_request_repository,
+    get_user_repository,
 )
 from app.components.component1.router import customer_user, engine_dependency
 from app.components.component1.schemas import ProviderRecommendation
@@ -48,11 +50,23 @@ class Providers:
 
 
 class Interactions:
-    async def preferred_provider_ids(self, _user_id: str) -> list[str]:
+    async def click_preference_provider_ids(self, _user_id: str) -> list[str]:
         return []
 
     async def create_many(self, _documents: list[object]) -> None:
         return None
+
+
+class LinkedUsers:
+    async def find_by_id(self, _user_id: str) -> dict[str, object]:
+        return {"legacy": {"firebase_uid": "firebase-customer"}}
+
+
+class EmptyFirebaseBookingHistory:
+    async def get_customer_booking_history(
+        self, _firebase_uid: str
+    ) -> dict[str, dict[str, object]]:
+        return {}
 
 
 class Requests:
@@ -89,6 +103,8 @@ def test_recommendation_scores_are_persisted_with_run_metadata() -> None:
         app.dependency_overrides[engine_dependency] = ScoredEngine
         app.dependency_overrides[get_provider_repository] = Providers
         app.dependency_overrides[get_interaction_repository] = Interactions
+        app.dependency_overrides[get_user_repository] = LinkedUsers
+        app.dependency_overrides[get_firebase_rtdb_client] = EmptyFirebaseBookingHistory
         app.dependency_overrides[get_service_request_repository] = Requests
         app.dependency_overrides[get_component1_repository] = lambda: recorder
         try:

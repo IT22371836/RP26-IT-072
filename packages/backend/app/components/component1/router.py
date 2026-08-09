@@ -5,9 +5,11 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.api.dependencies import (
     get_component1_repository,
+    get_firebase_rtdb_client,
     get_interaction_repository,
     get_provider_repository,
     get_service_request_repository,
+    get_user_repository,
     require_firebase_role,
 )
 from app.components.component1.schemas import (
@@ -22,10 +24,16 @@ from app.components.component1.service import (
     get_recommendation_engine,
 )
 from app.core.config import Settings, get_settings
+from app.integrations.firebase_component2 import (
+    FirebaseComponent2Error,
+    FirebaseRtdbClient,
+    booking_history_preference_ids,
+)
 from app.repositories.component1 import Component1Repository
 from app.repositories.interactions import InteractionRepository
 from app.repositories.providers import ProviderRepository
 from app.repositories.service_requests import ServiceRequestRepository
+from app.repositories.users import UserRepository
 from app.schemas.auth import UserPublic
 from app.schemas.common import UserRole, new_public_id, utc_now
 
@@ -53,6 +61,8 @@ async def recommend(
     engine: Annotated[HybridRecommendationEngine, Depends(engine_dependency)],
     provider_repository: Annotated[ProviderRepository, Depends(get_provider_repository)],
     interaction_repository: Annotated[InteractionRepository, Depends(get_interaction_repository)],
+    user_repository: Annotated[UserRepository, Depends(get_user_repository)],
+    firebase: Annotated[FirebaseRtdbClient, Depends(get_firebase_rtdb_client)],
     service_request_repository: Annotated[
         ServiceRequestRepository,
         Depends(get_service_request_repository),
@@ -77,7 +87,27 @@ async def recommend(
         started_at = utc_now()
         started_timer = perf_counter()
         live_providers = await provider_repository.list_all()
-        live_preferences = await interaction_repository.preferred_provider_ids(current_user.user_id)
+        user_document = await user_repository.find_by_id(current_user.user_id)
+        firebase_uid = (user_document or {}).get("legacy", {}).get("firebase_uid")
+        if not firebase_uid:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Customer has no Firebase booking-history identity",
+            )
+        try:
+            booking_history = await firebase.get_customer_booking_history(firebase_uid)
+        except FirebaseComponent2Error as error:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Firebase booking history is unavailable",
+            ) from error
+        click_preferences = await interaction_repository.click_preference_provider_ids(
+            current_user.user_id
+        )
+        live_preferences = [
+            *booking_history_preference_ids(booking_history),
+            *click_preferences,
+        ]
         results = engine.recommend(
             query=payload.query,
             user_id=current_user.user_id,

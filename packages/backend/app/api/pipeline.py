@@ -8,12 +8,14 @@ from typing import Annotated, Any
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, status
 
 from app.api.dependencies import (
+    get_firebase_rtdb_client,
     get_pipeline_repository,
     get_service_request_repository,
     get_user_repository,
     require_firebase_role,
 )
 from app.core.config import Settings, get_settings
+from app.integrations.firebase_component2 import FirebaseComponent2Error, FirebaseRtdbClient
 from app.pipeline.schemas import (
     PipelineRunCreate,
     PipelineRunResponse,
@@ -226,6 +228,8 @@ async def select_pipeline_provider(
     payload: PipelineSelectionRequest,
     current_user: Annotated[UserPublic, Depends(customer_user)],
     repository: Annotated[PipelineRepository, Depends(get_pipeline_repository)],
+    users: Annotated[UserRepository, Depends(get_user_repository)],
+    firebase: Annotated[FirebaseRtdbClient, Depends(get_firebase_rtdb_client)],
 ) -> PipelineSelectionResponse:
     existing = await repository.find_by_id(run_id)
     provider = next(
@@ -245,6 +249,13 @@ async def select_pipeline_provider(
         raise HTTPException(status_code=409, detail="Provider is not selectable for this run")
     booking_id = new_public_id("I")
     now = utc_now()
+    user = await users.find_by_id(current_user.user_id)
+    firebase_uid = (user or {}).get("legacy", {}).get("firebase_uid")
+    if not firebase_uid:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Customer has no Firebase booking-history identity",
+        )
     base = {
         "request_id": existing["request_id"],
         "pipeline_run_id": run_id,
@@ -256,6 +267,33 @@ async def select_pipeline_provider(
         "review_text": None,
         "timestamp": now,
     }
+    firebase_booking = {
+        "booking_id": booking_id,
+        "request_id": existing["request_id"],
+        "pipeline_run_id": run_id,
+        "customer_uid": firebase_uid,
+        "provider_id": payload.provider_id,
+        "provider_name": provider.get("provider_name"),
+        "category": provider["category"],
+        "status": "booking_requested",
+        "requested_at": now.isoformat(),
+        "updated_at": now.isoformat(),
+        "completed_at": None,
+        "cancelled_at": None,
+        "rating": None,
+        "review_text": None,
+        "rated_at": None,
+        "source": "pipeline",
+    }
+    try:
+        firebase_created = await firebase.create_customer_booking(
+            firebase_uid, booking_id, firebase_booking
+        )
+    except FirebaseComponent2Error as error:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Firebase booking history is unavailable",
+        ) from error
     run = await repository.create_selection_with_interactions(
         run_id,
         current_user.user_id,
@@ -267,6 +305,10 @@ async def select_pipeline_provider(
         ],
     )
     if run is None:
+        if firebase_created:
+            await firebase.delete_customer_booking_if_matching(
+                firebase_uid, booking_id, run_id
+            )
         raise HTTPException(
             status_code=409,
             detail="Provider must be in this run's final Top-5 and no prior selection may exist",

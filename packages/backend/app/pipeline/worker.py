@@ -13,7 +13,11 @@ from app.components.component4.schemas import Component4RankRequest
 from app.components.component4.service import Component4RankingOrchestrator, get_component4_engine
 from app.core.config import Settings, get_settings
 from app.core.database import MongoDatabase
-from app.integrations.firebase_component2 import FirebaseComponent2Error, FirebaseRtdbClient
+from app.integrations.firebase_component2 import (
+    FirebaseComponent2Error,
+    FirebaseRtdbClient,
+    booking_history_preference_ids,
+)
 from app.pipeline.schemas import PipelineStatus
 from app.repositories.component1 import Component1Repository
 from app.repositories.component4 import Component4Repository
@@ -200,7 +204,22 @@ class PipelineWorker:
         started_at = utc_now()
         started = perf_counter()
         live_providers = await self.providers.list_all(limit=10_000)
-        preferences = await self.interactions.preferred_provider_ids(user_id)
+        user = await self.users.find_by_id(user_id)
+        firebase_uid = (user or {}).get("legacy", {}).get("firebase_uid")
+        if not firebase_uid:
+            raise PipelineExecutionError(
+                "identity_failure",
+                "Customer account has no Firebase booking-history identity",
+                retryable=False,
+            )
+        try:
+            booking_history = await self.firebase.get_customer_booking_history(firebase_uid)
+        except FirebaseComponent2Error as error:
+            raise PipelineExecutionError(
+                "firebase_failure", str(error), retryable=True
+            ) from error
+        clicks = await self.interactions.click_preference_provider_ids(user_id)
+        preferences = [*booking_history_preference_ids(booking_history), *clicks]
         results = await asyncio.to_thread(
             engine.recommend,
             request["request_text"],

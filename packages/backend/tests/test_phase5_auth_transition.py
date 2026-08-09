@@ -7,11 +7,13 @@ from typing import Any
 import firebase_admin
 import jwt
 import pytest
+from fastapi import HTTPException
+from fastapi.security import HTTPAuthorizationCredentials
 from firebase_admin import auth as firebase_auth
 from httpx import ASGITransport, AsyncClient
 
 from app.api.auth import account_link_service, auth_service
-from app.api.dependencies import get_user_repository
+from app.api.dependencies import get_firebase_current_user, get_user_repository
 from app.core.config import Settings, get_settings
 from app.core.security import create_access_token, hash_password, verify_password
 from app.main import app
@@ -25,7 +27,11 @@ from app.services.account_link import (
     AmbiguousAccountLinkError,
 )
 from app.services.auth import AuthService
-from app.services.firebase_identity import FirebaseTokenVerifier, VerifiedFirebaseIdentity
+from app.services.firebase_identity import (
+    FirebaseIdentityConfigurationError,
+    FirebaseTokenVerifier,
+    VerifiedFirebaseIdentity,
+)
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
 
@@ -244,6 +250,47 @@ def test_firebase_admin_verification_uses_project_and_revocation_check(
     assert identity.uid == "firebase-uid"
     assert identity.email == "user@example.com"
     assert identity.email_verified is True
+
+
+def test_missing_configured_firebase_admin_file_is_a_configuration_error(
+    tmp_path: Path,
+) -> None:
+    verifier = FirebaseTokenVerifier(
+        settings(firebase_credentials_path=tmp_path / "missing-admin.json")
+    )
+
+    with pytest.raises(
+        FirebaseIdentityConfigurationError,
+        match="credential file does not exist",
+    ):
+        verifier.verify("valid-looking-token")
+
+
+def test_missing_firebase_admin_file_is_reported_as_service_unavailable(
+    tmp_path: Path,
+) -> None:
+    async def run_test() -> None:
+        config = settings(firebase_credentials_path=tmp_path / "missing-admin.json")
+        verifier = FirebaseTokenVerifier(config)
+        credentials = HTTPAuthorizationCredentials(
+            scheme="Bearer",
+            credentials="valid-looking-token",
+        )
+
+        with pytest.raises(HTTPException) as raised:
+            await get_firebase_current_user(
+                credentials,
+                TransitionUserRepository([]),  # type: ignore[arg-type]
+                config,
+                verifier,
+            )
+
+        assert raised.value.status_code == 503
+        assert raised.value.detail == (
+            "Firebase authentication verification is unavailable"
+        )
+
+    asyncio.run(run_test())
 
 
 def test_production_settings_require_secure_cookie_and_firebase_project() -> None:

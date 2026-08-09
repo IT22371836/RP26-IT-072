@@ -5,9 +5,11 @@ from httpx import ASGITransport, AsyncClient
 
 from app.api.dependencies import (
     get_component1_repository,
+    get_firebase_rtdb_client,
     get_interaction_repository,
     get_provider_repository,
     get_service_request_repository,
+    get_user_repository,
 )
 from app.components.component1.router import customer_user, engine_dependency
 from app.main import app
@@ -37,11 +39,23 @@ class EmptyProviderRepository:
 
 
 class EmptyInteractionRepository:
-    async def preferred_provider_ids(self, _user_id: str) -> list[str]:
+    async def click_preference_provider_ids(self, _user_id: str) -> list[str]:
         return []
 
     async def create_many(self, _documents: list[object]) -> None:
         return None
+
+
+class LinkedUserRepository:
+    async def find_by_id(self, _user_id: str) -> dict[str, object]:
+        return {"legacy": {"firebase_uid": "firebase-customer"}}
+
+
+class EmptyFirebaseBookingHistory:
+    async def get_customer_booking_history(
+        self, _firebase_uid: str
+    ) -> dict[str, dict[str, object]]:
+        return {}
 
 
 class RecordingComponent1Repository:
@@ -87,6 +101,8 @@ def test_recommendation_api_preserves_pipeline_identifiers() -> None:
         app.dependency_overrides[engine_dependency] = ReadyEngine
         app.dependency_overrides[get_provider_repository] = EmptyProviderRepository
         app.dependency_overrides[get_interaction_repository] = EmptyInteractionRepository
+        app.dependency_overrides[get_user_repository] = LinkedUserRepository
+        app.dependency_overrides[get_firebase_rtdb_client] = EmptyFirebaseBookingHistory
         app.dependency_overrides[get_service_request_repository] = (
             OwnedServiceRequestRepository
         )
@@ -129,6 +145,8 @@ def test_recommendation_api_requires_an_owned_service_request() -> None:
         app.dependency_overrides[engine_dependency] = ReadyEngine
         app.dependency_overrides[get_provider_repository] = EmptyProviderRepository
         app.dependency_overrides[get_interaction_repository] = EmptyInteractionRepository
+        app.dependency_overrides[get_user_repository] = LinkedUserRepository
+        app.dependency_overrides[get_firebase_rtdb_client] = EmptyFirebaseBookingHistory
         app.dependency_overrides[get_service_request_repository] = lambda: repository
         app.dependency_overrides[get_component1_repository] = RecordingComponent1Repository
         try:

@@ -38,6 +38,11 @@ class FirebaseTokenVerifier:
             raise FirebaseIdentityConfigurationError(
                 "Firebase token verification is not configured"
             )
+        credential_path = self.settings.firebase_credentials_path
+        if credential_path is not None and not credential_path.is_file():
+            raise FirebaseIdentityConfigurationError(
+                f"Firebase Admin credential file does not exist: {credential_path}"
+            )
         try:
             import firebase_admin
             from firebase_admin import auth, credentials
@@ -47,10 +52,8 @@ class FirebaseTokenVerifier:
                 firebase_app = firebase_admin.get_app(app_name)
             except ValueError:
                 credential = None
-                if self.settings.firebase_credentials_path:
-                    credential = credentials.Certificate(
-                        str(self.settings.firebase_credentials_path)
-                    )
+                if credential_path:
+                    credential = credentials.Certificate(str(credential_path))
                 if credential is None:
                     firebase_app = firebase_admin.initialize_app(
                         options={"projectId": project_id},
@@ -71,6 +74,10 @@ class FirebaseTokenVerifier:
             raise
         except Exception as error:
             error_name = type(error).__name__
+            if error_name in {"DefaultCredentialsError", "RefreshError"}:
+                raise FirebaseIdentityConfigurationError(
+                    "Firebase Admin credentials are unavailable"
+                ) from error
             reason = {
                 "ExpiredIdTokenError": "expired",
                 "RevokedIdTokenError": "revoked",

@@ -157,3 +157,33 @@ class InteractionRepository:
             for record in records
             for _ in range(weights[record["interaction_type"]])
         ]
+
+    async def click_preference_provider_ids(
+        self, user_id: str, limit: int = 500
+    ) -> list[str]:
+        records = (
+            await self.collection.find(
+                {
+                    "user_id": user_id,
+                    "interaction_type": InteractionType.CLICK.value,
+                },
+                {"provider_id": 1},
+            )
+            .sort("timestamp", DESCENDING)
+            .limit(limit)
+            .to_list(length=limit)
+        )
+        return [record["provider_id"] for record in records]
+
+    async def find_booking_requested(
+        self, user_id: str, request_id: str, provider_id: str
+    ) -> dict[str, Any] | None:
+        return await self.collection.find_one(
+            {
+                "user_id": user_id,
+                "request_id": request_id,
+                "provider_id": provider_id,
+                "interaction_type": InteractionType.BOOKING_REQUESTED.value,
+            },
+            sort=[("timestamp", ASCENDING)],
+        )

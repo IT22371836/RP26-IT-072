@@ -63,6 +63,10 @@ ml/components/component4/reports/release-v1/*
 !.env.example
 !**/.env.example
 
+# Firebase Admin private keys must remain local
+**/*firebase-adminsdk*.json
+**/*service-account*.json
+
 # Build outputs
 dist/
 build/

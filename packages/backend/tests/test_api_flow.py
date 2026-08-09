@@ -7,6 +7,7 @@ from httpx import ASGITransport, AsyncClient
 from app.api.dependencies import (
     get_customer_profile_repository,
     get_firebase_current_user,
+    get_firebase_rtdb_client,
     get_interaction_repository,
     get_provider_repository,
     get_service_request_repository,
@@ -291,6 +292,54 @@ class InMemoryInteractionRepository:
             if record["user_id"] == user_id and record["interaction_type"] != "impression"
         ]
 
+    async def click_preference_provider_ids(
+        self, user_id: str, limit: int = 500
+    ) -> list[str]:
+        return [
+            record["provider_id"]
+            for record in self.records[:limit]
+            if record["user_id"] == user_id and record["interaction_type"] == "click"
+        ]
+
+    async def find_booking_requested(
+        self, user_id: str, request_id: str, provider_id: str
+    ) -> dict[str, Any] | None:
+        return next(
+            (
+                record
+                for record in self.records
+                if record["user_id"] == user_id
+                and record["request_id"] == request_id
+                and record["provider_id"] == provider_id
+                and record["interaction_type"] == "booking_requested"
+            ),
+            None,
+        )
+
+
+class InMemoryFirebaseBookingHistory:
+    def __init__(self) -> None:
+        self.by_uid: dict[str, dict[str, dict[str, Any]]] = {}
+
+    async def get_customer_booking_history(
+        self, firebase_uid: str
+    ) -> dict[str, dict[str, Any]]:
+        return self.by_uid.get(firebase_uid, {})
+
+    async def create_customer_booking(
+        self, firebase_uid: str, booking_id: str, payload: dict[str, Any]
+    ) -> bool:
+        history = self.by_uid.setdefault(firebase_uid, {})
+        if booking_id in history:
+            return False
+        history[booking_id] = dict(payload)
+        return True
+
+    async def update_customer_booking(
+        self, firebase_uid: str, booking_id: str, updates: dict[str, Any]
+    ) -> None:
+        self.by_uid[firebase_uid][booking_id].update(updates)
+
 
 async def register_and_login(
     client: AsyncClient,
@@ -323,6 +372,7 @@ def test_customer_and_provider_authenticated_api_flow() -> None:
         requests = InMemoryServiceRequestRepository()
         customers = InMemoryCustomerProfileRepository()
         interactions = InMemoryInteractionRepository()
+        firebase_bookings = InMemoryFirebaseBookingHistory()
         private_storage = InMemoryPrivateDocumentStorage()
 
         app.dependency_overrides[get_user_repository] = lambda: users
@@ -330,11 +380,15 @@ def test_customer_and_provider_authenticated_api_flow() -> None:
         app.dependency_overrides[get_service_request_repository] = lambda: requests
         app.dependency_overrides[get_customer_profile_repository] = lambda: customers
         app.dependency_overrides[get_interaction_repository] = lambda: interactions
+        app.dependency_overrides[get_firebase_rtdb_client] = lambda: firebase_bookings
         app.dependency_overrides[document_storage_service] = lambda: private_storage
 
         async def firebase_boundary_stub(request: Request) -> UserPublic:
             token = request.headers["Authorization"].removeprefix("Bearer ")
             claims = decode_access_token_claims(token, get_settings())
+            users.by_id[claims.user_id].setdefault("legacy", {})["firebase_uid"] = (
+                f"firebase-{claims.user_id}"
+            )
             return UserPublic.model_validate(users.by_id[claims.user_id])
 
         app.dependency_overrides[get_firebase_current_user] = firebase_boundary_stub
@@ -725,6 +779,15 @@ def test_customer_and_provider_authenticated_api_flow() -> None:
                 assert rating.status_code == 200
                 assert rating.json()["rating"] == 5
                 assert rating.json()["review_text"] == (
+                    "Excellent installation and helpful explanation."
+                )
+                firebase_history = firebase_bookings.by_uid[
+                    f"firebase-{customer['user_id']}"
+                ]
+                firebase_booking = firebase_history[booking.json()["interaction_id"]]
+                assert firebase_booking["status"] == "booking_completed"
+                assert firebase_booking["rating"] == 5
+                assert firebase_booking["review_text"] == (
                     "Excellent installation and helpful explanation."
                 )
                 refreshed_provider = await client.get(

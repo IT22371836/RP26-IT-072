@@ -255,6 +255,34 @@ python scripts/verify_phase4_schema_safety.py `
   --report ..\..\docs\integration\evidence\phase4-schema-safety-verification.json
 ```
 
+### Customer booking-history migration
+
+New booking lifecycle state is stored canonically at
+`customers/{firebase_uid}/bookingHistory/{booking_id}` in Firebase RTDB. Component 1 reads
+that history for personalization; Mongo `interactions` booking events are retained only as a
+temporary compatibility shadow while the remaining Mongo-to-Firebase migration is completed.
+Customer browser sessions cannot mutate `bookingHistory`; trusted Firebase Admin operations
+create bookings and apply provider completion/cancellation and customer rating transitions.
+
+Preview the Mongo booking-history backfill without writing to Firebase:
+
+```powershell
+python scripts/migrate_booking_history_to_firebase.py --dry-run
+```
+
+After reviewing the counts, apply and independently verify it:
+
+```powershell
+python scripts/migrate_booking_history_to_firebase.py --apply `
+  --report ..\..\docs\integration\evidence\booking-history-apply.json
+python scripts/migrate_booking_history_to_firebase.py --verify-only `
+  --report ..\..\docs\integration\evidence\booking-history-verify.json
+```
+
+The configured Firebase Admin credential must be available for `--apply` and `--verify-only`.
+Reruns are idempotent for matching booking identities; conflicting Firebase records stop the
+migration instead of being replaced.
+
 Create an administrator account (the password is requested securely and is not echoed):
 
 ```powershell

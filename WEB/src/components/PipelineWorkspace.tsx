@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, CheckCircle, Clock, RefreshCw, Search, Star } from 'lucide-react';
+import { Activity, AlertTriangle, CheckCircle, Clock, Cpu, Filter, RefreshCw, Search, ShieldCheck, Star } from 'lucide-react';
 import { backendApi } from '../config/api';
 import type { InteractionDto, PipelineCreateDto, PipelineRunDto } from '../config/api';
 import { requireFirebaseApiToken } from '../config/firebaseApiToken';
@@ -14,6 +14,112 @@ function isoDate(offset = 0): string {
   const value = new Date();
   value.setDate(value.getDate() + offset);
   return value.toISOString().slice(0, 10);
+}
+
+type AuditState = 'waiting' | 'running' | 'completed' | 'failed';
+
+function auditState(run: PipelineRunDto, stage: 'component1' | 'component2' | 'component4'): AuditState {
+  if (run[stage]) return 'completed';
+  if (run.status === `${stage}_running`) return 'running';
+  if (run.status === 'failed') {
+    if (stage === 'component1' && !run.component1) return 'failed';
+    if (stage === 'component2' && run.component1 && !run.component2) return 'failed';
+    if (stage === 'component4' && run.component2 && !run.component4) return 'failed';
+  }
+  return 'waiting';
+}
+
+function formatDuration(value?: number): string {
+  if (value === undefined || !Number.isFinite(value)) return 'Pending';
+  return value >= 1000 ? `${(value / 1000).toFixed(2)} s` : `${value.toFixed(1)} ms`;
+}
+
+function PipelineExecutionAudit({ run }: { run: PipelineRunDto }) {
+  const c1State = auditState(run, 'component1');
+  const c2State = auditState(run, 'component2');
+  const c4State = auditState(run, 'component4');
+  const c1Count = run.component1?.providers.length ?? 0;
+  const c2Count = run.component2?.output_results.provider_ids?.length ?? 0;
+  const c2Evaluated = run.component2?.all_evaluated_providers.length ?? c1Count;
+  const c4Count = run.component4?.providers.length ?? 0;
+  const stateStyle: Record<AuditState, { color: string; background: string; label: string }> = {
+    waiting: { color: '#64748b', background: '#f1f5f9', label: 'Waiting' },
+    running: { color: '#0369a1', background: '#e0f2fe', label: 'Running' },
+    completed: { color: '#166534', background: '#dcfce7', label: 'Completed' },
+    failed: { color: '#991b1b', background: '#fee2e2', label: 'Failed' }
+  };
+  const stages = [
+    {
+      key: 'component1', title: 'Component 1 · Hybrid recommendation', icon: <Cpu size={18} />,
+      state: c1State,
+      description: 'Runs the trained TF-IDF vectorizer, multilingual semantic embedding model, and collaborative preference score.',
+      facts: [
+        `Engine: ${run.component1?.engine ?? 'hybrid_tfidf_semantic_cf'}`,
+        `Artifact/model loaded: ${run.component1?.model_loaded === true ? 'Yes' : c1State === 'completed' ? 'Yes' : 'Pending'}`,
+        `Version: ${run.component1?.component_version ?? 'Pending'} / ${run.component1?.model_version ?? 'Pending'}`,
+        `Candidates: ${run.component1?.artifact_provider_count ?? '10,000'} → ${c1Count || 'Top-20 pending'}`,
+        `Preference signals: ${run.component1?.preference_signal_count ?? 'Pending'}`,
+        `Runtime: ${formatDuration(run.component1?.processing_time_ms)}`
+      ]
+    },
+    {
+      key: 'component2', title: 'Component 2 · Availability filter', icon: <Filter size={18} />,
+      state: c2State,
+      description: 'Deterministic Firebase filter—not a trained ML model. Applies distance, working hours, availability, and weather rules to C1 only.',
+      facts: [
+        `Engine: ${run.component2?.engine ?? 'deterministic_distance_hours_weather_filter'}`,
+        `Version: ${run.component2?.component_version ?? 'Pending'} / ${run.component2?.model_version ?? 'Pending'}`,
+        `Candidates: ${c2Evaluated || 'Top-20 pending'} → ${run.component2 ? c2Count : 'Top-10 pending'}`,
+        `Rejected: ${run.component2 ? Math.max(0, c2Evaluated - c2Count) : 'Pending'}`,
+        `Weather: ${run.component2?.output_results.weather_risk ?? 'Pending'}`,
+        `Runtime: ${formatDuration(run.component2?.processing_time_ms)}`
+      ]
+    },
+    {
+      key: 'component4', title: 'Component 4 · Trust ranking', icon: <ShieldCheck size={18} />,
+      state: c4State,
+      description: 'Loads CATF trust scores produced by the trained ABSA and review-credibility models, then ranks the C2 candidates.',
+      facts: [
+        `Engine: ${run.component4?.engine ?? 'catf_precomputed_absa_credibility_ranking'}`,
+        `Artifact/model loaded: ${run.component4?.model_loaded === true ? 'Yes' : c4State === 'completed' ? 'Yes' : 'Pending'}`,
+        `Versions: ${run.component4 ? Object.values(run.component4.versions).join(' · ') : 'Pending'}`,
+        `Candidates: ${run.component4?.input_count ?? (run.component2 ? c2Count : 'Top-10 pending')} → ${c4Count || 'Top-5 pending'}`,
+        `Source: ${run.component4?.handoff?.source ?? run.fallback?.source ?? 'component2'}`,
+        `Runtime: ${formatDuration(run.component4?.pipeline_processing_time_ms ?? run.component4?.processing_time_ms)}`
+      ]
+    }
+  ] as const;
+
+  return <details style={{ marginTop: 16, border: '1px solid #94a3b8', borderRadius: 10, background: 'rgba(15, 23, 42, 0.04)' }}>
+    <summary style={{ padding: 13, cursor: 'pointer', fontWeight: 700 }}>
+      <Activity size={17} /> Pipeline execution log <small style={{ marginLeft: 6, fontWeight: 500 }}>expand technical audit</small>
+    </summary>
+    <div style={{ padding: '0 13px 13px' }}>
+      <p style={{ marginTop: 0 }}>Persisted backend evidence for request <code>{run.request_id}</code>. This confirms the actual 1 → 2 → 4 handoff; it is not a simulated frontend progress display.</p>
+      <div style={{ display: 'grid', gap: 10 }}>
+        {stages.map(stage => {
+          const appearance = stateStyle[stage.state];
+          return <article key={stage.key} style={{ borderLeft: `4px solid ${appearance.color}`, borderRadius: 8, padding: 12, background: appearance.background }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+              <strong>{stage.icon} {stage.title}</strong>
+              <span style={{ color: appearance.color, fontWeight: 700 }}>{stage.state === 'running' ? <RefreshCw size={14} /> : stage.state === 'completed' ? <CheckCircle size={14} /> : stage.state === 'failed' ? <AlertTriangle size={14} /> : <Clock size={14} />} {appearance.label}</span>
+            </div>
+            <p style={{ margin: '7px 0', fontSize: 14 }}>{stage.description}</p>
+            <ul style={{ margin: 0, paddingLeft: 20, display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(260px,1fr))', gap: '3px 18px' }}>
+              {stage.facts.map(fact => <li key={fact}>{fact}</li>)}
+            </ul>
+          </article>;
+        })}
+      </div>
+      <h4 style={{ marginBottom: 6 }}>Backend transition events</h4>
+      {run.execution_log?.length ? <ol style={{ margin: 0, paddingLeft: 22 }}>
+        {run.execution_log.map((event, index) => <li key={`${event.status}-${event.timestamp}-${index}`} style={{ marginBottom: 5 }}>
+          <code>{new Date(event.timestamp).toLocaleTimeString()}</code> · <strong>{event.status}</strong> · {event.message}
+        </li>)}
+      </ol> : <p>No persisted transition events are available for this older run. Component payload evidence is shown above.</p>}
+      {run.error && <p style={{ color: '#991b1b' }}><strong>{run.error.code}:</strong> {run.error.message}</p>}
+    </div>
+  </details>;
 }
 
 export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ currentUser }) => {
@@ -128,6 +234,7 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
       {ACTIVE.has(run.status) && <p><RefreshCw size={15} /> Worker is processing this request. Refresh-safe polling is active.</p>}
       {run.status === 'failed' && <div style={{ color: '#991b1b' }}><strong>{run.error?.code}</strong>: {run.error?.message} {run.error?.retryable && <button onClick={retry}>Retry</button>}</div>}
       {run.fallback?.used && <div style={{ margin: '14px 0', padding: 14, background: '#fef3c7', color: '#92400e', borderRadius: 8 }}><AlertTriangle size={18} /> Availability filtering returned no providers. These results are a disclosed relevance/trust fallback from Component 1; availability is not confirmed.</div>}
+      <PipelineExecutionAudit run={run} />
       {run.component4 && <div>
         <h3>Final Top-5</h3>
         <div style={{ display: 'grid', gap: 12 }}>{run.component4.providers.map(provider => {

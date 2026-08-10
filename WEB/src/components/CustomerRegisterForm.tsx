@@ -7,7 +7,7 @@ import { registerCustomer } from '../config/firebase';
 import type { Customer } from '../config/firebase';
 
 interface CustomerRegisterFormProps {
-  onSuccess: (customer: Customer) => void;
+  onSuccess: (customer: Customer) => void | Promise<void>;
   onSwitchToLogin: () => void;
 }
 
@@ -96,9 +96,8 @@ export const CustomerRegisterForm: React.FC<CustomerRegisterFormProps> = ({
       );
 
       setSuccessMsg(`Customer account created successfully in Firebase Auth & RTDB for ${created.fullName}!`);
-      setTimeout(() => {
-        onSuccess(created);
-      }, 1200);
+      await new Promise((resolve) => setTimeout(resolve, 1200));
+      await onSuccess(created);
     } catch (err: any) {
       console.error(err);
       setErrorMsg(err.message || 'Failed to register customer.');

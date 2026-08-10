@@ -66,6 +66,8 @@ class PipelineRunResponse(BaseModel):
     component4: dict[str, Any] | None = None
     fallback: dict[str, Any] | None = None
     error: dict[str, Any] | None = None
+    execution_log: list[dict[str, Any]] = Field(default_factory=list)
+    stage_timestamps: dict[str, Any] = Field(default_factory=dict)
     selected_provider_id: str | None = None
     booking_interaction_id: str | None = None
     attempt_count: int = 0

@@ -13,7 +13,7 @@ function readEnum<T extends string>(
 }
 
 export const runtimeConfig = Object.freeze({
-  apiBaseUrl: (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1').replace(/\/$/, ''),
+  apiBaseUrl: (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001/api/v1').replace(/\/$/, ''),
   dataSource: readEnum<DataSource>(
     'VITE_DATA_SOURCE',
     import.meta.env.VITE_DATA_SOURCE,

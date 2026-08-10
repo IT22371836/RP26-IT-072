@@ -112,6 +112,7 @@ class PipelineWorker:
 
         component1 = run.get("component1")
         if not isinstance(component1, dict) or len(component1.get("providers", [])) != 20:
+            LOGGER.info("Pipeline %s: Component 1 started", run_id)
             await self.pipeline.transition(
                 run_id, self.settings.pipeline_worker_id, PipelineStatus.COMPONENT1_RUNNING
             )
@@ -122,9 +123,16 @@ class PipelineWorker:
                 PipelineStatus.COMPONENT1_COMPLETED,
                 {"component1": component1},
             )
+            LOGGER.info(
+                "Pipeline %s: Component 1 completed model=%s providers=%d",
+                run_id,
+                component1["model_version"],
+                len(component1["providers"]),
+            )
 
         component2 = run.get("component2")
         if not isinstance(component2, dict):
+            LOGGER.info("Pipeline %s: Component 2 started", run_id)
             await self.pipeline.transition(
                 run_id, self.settings.pipeline_worker_id, PipelineStatus.COMPONENT2_RUNNING
             )
@@ -136,6 +144,12 @@ class PipelineWorker:
                 self.settings.pipeline_worker_id,
                 PipelineStatus.COMPONENT2_COMPLETED,
                 {"component2": component2},
+            )
+            LOGGER.info(
+                "Pipeline %s: Component 2 completed model=%s providers=%d",
+                run_id,
+                component2["model_version"],
+                len(component2["output_results"].get("provider_ids", [])),
             )
 
         c1_ids = [item["provider_id"] for item in component1["providers"]]
@@ -166,6 +180,7 @@ class PipelineWorker:
 
         component4 = run.get("component4")
         if not isinstance(component4, dict):
+            LOGGER.info("Pipeline %s: Component 4 started source=%s", run_id, source)
             await self.pipeline.transition(
                 run_id, self.settings.pipeline_worker_id, PipelineStatus.COMPONENT4_RUNNING
             )
@@ -187,6 +202,13 @@ class PipelineWorker:
                 "fallback": fallback,
                 "lease_expires_at": None,
             },
+        )
+        LOGGER.info(
+            "Pipeline %s: completed Component 1=%d Component 2=%d Component 4=%d",
+            run_id,
+            len(c1_ids),
+            len(c2_ids),
+            len(final_ids),
         )
 
     async def _run_component1(
@@ -239,6 +261,7 @@ class PipelineWorker:
                 retryable=False,
             )
         finished = utc_now()
+        processing_time_ms = round((perf_counter() - started) * 1000, 3)
         providers = [
             {**result.model_dump(mode="json"), "rank": rank}
             for rank, result in enumerate(results, start=1)
@@ -260,7 +283,7 @@ class PipelineWorker:
                 "output_count": 20,
                 "component_version": engine.manifest["component_version"],
                 "model_version": engine.manifest["model_version"],
-                "processing_time_ms": round((perf_counter() - started) * 1000, 3),
+                "processing_time_ms": processing_time_ms,
                 "started_at": started_at,
             },
             [
@@ -296,8 +319,15 @@ class PipelineWorker:
         )
         return {
             "run_id": component_run_id,
+            "engine": "hybrid_tfidf_semantic_cf",
+            "model_loaded": True,
             "component_version": engine.manifest["component_version"],
             "model_version": engine.manifest["model_version"],
+            "artifact_provider_count": engine.status()["provider_count"],
+            "preference_signal_count": len(preferences),
+            "processing_time_ms": processing_time_ms,
+            "started_at": started_at.isoformat(),
+            "completed_at": finished.isoformat(),
             "providers": providers,
         }
 
@@ -309,6 +339,8 @@ class PipelineWorker:
         request: dict[str, Any],
         component1: dict[str, Any],
     ) -> dict[str, Any]:
+        started_at = utc_now()
+        started = perf_counter()
         user = await self.users.find_by_id(user_id)
         firebase_uid = (user or {}).get("legacy", {}).get("firebase_uid")
         if not firebase_uid:
@@ -363,12 +395,12 @@ class PipelineWorker:
                 weather_retries=self.settings.pipeline_weather_retries,
             )
             result = await asyncio.to_thread(service.filter, trusted_payload, customer, providers)
-            completed_at = utc_now().isoformat()
+            completed_at = utc_now()
             await self.firebase.complete_filter_request(
                 request_id,
                 output_results=result.output_results,
                 pipeline_updates={
-                    "completed_at": completed_at,
+                    "completed_at": completed_at.isoformat(),
                     "component2_version": result.component_version,
                     "component2_model_version": result.model_version,
                     "errors": None,
@@ -380,6 +412,10 @@ class PipelineWorker:
             raise PipelineExecutionError("firebase_failure", str(error), retryable=True) from error
         return {
             **result.model_dump(mode="json"),
+            "engine": "deterministic_distance_hours_weather_filter",
+            "processing_time_ms": round((perf_counter() - started) * 1000, 3),
+            "started_at": started_at.isoformat(),
+            "completed_at": completed_at.isoformat(),
             "firebase_request_id": request_id,
         }
 
@@ -390,6 +426,8 @@ class PipelineWorker:
         provider_ids: list[str],
         source: str,
     ) -> dict[str, Any]:
+        started_at = utc_now()
+        started = perf_counter()
         engine = get_component4_engine(
             self.settings.component4_artifact_dir,
             self.settings.component4_category_priors_path,
@@ -409,7 +447,15 @@ class PipelineWorker:
             user_id=user_id,
             live_providers=live_providers,
         )
-        return response.model_dump(mode="json")
+        completed_at = utc_now()
+        return {
+            **response.model_dump(mode="json"),
+            "engine": "catf_precomputed_absa_credibility_ranking",
+            "model_loaded": True,
+            "pipeline_processing_time_ms": round((perf_counter() - started) * 1000, 3),
+            "started_at": started_at.isoformat(),
+            "completed_at": completed_at.isoformat(),
+        }
 
 
 async def run_forever() -> None:

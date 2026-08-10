@@ -5,7 +5,7 @@
 Copy `.env.example` to `.env`:
 
 ```env
-VITE_API_BASE_URL=http://localhost:8000/api/v1
+VITE_API_BASE_URL=http://localhost:8001/api/v1
 VITE_DATA_SOURCE=firebase
 VITE_AUTH_SOURCE=firebase
 VITE_FILE_STORAGE_SOURCE=firebase

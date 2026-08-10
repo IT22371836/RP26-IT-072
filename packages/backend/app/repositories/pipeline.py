@@ -9,6 +9,94 @@ from pymongo.errors import DuplicateKeyError
 from app.pipeline.schemas import PipelineStatus
 from app.schemas.common import utc_now
 
+STATUS_STAGE = {
+    PipelineStatus.INITIALIZING: "pipeline",
+    PipelineStatus.CREATED: "pipeline",
+    PipelineStatus.COMPONENT1_RUNNING: "component1",
+    PipelineStatus.COMPONENT1_COMPLETED: "component1",
+    PipelineStatus.COMPONENT2_RUNNING: "component2",
+    PipelineStatus.COMPONENT2_COMPLETED: "component2",
+    PipelineStatus.COMPONENT4_RUNNING: "component4",
+    PipelineStatus.COMPLETED: "component4",
+    PipelineStatus.FAILED: "pipeline",
+    PipelineStatus.RETRY_PENDING: "pipeline",
+    PipelineStatus.CANCELLED: "pipeline",
+}
+
+STATUS_MESSAGES = {
+    PipelineStatus.INITIALIZING: "Pipeline request initialized",
+    PipelineStatus.CREATED: "Pipeline queued for the worker",
+    PipelineStatus.COMPONENT1_RUNNING: "Component 1 hybrid recommendation started",
+    PipelineStatus.COMPONENT1_COMPLETED: "Component 1 produced the Top-20",
+    PipelineStatus.COMPONENT2_RUNNING: "Component 2 availability filtering started",
+    PipelineStatus.COMPONENT2_COMPLETED: "Component 2 filtering completed",
+    PipelineStatus.COMPONENT4_RUNNING: "Component 4 trust ranking started",
+    PipelineStatus.COMPLETED: "Component 4 completed and the pipeline returned the Top-5",
+    PipelineStatus.FAILED: "Pipeline execution failed",
+    PipelineStatus.RETRY_PENDING: "Pipeline retry requested",
+    PipelineStatus.CANCELLED: "Pipeline execution cancelled",
+}
+
+
+def pipeline_execution_event(
+    status: PipelineStatus,
+    timestamp: Any,
+    updates: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Create a compact, customer-safe persisted audit event for one transition."""
+
+    values = updates or {}
+    details: dict[str, Any] = {}
+    component1 = values.get("component1")
+    component2 = values.get("component2")
+    component4 = values.get("component4")
+    error = values.get("error")
+    if isinstance(component1, dict):
+        details = {
+            "engine": component1.get("engine"),
+            "component_version": component1.get("component_version"),
+            "model_version": component1.get("model_version"),
+            "input_provider_count": component1.get("artifact_provider_count"),
+            "output_provider_count": len(component1.get("providers", [])),
+            "processing_time_ms": component1.get("processing_time_ms"),
+        }
+    elif isinstance(component2, dict):
+        evaluated = component2.get("all_evaluated_providers", [])
+        provider_ids = component2.get("output_results", {}).get("provider_ids", [])
+        details = {
+            "engine": component2.get("engine"),
+            "component_version": component2.get("component_version"),
+            "model_version": component2.get("model_version"),
+            "input_provider_count": len(evaluated),
+            "output_provider_count": len(provider_ids),
+            "rejected_provider_count": max(0, len(evaluated) - len(provider_ids)),
+            "weather_risk": component2.get("output_results", {}).get("weather_risk"),
+            "processing_time_ms": component2.get("processing_time_ms"),
+        }
+    elif isinstance(component4, dict):
+        details = {
+            "engine": component4.get("engine"),
+            "component_version": component4.get("component_version"),
+            "model_versions": component4.get("versions"),
+            "input_provider_count": component4.get("input_count"),
+            "output_provider_count": component4.get("output_count"),
+            "source": component4.get("handoff", {}).get("source"),
+            "processing_time_ms": component4.get("pipeline_processing_time_ms")
+            or component4.get("processing_time_ms"),
+        }
+    elif isinstance(error, dict):
+        details = {
+            "error_code": error.get("code"),
+            "retryable": error.get("retryable"),
+        }
+    return {
+        "stage": STATUS_STAGE[status],
+        "status": status.value,
+        "message": STATUS_MESSAGES[status],
+        "timestamp": timestamp,
+        "details": {key: value for key, value in details.items() if value is not None},
+    }
+
 
 class PipelineRepository:
     def __init__(self, database: Any) -> None:
@@ -44,7 +132,14 @@ class PipelineRepository:
         now = utc_now()
         document = await self.collection.find_one_and_update(
             {"run_id": run_id, "status": PipelineStatus.INITIALIZING.value},
-            {"$set": {"status": PipelineStatus.CREATED.value, "updated_at": now}},
+            {
+                "$set": {"status": PipelineStatus.CREATED.value, "updated_at": now},
+                "$push": {
+                    "execution_log": pipeline_execution_event(
+                        PipelineStatus.CREATED, now
+                    )
+                },
+            },
             return_document=ReturnDocument.AFTER,
         )
         if document is None:
@@ -118,11 +213,26 @@ class PipelineRepository:
     ) -> dict[str, Any]:
         now = utc_now()
         values = {"status": status.value, "updated_at": now, **(updates or {})}
+        stage_timestamp_paths = {
+            PipelineStatus.COMPONENT1_RUNNING: "stage_timestamps.component1.started_at",
+            PipelineStatus.COMPONENT1_COMPLETED: "stage_timestamps.component1.completed_at",
+            PipelineStatus.COMPONENT2_RUNNING: "stage_timestamps.component2.started_at",
+            PipelineStatus.COMPONENT2_COMPLETED: "stage_timestamps.component2.completed_at",
+            PipelineStatus.COMPONENT4_RUNNING: "stage_timestamps.component4.started_at",
+            PipelineStatus.COMPLETED: "stage_timestamps.component4.completed_at",
+        }
+        if timestamp_path := stage_timestamp_paths.get(status):
+            values[timestamp_path] = now
         if status == PipelineStatus.COMPLETED:
             values["completed_at"] = now
         document = await self.collection.find_one_and_update(
             {"run_id": run_id, "worker_id": worker_id},
-            {"$set": values},
+            {
+                "$set": values,
+                "$push": {
+                    "execution_log": pipeline_execution_event(status, now, updates)
+                },
+            },
             return_document=ReturnDocument.AFTER,
         )
         if document is None:
@@ -195,7 +305,12 @@ class PipelineRepository:
                     "worker_id": None,
                     "lease_expires_at": None,
                     "updated_at": now,
-                }
+                },
+                "$push": {
+                    "execution_log": pipeline_execution_event(
+                        PipelineStatus.RETRY_PENDING, now
+                    )
+                },
             },
             return_document=ReturnDocument.AFTER,
         )

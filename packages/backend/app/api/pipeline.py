@@ -24,7 +24,7 @@ from app.pipeline.schemas import (
     PipelineStartResponse,
     PipelineStatus,
 )
-from app.repositories.pipeline import PipelineRepository
+from app.repositories.pipeline import PipelineRepository, pipeline_execution_event
 from app.repositories.service_requests import ServiceRequestRepository
 from app.repositories.users import UserRepository
 from app.schemas.auth import UserPublic
@@ -100,6 +100,10 @@ async def start_pipeline(
         "selected_provider_id": None,
         "booking_interaction_id": None,
         "selected_at": None,
+        "execution_log": [
+            pipeline_execution_event(PipelineStatus.INITIALIZING, now)
+        ],
+        "stage_timestamps": {"pipeline": {"created_at": now}},
         "created_at": now,
         "updated_at": now,
     }

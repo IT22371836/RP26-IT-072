@@ -10,10 +10,12 @@ import { subscribeAuthState, logoutFirebaseUser, ACTIVE_SESSION_KEY } from './co
 import { syncCustomerProfileFromConfiguredSource } from './services/customer-service';
 import { syncProviderProfileFromConfiguredSource } from './services/provider-service';
 import { ThemeProvider } from './context/ThemeContext';
+import { FIREBASE_AUTH_REJECTED_EVENT } from './config/api';
 
 export function AppContent() {
   const [activeTab, setActiveTab] = useState<'customer' | 'provider' | 'login' | 'dashboard'>('login');
   const [currentUser, setCurrentUser] = useState<any | null>(null);
+  const [loginNotice, setLoginNotice] = useState('');
 
   // Firebase Auth is the only session authority. localStorage holds profile UI data only.
   useEffect(() => {
@@ -31,10 +33,29 @@ export function AppContent() {
     return () => unsubscribe();
   }, []);
 
-  const handleRegisterSuccess = (registeredUser: any) => {
-    setCurrentUser(registeredUser);
-    localStorage.setItem(ACTIVE_SESSION_KEY, JSON.stringify(registeredUser));
-    setActiveTab('dashboard');
+  useEffect(() => {
+    const handleRejectedFirebaseSession = () => {
+      void logoutFirebaseUser().catch(() => undefined);
+      setCurrentUser(null);
+      setLoginNotice('Your Firebase session is no longer valid. Please sign in again.');
+      setActiveTab('login');
+    };
+    window.addEventListener(FIREBASE_AUTH_REJECTED_EVENT, handleRejectedFirebaseSession);
+    return () => {
+      window.removeEventListener(FIREBASE_AUTH_REJECTED_EVENT, handleRejectedFirebaseSession);
+    };
+  }, []);
+
+  const handleRegisterSuccess = async (registeredUser: any) => {
+    // Firebase signs a newly-created account in automatically. Registration is
+    // intentionally not treated as an application login: end that temporary
+    // Firebase session and require an explicit sign-in before opening a dashboard.
+    await logoutFirebaseUser();
+    setCurrentUser(null);
+    setLoginNotice(
+      `${registeredUser.fullName}'s account was created successfully. Please sign in to continue.`
+    );
+    setActiveTab('login');
   };
 
   const handleLoginSuccess = async (user: any) => {
@@ -44,6 +65,7 @@ export function AppContent() {
         ? await syncProviderProfileFromConfiguredSource(user)
         : user;
     setCurrentUser(synchronizedUser);
+    setLoginNotice('');
     localStorage.setItem(ACTIVE_SESSION_KEY, JSON.stringify(synchronizedUser));
     setActiveTab('dashboard');
   };
@@ -83,8 +105,12 @@ export function AppContent() {
 
         {activeTab === 'login' && (
           <LoginForm
+            notice={loginNotice}
             onLoginSuccess={handleLoginSuccess}
-            onSwitchToRegister={(role) => setActiveTab(role)}
+            onSwitchToRegister={(role) => {
+              setLoginNotice('');
+              setActiveTab(role);
+            }}
           />
         )}
 
@@ -128,8 +154,12 @@ export function AppContent() {
         {/* If no user is logged in and dashboard is clicked, render Login */}
         {activeTab === 'dashboard' && !currentUser && (
           <LoginForm
+            notice={loginNotice}
             onLoginSuccess={handleLoginSuccess}
-            onSwitchToRegister={(role) => setActiveTab(role)}
+            onSwitchToRegister={(role) => {
+              setLoginNotice('');
+              setActiveTab(role);
+            }}
           />
         )}
       </main>

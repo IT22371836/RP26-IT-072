@@ -1,5 +1,12 @@
 import { runtimeConfig } from './runtime';
 
+export const FIREBASE_AUTH_REJECTED_EVENT = 'weda:firebase-auth-rejected';
+
+function notifyRejectedFirebaseSession(): void {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(new CustomEvent(FIREBASE_AUTH_REJECTED_EVENT));
+}
+
 export interface CustomerLocationDto {
   latitude: number;
   longitude: number;
@@ -142,22 +149,60 @@ export interface PipelineProviderDto {
   platform_review_count?: number;
 }
 
+export interface PipelineExecutionLogDto {
+  stage: 'pipeline' | 'component1' | 'component2' | 'component4' | string;
+  status: string;
+  message: string;
+  timestamp: string;
+  details: Record<string, any>;
+}
+
 export interface PipelineRunDto {
   run_id: string;
   request_id: string;
   user_id: string;
   status: PipelineStatus;
   request: Record<string, any>;
-  component1: { providers: PipelineProviderDto[]; component_version: string; model_version: string } | null;
+  component1: {
+    providers: PipelineProviderDto[];
+    component_version: string;
+    model_version: string;
+    engine?: string;
+    model_loaded?: boolean;
+    artifact_provider_count?: number;
+    preference_signal_count?: number;
+    processing_time_ms?: number;
+    started_at?: string;
+    completed_at?: string;
+  } | null;
   component2: {
     output_results: Record<string, any>;
     all_evaluated_providers: Array<Record<string, any>>;
     component_version: string;
     model_version: string;
+    engine?: string;
+    processing_time_ms?: number;
+    started_at?: string;
+    completed_at?: string;
   } | null;
-  component4: { providers: PipelineProviderDto[]; versions: Record<string, string> } | null;
+  component4: {
+    providers: PipelineProviderDto[];
+    versions: Record<string, string>;
+    component_version?: string;
+    input_count?: number;
+    output_count?: number;
+    processing_time_ms?: number;
+    pipeline_processing_time_ms?: number;
+    engine?: string;
+    model_loaded?: boolean;
+    started_at?: string;
+    completed_at?: string;
+    handoff?: { source?: string; component_version?: string; model_version?: string };
+  } | null;
   fallback: { used: boolean; fallback_reason: string; source: string } | null;
   error: { code: string; message: string; retryable: boolean } | null;
+  execution_log?: PipelineExecutionLogDto[];
+  stage_timestamps?: Record<string, Record<string, string>>;
   selected_provider_id: string | null;
   booking_interaction_id: string | null;
   attempt_count: number;
@@ -227,6 +272,7 @@ async function request<T>(
       ? (body as { detail: unknown }).detail
       : body;
     const message = typeof detail === 'string' ? detail : `API request failed (${response.status})`;
+    if (response.status === 401) notifyRejectedFirebaseSession();
     throw new ApiError(message, response.status, body);
   }
   return body as T;
@@ -244,6 +290,7 @@ async function requestBlob(path: string, token?: string): Promise<Blob> {
     const message = details && typeof details === 'object' && 'detail' in details
       ? String(details.detail)
       : `Request failed with status ${response.status}`;
+    if (response.status === 401) notifyRejectedFirebaseSession();
     throw new ApiError(message, response.status, details);
   }
   return response.blob();

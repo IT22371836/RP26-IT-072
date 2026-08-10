@@ -3,11 +3,13 @@ import { Mail, Loader2, Lock, Eye, EyeOff } from 'lucide-react';
 import { loginUser } from '../config/firebase';
 
 interface LoginFormProps {
+  notice?: string;
   onLoginSuccess: (user: any) => void | Promise<void>;
   onSwitchToRegister: (role: 'customer' | 'provider') => void;
 }
 
 export const LoginForm: React.FC<LoginFormProps> = ({
+  notice,
   onLoginSuccess,
   onSwitchToRegister
 }) => {
@@ -72,6 +74,12 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       {errorMsg && (
         <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid #ef4444', color: '#b91c1c', padding: '12px 16px', borderRadius: '12px', fontSize: '0.88rem', marginBottom: '20px' }}>
           ⚠️ {errorMsg}
+        </div>
+      )}
+
+      {notice && (
+        <div style={{ background: 'rgba(39, 98, 33, 0.1)', border: '1px solid #276221', color: '#1e4b19', padding: '12px 16px', borderRadius: '12px', fontSize: '0.88rem', marginBottom: '20px' }}>
+          {notice}
         </div>
       )}
 

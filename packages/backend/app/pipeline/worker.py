@@ -17,6 +17,7 @@ from app.integrations.firebase_component2 import (
     FirebaseComponent2Error,
     FirebaseRtdbClient,
     booking_history_preference_ids,
+    merge_verified_provider_candidates,
 )
 from app.pipeline.schemas import PipelineStatus
 from app.repositories.component1 import Component1Repository
@@ -184,7 +185,13 @@ class PipelineWorker:
             await self.pipeline.transition(
                 run_id, self.settings.pipeline_worker_id, PipelineStatus.COMPONENT4_RUNNING
             )
-            component4 = await self._run_component4(request_id, user_id, c4_ids, source)
+            component4 = await self._run_component4(
+                request_id,
+                user_id,
+                c4_ids,
+                source,
+                component1["providers"],
+            )
 
         final_ids = [item["provider_id"] for item in component4["providers"]]
         if not set(final_ids).issubset(c4_ids) or len(final_ids) > 5:
@@ -225,7 +232,23 @@ class PipelineWorker:
             )
         started_at = utc_now()
         started = perf_counter()
-        live_providers = await self.providers.list_all(limit=10_000)
+        try:
+            mongo_providers, firebase_providers = await asyncio.gather(
+                self.providers.list_all(limit=10_000),
+                self.firebase.get_verified_provider_candidates(),
+            )
+        except FirebaseComponent2Error as error:
+            raise PipelineExecutionError(
+                "firebase_failure", str(error), retryable=True
+            ) from error
+        artifact_provider_ids = {
+            str(provider["provider_id"]) for provider in engine.providers
+        }
+        live_providers = merge_verified_provider_candidates(
+            artifact_provider_ids,
+            mongo_providers,
+            firebase_providers,
+        )
         user = await self.users.find_by_id(user_id)
         firebase_uid = (user or {}).get("legacy", {}).get("firebase_uid")
         if not firebase_uid:
@@ -324,6 +347,11 @@ class PipelineWorker:
             "component_version": engine.manifest["component_version"],
             "model_version": engine.manifest["model_version"],
             "artifact_provider_count": engine.status()["provider_count"],
+            "mongo_provider_count": len(mongo_providers),
+            "verified_firebase_provider_count": len(firebase_providers),
+            "additional_verified_provider_count": len(live_providers),
+            "candidate_pool_count": len(artifact_provider_ids) + len(live_providers),
+            "candidate_source": "artifact_plus_verified_live_providers",
             "preference_signal_count": len(preferences),
             "processing_time_ms": processing_time_ms,
             "started_at": started_at.isoformat(),
@@ -425,6 +453,7 @@ class PipelineWorker:
         user_id: str,
         provider_ids: list[str],
         source: str,
+        component1_providers: list[dict[str, Any]],
     ) -> dict[str, Any]:
         started_at = utc_now()
         started = perf_counter()
@@ -441,7 +470,17 @@ class PipelineWorker:
             provider_ids=provider_ids,
             top_k=5,
         )
-        live_providers = await self.providers.list_by_ids(provider_ids)
+        selected = set(provider_ids)
+        live_index = {
+            str(provider["provider_id"]): dict(provider)
+            for provider in component1_providers
+            if str(provider.get("provider_id")) in selected
+        }
+        for provider in await self.providers.list_by_ids(provider_ids):
+            provider_id = str(provider.get("provider_id") or "")
+            if provider_id in selected:
+                live_index[provider_id] = {**live_index.get(provider_id, {}), **provider}
+        live_providers = list(live_index.values())
         response = await Component4RankingOrchestrator(engine, self.component4_runs).rank(
             payload,
             user_id=user_id,

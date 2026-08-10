@@ -30,6 +30,11 @@ def test_booking_history_preserves_component1_interaction_weights() -> None:
             "updated_at": "2026-08-03T10:00:00+00:00",
         },
         "invalid": {"provider_id": "not-a-provider", "status": "booking_completed"},
+        "firebase": {
+            "provider_id": "GsMrbJuYYHR7d0uKEqA5OVjdKV73",
+            "status": "booking_completed",
+            "updated_at": "2026-08-04T10:00:00+00:00",
+        },
     }
 
     preferences = booking_history_preference_ids(history)
@@ -37,6 +42,7 @@ def test_booking_history_preserves_component1_interaction_weights() -> None:
     assert preferences.count("P00001") == 5
     assert preferences.count("P00002") == 9
     assert preferences.count("P00003") == 13
+    assert preferences.count("GsMrbJuYYHR7d0uKEqA5OVjdKV73") == 9
     assert "not-a-provider" not in preferences
 
 

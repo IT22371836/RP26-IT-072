@@ -3,6 +3,8 @@ from typing import Literal, Self
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
+from app.schemas.provider_identity import is_supported_provider_id
+
 ASPECTS = ("quality", "punctuality", "communication", "professionalism")
 
 
@@ -34,9 +36,18 @@ class Component4RankRequest(BaseModel):
     @field_validator("provider_ids")
     @classmethod
     def normalize_unique_provider_ids(cls, values: list[str]) -> list[str]:
-        normalized = [value.strip().upper() for value in values]
-        if any(not value.startswith("P") or not value[1:].isalnum() for value in normalized):
-            raise ValueError("provider_ids must be canonical IDs beginning with P")
+        normalized = []
+        for value in values:
+            candidate = value.strip()
+            if (
+                len(candidate) < 20
+                and candidate[:1].lower() == "p"
+                and candidate[1:].isalnum()
+            ):
+                candidate = candidate.upper()
+            normalized.append(candidate)
+        if any(not is_supported_provider_id(value) for value in normalized):
+            raise ValueError("provider_ids must be canonical P IDs or Firebase UIDs")
         if len(normalized) != len(set(normalized)):
             raise ValueError("provider_ids must be unique")
         return normalized

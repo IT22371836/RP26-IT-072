@@ -10,7 +10,6 @@ import { subscribeAuthState, logoutFirebaseUser, ACTIVE_SESSION_KEY } from './co
 import { syncCustomerProfileFromConfiguredSource } from './services/customer-service';
 import { syncProviderProfileFromConfiguredSource } from './services/provider-service';
 import { ThemeProvider } from './context/ThemeContext';
-import { FIREBASE_AUTH_REJECTED_EVENT } from './config/api';
 
 export function AppContent() {
   const [activeTab, setActiveTab] = useState<'customer' | 'provider' | 'login' | 'dashboard'>('login');
@@ -31,19 +30,6 @@ export function AppContent() {
     });
 
     return () => unsubscribe();
-  }, []);
-
-  useEffect(() => {
-    const handleRejectedFirebaseSession = () => {
-      void logoutFirebaseUser().catch(() => undefined);
-      setCurrentUser(null);
-      setLoginNotice('Your Firebase session is no longer valid. Please sign in again.');
-      setActiveTab('login');
-    };
-    window.addEventListener(FIREBASE_AUTH_REJECTED_EVENT, handleRejectedFirebaseSession);
-    return () => {
-      window.removeEventListener(FIREBASE_AUTH_REJECTED_EVENT, handleRejectedFirebaseSession);
-    };
   }, []);
 
   const handleRegisterSuccess = async (registeredUser: any) => {

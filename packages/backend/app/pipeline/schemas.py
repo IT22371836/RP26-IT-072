@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field, field_validator
 
 from app.components.component2.schemas import ServiceTime
 from app.schemas.common import Urgency
+from app.schemas.provider_identity import PROVIDER_ID_PATTERN
 
 
 class PipelineStatus(StrEnum):
@@ -77,7 +78,9 @@ class PipelineRunResponse(BaseModel):
 
 
 class PipelineSelectionRequest(BaseModel):
-    provider_id: str = Field(pattern=r"^P[A-Z0-9]+$", min_length=2, max_length=64)
+    provider_id: str = Field(
+        pattern=PROVIDER_ID_PATTERN, min_length=2, max_length=128
+    )
 
 
 class PipelineSelectionResponse(BaseModel):

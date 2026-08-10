@@ -238,8 +238,9 @@ def test_fewer_than_five_candidates_returns_every_candidate(
 def test_registered_provider_uses_category_prior_fallback(
     engine: Component4RankingEngine,
 ) -> None:
+    firebase_uid = "GsMrbJuYYHR7d0uKEqA5OVjdKV73"
     provider = {
-        "provider_id": "PNEW123",
+        "provider_id": firebase_uid,
         "provider_name": "New Plumber",
         "category": "Plumbers",
         "district": "Colombo",
@@ -250,13 +251,13 @@ def test_registered_provider_uses_category_prior_fallback(
     result = engine.rank(
         rank_request(
             request_id="RLIVE1",
-            provider_ids=["PNEW123"],
+            provider_ids=[firebase_uid],
         ),
         [provider],
     )
     ranked = result["providers"][0]
 
-    assert ranked["provider_id"] == "PNEW123"
+    assert ranked["provider_id"] == firebase_uid
     assert ranked["score_source"] == "category_prior"
     assert ranked["final_score"] == pytest.approx(0.470486)
     assert ranked["review_count"] == 0

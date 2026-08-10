@@ -228,6 +228,7 @@ class HybridRecommendationEngine:
             if provider.get("provider_id") not in known_provider_ids
         ]
         if live_providers:
+            preference_counts = Counter(additional_preferences or [])
             live_text = [
                 " ".join(
                     (
@@ -246,19 +247,23 @@ class HybridRecommendationEngine:
                 normalize_embeddings=True,
             )
             live_bert = live_embeddings @ query_embedding
-            live_cf = np.array(
-                [
-                    0.5
-                    if int(provider.get("interaction_count", 0)) == 0
-                    else (
+            live_cf_values: list[float] = []
+            for provider in live_providers:
+                if int(provider.get("interaction_count", 0)) == 0:
+                    base_score = 0.5
+                else:
+                    base_score = (
                         float(provider.get("rating", 0)) / 5.0 * 0.50
                         + float(provider.get("booking_success_rate", 0)) * 0.30
-                        + np.tanh(float(provider.get("interaction_count", 0)) / 100.0) * 0.20
+                        + np.tanh(float(provider.get("interaction_count", 0)) / 100.0)
+                        * 0.20
                     )
-                    for provider in live_providers
-                ],
-                dtype=np.float32,
-            )
+                preference_score = min(
+                    1.0,
+                    preference_counts.get(str(provider["provider_id"]), 0) / 13.0,
+                )
+                live_cf_values.append(base_score * 0.80 + preference_score * 0.20)
+            live_cf = np.array(live_cf_values, dtype=np.float32)
             tfidf_raw = np.concatenate((tfidf_raw, live_tfidf))
             bert_raw = np.concatenate((bert_raw, live_bert))
             cf_raw = np.concatenate((cf_raw, live_cf))

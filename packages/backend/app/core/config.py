@@ -41,7 +41,7 @@ class Settings(BaseSettings):
         / "category_priors.json"
     )
 
-    cors_origins: str = "http://localhost:5173"
+    cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
 
     jwt_secret_key: str = Field(default="development-only-change-me-32-bytes", min_length=32)
     jwt_algorithm: Literal["HS256"] = "HS256"

@@ -5,6 +5,8 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
+from app.schemas.provider_identity import is_supported_provider_id
+
 
 class ServiceTime(BaseModel):
     start_time: str = Field(min_length=4, max_length=20)
@@ -51,8 +53,8 @@ class Component2FilterRequest(BaseModel):
             raise ValueError("results.provider_ids must contain between 1 and 20 providers")
         if len(provider_ids) != len(set(provider_ids)):
             raise ValueError("results.provider_ids must be unique")
-        if any(not item.startswith("P") for item in provider_ids):
-            raise ValueError("provider IDs must be canonical IDs beginning with P")
+        if any(not is_supported_provider_id(item) for item in provider_ids):
+            raise ValueError("provider IDs must be canonical P IDs or Firebase UIDs")
         return self
 
 

@@ -5,6 +5,9 @@ from app.components.component2.service import Component2FilteringService
 from app.components.component4.schemas import Component4RankRequest
 
 
+FIREBASE_PROVIDER_UID = "GsMrbJuYYHR7d0uKEqA5OVjdKV73"
+
+
 def request(provider_ids: list[str]) -> Component2FilterRequest:
     return Component2FilterRequest.model_validate(
         {
@@ -88,6 +91,21 @@ def test_zero_result_is_preserved_and_fallback_source_is_valid() -> None:
         provider_ids=["P00001"],
     )
     assert handoff.source == "component2_zero_fallback"
+
+
+def test_component2_and_component4_preserve_case_sensitive_firebase_uid() -> None:
+    payload = request([FIREBASE_PROVIDER_UID])
+    handoff = Component4RankRequest(
+        source="component2",
+        request_id=payload.request_id,
+        user_id="U00001",
+        component_version="component2-v1",
+        model_version="filter-v1",
+        provider_ids=[FIREBASE_PROVIDER_UID],
+    )
+
+    assert payload.results["provider_ids"] == [FIREBASE_PROVIDER_UID]
+    assert handoff.provider_ids == [FIREBASE_PROVIDER_UID]
 
 
 def test_component2_rejects_dates_outside_forecast_window() -> None:

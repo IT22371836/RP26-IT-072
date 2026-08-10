@@ -1,12 +1,5 @@
 import { runtimeConfig } from './runtime';
 
-export const FIREBASE_AUTH_REJECTED_EVENT = 'weda:firebase-auth-rejected';
-
-function notifyRejectedFirebaseSession(): void {
-  if (typeof window === 'undefined') return;
-  window.dispatchEvent(new CustomEvent(FIREBASE_AUTH_REJECTED_EVENT));
-}
-
 export interface CustomerLocationDto {
   latitude: number;
   longitude: number;
@@ -170,6 +163,11 @@ export interface PipelineRunDto {
     engine?: string;
     model_loaded?: boolean;
     artifact_provider_count?: number;
+    mongo_provider_count?: number;
+    verified_firebase_provider_count?: number;
+    additional_verified_provider_count?: number;
+    candidate_pool_count?: number;
+    candidate_source?: string;
     preference_signal_count?: number;
     processing_time_ms?: number;
     started_at?: string;
@@ -272,7 +270,6 @@ async function request<T>(
       ? (body as { detail: unknown }).detail
       : body;
     const message = typeof detail === 'string' ? detail : `API request failed (${response.status})`;
-    if (response.status === 401) notifyRejectedFirebaseSession();
     throw new ApiError(message, response.status, body);
   }
   return body as T;
@@ -290,7 +287,6 @@ async function requestBlob(path: string, token?: string): Promise<Blob> {
     const message = details && typeof details === 'object' && 'detail' in details
       ? String(details.detail)
       : `Request failed with status ${response.status}`;
-    if (response.status === 401) notifyRejectedFirebaseSession();
     throw new ApiError(message, response.status, details);
   }
   return response.blob();

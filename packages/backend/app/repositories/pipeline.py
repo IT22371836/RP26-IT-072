@@ -56,7 +56,16 @@ def pipeline_execution_event(
             "engine": component1.get("engine"),
             "component_version": component1.get("component_version"),
             "model_version": component1.get("model_version"),
-            "input_provider_count": component1.get("artifact_provider_count"),
+            "input_provider_count": component1.get("candidate_pool_count")
+            or component1.get("artifact_provider_count"),
+            "artifact_provider_count": component1.get("artifact_provider_count"),
+            "verified_firebase_provider_count": component1.get(
+                "verified_firebase_provider_count"
+            ),
+            "additional_verified_provider_count": component1.get(
+                "additional_verified_provider_count"
+            ),
+            "candidate_source": component1.get("candidate_source"),
             "output_provider_count": len(component1.get("providers", [])),
             "processing_time_ms": component1.get("processing_time_ms"),
         }

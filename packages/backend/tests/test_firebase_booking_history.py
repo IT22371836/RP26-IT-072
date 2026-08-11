@@ -114,3 +114,32 @@ def test_firebase_ping_uses_a_shallow_admin_root_read() -> None:
 
     assert asyncio.run(client.ping()) is True
     assert calls == [("/", False), ("get", True)]
+
+
+def test_booking_rollback_deletes_only_a_matching_pipeline_run() -> None:
+    class Reference:
+        def __init__(self, value: dict[str, str]) -> None:
+            self.value = value
+            self.deleted = False
+
+        def get(self) -> dict[str, str]:
+            return self.value
+
+        def delete(self) -> None:
+            self.deleted = True
+
+    matching = Reference({"pipeline_run_id": "PIPE1"})
+    other = Reference({"pipeline_run_id": "PIPE2"})
+    client = FirebaseRtdbClient(Settings(_env_file=None))
+
+    client._reference = lambda _path: matching  # type: ignore[method-assign]
+    asyncio.run(
+        client.delete_customer_booking_if_matching("customer", "booking", "PIPE1")
+    )
+    assert matching.deleted is True
+
+    client._reference = lambda _path: other  # type: ignore[method-assign]
+    asyncio.run(
+        client.delete_customer_booking_if_matching("customer", "booking", "PIPE1")
+    )
+    assert other.deleted is False

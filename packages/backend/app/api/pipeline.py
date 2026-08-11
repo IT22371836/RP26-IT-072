@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 from datetime import date, datetime, time
 from typing import Annotated, Any
 
@@ -31,6 +32,7 @@ from app.schemas.auth import UserPublic
 from app.schemas.common import UserRole, new_public_id, utc_now
 
 router = APIRouter(prefix="/pipeline/runs", tags=["pipeline"])
+logger = logging.getLogger(__name__)
 customer_user = require_firebase_role(UserRole.CUSTOMER)
 customer_or_admin = require_firebase_role(UserRole.CUSTOMER, UserRole.ADMIN)
 
@@ -314,13 +316,22 @@ async def select_pipeline_provider(
             ],
         )
     except Exception as error:
+        logger.exception(
+            "Booking persistence failed for pipeline run %s and provider %s",
+            run_id,
+            payload.provider_id,
+        )
         if firebase_created:
             try:
                 await firebase.delete_customer_booking_if_matching(
                     firebase_uid, booking_id, run_id
                 )
             except Exception:
-                pass
+                logger.exception(
+                    "Firebase booking rollback failed for pipeline run %s and booking %s",
+                    run_id,
+                    booking_id,
+                )
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Booking persistence is temporarily unavailable",

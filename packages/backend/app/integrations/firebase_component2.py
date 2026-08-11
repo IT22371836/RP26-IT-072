@@ -164,15 +164,19 @@ class FirebaseRtdbClient:
             f"customers/{firebase_uid}/bookingHistory/{booking_id}"
         )
 
-        def transaction(current: Any) -> Any:
+        def delete_if_matching() -> None:
+            current = reference.get()
             if (
                 isinstance(current, dict)
                 and current.get("pipeline_run_id") == pipeline_run_id
             ):
-                return None
-            return current
+                # The Firebase Admin Python SDK rejects ``None`` from a
+                # transaction callback, so deletion must use Reference.delete.
+                # Booking IDs are immutable and unique, while the run-id check
+                # prevents this compensating action from deleting another run.
+                reference.delete()
 
-        await asyncio.to_thread(reference.transaction, transaction)
+        await asyncio.to_thread(delete_if_matching)
 
     async def get_identity_profile(
         self, firebase_uid: str

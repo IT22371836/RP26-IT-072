@@ -5,6 +5,7 @@ from copy import deepcopy
 from typing import Any
 
 from app.core.config import Settings
+from app.schemas.provider_identity import is_supported_provider_id
 
 
 class FirebaseComponent2Error(RuntimeError):
@@ -13,6 +14,121 @@ class FirebaseComponent2Error(RuntimeError):
 
 class FirebaseRequestConflictError(FirebaseComponent2Error):
     pass
+
+
+def _provider_skills(value: Any) -> list[str]:
+    if isinstance(value, str):
+        values = value.split(",")
+    elif isinstance(value, list):
+        values = value
+    else:
+        values = []
+    return [str(item).strip() for item in values if str(item).strip()]
+
+
+def _provider_number(value: Any, default: float = 0.0) -> float:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def normalize_verified_provider_candidate(
+    provider_id: str,
+    profile: dict[str, Any],
+) -> dict[str, Any] | None:
+    """Normalize one verified Firebase/Mongo provider for live ML scoring."""
+
+    canonical_id = str(provider_id).strip()
+    if not is_supported_provider_id(canonical_id) or profile.get("verified") is not True:
+        return None
+    declared_ids = [profile.get("provider_id"), profile.get("id"), profile.get("uid")]
+    if any(value is not None and str(value).strip() != canonical_id for value in declared_ids):
+        return None
+    provider_name = str(
+        profile.get("provider_name")
+        or profile.get("providerName")
+        or profile.get("fullName")
+        or profile.get("name")
+        or ""
+    ).strip()
+    category = str(profile.get("category") or "").strip()
+    district = str(profile.get("district") or "").strip()
+    city = str(profile.get("city") or "").strip()
+    if not all((provider_name, category, district, city)):
+        return None
+    rating = min(5.0, max(0.0, _provider_number(profile.get("rating"))))
+    review_count = max(
+        0,
+        int(_provider_number(profile.get("review_count", profile.get("reviewCount")))),
+    )
+    booking_success_rate = min(
+        1.0,
+        max(
+            0.0,
+            _provider_number(
+                profile.get("booking_success_rate", profile.get("bookingSuccessRate"))
+            ),
+        ),
+    )
+    interaction_count = max(
+        0,
+        int(
+            _provider_number(
+                profile.get("interaction_count", profile.get("interactionCount"))
+            )
+        ),
+    )
+    experience_years = max(
+        0,
+        int(
+            _provider_number(
+                profile.get("experience_years", profile.get("experienceYears"))
+            )
+        ),
+    )
+    skills = _provider_skills(profile.get("skills"))
+    return {
+        "provider_id": canonical_id,
+        "provider_name": provider_name,
+        "category": category,
+        "district": district,
+        "city": city,
+        "skills": skills,
+        "description": str(profile.get("description") or "").strip(),
+        "experience_years": experience_years,
+        "rating": rating,
+        "review_count": review_count,
+        "booking_success_rate": booking_success_rate,
+        "interaction_count": interaction_count,
+        "verified": True,
+        "candidate_source": "firebase_verified",
+    }
+
+
+def merge_verified_provider_candidates(
+    artifact_provider_ids: set[str],
+    mongo_providers: list[dict[str, Any]],
+    firebase_providers: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Return verified, normalized, non-artifact providers with Firebase authoritative."""
+
+    merged: dict[str, dict[str, Any]] = {}
+    for source_name, providers in (
+        ("mongo_verified", mongo_providers),
+        ("firebase_verified", firebase_providers),
+    ):
+        for profile in providers:
+            provider_id = str(
+                profile.get("provider_id") or profile.get("id") or profile.get("uid") or ""
+            ).strip()
+            if not provider_id or provider_id in artifact_provider_ids:
+                continue
+            normalized = normalize_verified_provider_candidate(provider_id, profile)
+            if normalized is not None:
+                normalized["candidate_source"] = source_name
+                merged[provider_id] = normalized
+    return [merged[provider_id] for provider_id in sorted(merged)]
 
 
 class FirebaseRtdbClient:
@@ -208,6 +324,36 @@ class FirebaseRtdbClient:
         values = await asyncio.gather(*(read(provider_id) for provider_id in provider_ids))
         return {key: value for key, value in values if isinstance(value, dict)}
 
+    async def get_verified_provider_candidates(self) -> list[dict[str, Any]]:
+        """Read and normalize only administrator-verified Firebase providers."""
+
+        try:
+            providers_reference = self._reference("providers")
+            query = providers_reference.order_by_child("verified").equal_to(True)
+            value = await asyncio.to_thread(query.get)
+        except Exception as error:
+            if "Index not defined" not in str(error):
+                raise FirebaseComponent2Error(
+                    "Firebase verified-provider lookup failed"
+                ) from error
+            try:
+                # Keep local development operational before the additive
+                # `providers/.indexOn` rule has been deployed. The same strict
+                # normalization below still admits only verified profiles.
+                value = await asyncio.to_thread(providers_reference.get)
+            except Exception as fallback_error:
+                raise FirebaseComponent2Error(
+                    "Firebase verified-provider lookup failed"
+                ) from fallback_error
+        if not isinstance(value, dict):
+            return []
+        candidates = [
+            normalize_verified_provider_candidate(str(provider_id), profile)
+            for provider_id, profile in value.items()
+            if isinstance(profile, dict)
+        ]
+        return [candidate for candidate in candidates if candidate is not None]
+
     async def create_filter_request(self, request_id: str, payload: dict[str, Any]) -> None:
         reference = self._reference(f"filter_requests/{request_id}")
 
@@ -279,7 +425,9 @@ def booking_history_preference_ids(
     preferences: list[str] = []
     for item in ordered:
         provider_id = item.get("provider_id")
-        if not isinstance(provider_id, str) or not provider_id.startswith("P"):
+        if not isinstance(provider_id, str) or not is_supported_provider_id(
+            provider_id.strip()
+        ):
             continue
         status = str(item.get("status") or "booking_requested")
         # Preserve the former interaction-event effect: selected (2) + requested

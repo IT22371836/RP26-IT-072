@@ -143,22 +143,65 @@ export interface PipelineProviderDto {
   platform_review_count?: number;
 }
 
+export interface PipelineExecutionLogDto {
+  stage: 'pipeline' | 'component1' | 'component2' | 'component4' | string;
+  status: string;
+  message: string;
+  timestamp: string;
+  details: Record<string, any>;
+}
+
 export interface PipelineRunDto {
   run_id: string;
   request_id: string;
   user_id: string;
   status: PipelineStatus;
   request: Record<string, any>;
-  component1: { providers: PipelineProviderDto[]; component_version: string; model_version: string } | null;
+  component1: {
+    providers: PipelineProviderDto[];
+    component_version: string;
+    model_version: string;
+    engine?: string;
+    model_loaded?: boolean;
+    artifact_provider_count?: number;
+    mongo_provider_count?: number;
+    verified_firebase_provider_count?: number;
+    additional_verified_provider_count?: number;
+    candidate_pool_count?: number;
+    candidate_source?: string;
+    preference_signal_count?: number;
+    processing_time_ms?: number;
+    started_at?: string;
+    completed_at?: string;
+  } | null;
   component2: {
     output_results: Record<string, any>;
     all_evaluated_providers: Array<Record<string, any>>;
     component_version: string;
     model_version: string;
+    engine?: string;
+    processing_time_ms?: number;
+    started_at?: string;
+    completed_at?: string;
   } | null;
-  component4: { providers: PipelineProviderDto[]; versions: Record<string, string> } | null;
+  component4: {
+    providers: PipelineProviderDto[];
+    versions: Record<string, string>;
+    component_version?: string;
+    input_count?: number;
+    output_count?: number;
+    processing_time_ms?: number;
+    pipeline_processing_time_ms?: number;
+    engine?: string;
+    model_loaded?: boolean;
+    started_at?: string;
+    completed_at?: string;
+    handoff?: { source?: string; component_version?: string; model_version?: string };
+  } | null;
   fallback: { used: boolean; fallback_reason: string; source: string } | null;
   error: { code: string; message: string; retryable: boolean } | null;
+  execution_log?: PipelineExecutionLogDto[];
+  stage_timestamps?: Record<string, Record<string, string>>;
   selected_provider_id: string | null;
   booking_interaction_id: string | null;
   attempt_count: number;

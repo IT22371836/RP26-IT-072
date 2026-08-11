@@ -7,7 +7,7 @@ import { registerProvider } from '../config/firebase';
 import type { Provider } from '../config/firebase';
 
 interface ProviderRegisterFormProps {
-  onSuccess: (provider: Provider) => void;
+  onSuccess: (provider: Provider) => void | Promise<void>;
   onSwitchToLogin: () => void;
 }
 
@@ -123,9 +123,8 @@ export const ProviderRegisterForm: React.FC<ProviderRegisterFormProps> = ({
       );
 
       setSuccessMsg(`Provider profile registered successfully in Firebase Auth & RTDB for ${created.fullName}!`);
-      setTimeout(() => {
-        onSuccess(created);
-      }, 1200);
+      await new Promise((resolve) => setTimeout(resolve, 1200));
+      await onSuccess(created);
     } catch (err: any) {
       console.error(err);
       setErrorMsg(err.message || 'Failed to register provider.');

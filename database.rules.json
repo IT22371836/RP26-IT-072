@@ -14,6 +14,7 @@
       }
     },
     "providers": {
+      ".indexOn": ["verified"],
       "$providerId": {
         ".read": "auth != null && auth.uid === $providerId",
         ".write": "auth != null && auth.uid === $providerId",

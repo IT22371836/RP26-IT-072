@@ -16,6 +16,8 @@ import {
 } from "firebase/storage";
 import {
   getAuth,
+  initializeAuth,
+  inMemoryPersistence,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
@@ -57,7 +59,19 @@ const firebaseConfig = getStoredFirebaseConfig();
 export const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 export const db = getDatabase(app);
 export const storage = getStorage(app);
-export const auth = getAuth(app);
+// Firebase remains the only authentication authority, but sessions are kept in
+// memory so restarting/reloading the research WEB app always requires an
+// explicit login. This avoids restoring an old browser-local account and
+// navigating from the login screen before the user chooses to sign in.
+export const auth = (() => {
+  try {
+    return initializeAuth(app, { persistence: inMemoryPersistence });
+  } catch (error: any) {
+    // Vite hot replacement can evaluate this module after Auth was initialized.
+    if (error?.code === 'auth/already-initialized') return getAuth(app);
+    throw error;
+  }
+})();
 
 let tokenRequest: Promise<string> | null = null;
 let tokenRequestUid: string | null = null;

@@ -101,8 +101,9 @@ def test_recommend_broadens_location_to_preserve_candidate_handoff() -> None:
 
 
 def test_recommend_scores_newly_registered_provider_with_static_pool() -> None:
+    firebase_uid = "GsMrbJuYYHR7d0uKEqA5OVjdKV73"
     live_provider = {
-        "provider_id": "P003",
+        "provider_id": firebase_uid,
         "provider_name": "Kottawa Electrical Care",
         "category": "Electricians",
         "district": "Colombo",
@@ -126,7 +127,7 @@ def test_recommend_scores_newly_registered_provider_with_static_pool() -> None:
         additional_providers=[live_provider],
     )
 
-    assert "P003" in [provider.provider_id for provider in results]
+    assert firebase_uid in [provider.provider_id for provider in results]
 
 
 def test_missing_artifacts_fail_explicitly() -> None:

@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field, field_validator
 
 from app.components.component2.schemas import ServiceTime
 from app.schemas.common import Urgency
+from app.schemas.provider_identity import PROVIDER_ID_PATTERN
 
 
 class PipelineStatus(StrEnum):
@@ -66,6 +67,8 @@ class PipelineRunResponse(BaseModel):
     component4: dict[str, Any] | None = None
     fallback: dict[str, Any] | None = None
     error: dict[str, Any] | None = None
+    execution_log: list[dict[str, Any]] = Field(default_factory=list)
+    stage_timestamps: dict[str, Any] = Field(default_factory=dict)
     selected_provider_id: str | None = None
     booking_interaction_id: str | None = None
     attempt_count: int = 0
@@ -75,7 +78,9 @@ class PipelineRunResponse(BaseModel):
 
 
 class PipelineSelectionRequest(BaseModel):
-    provider_id: str = Field(pattern=r"^P[A-Z0-9]+$", min_length=2, max_length=64)
+    provider_id: str = Field(
+        pattern=PROVIDER_ID_PATTERN, min_length=2, max_length=128
+    )
 
 
 class PipelineSelectionResponse(BaseModel):

@@ -1,0 +1,80 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "WEDA: FastAPI (8001)",
+            "type": "process",
+            "command": "powershell.exe",
+            "args": [
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                "${workspaceFolder}\\scripts\\windows\\start-fastapi.ps1",
+                "-Port",
+                "8001"
+            ],
+            "isBackground": true,
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "group": "weda-services"
+            }
+        },
+        {
+            "label": "WEDA: Pipeline Worker (C1 -> C2 -> C4)",
+            "type": "process",
+            "command": "powershell.exe",
+            "args": [
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                "${workspaceFolder}\\scripts\\windows\\start-pipeline-worker.ps1"
+            ],
+            "isBackground": true,
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "group": "weda-services"
+            }
+        },
+        {
+            "label": "WEDA: WEB (5173)",
+            "type": "process",
+            "command": "powershell.exe",
+            "args": [
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                "${workspaceFolder}\\scripts\\windows\\start-web.ps1",
+                "-ApiBaseUrl",
+                "http://localhost:8001/api/v1"
+            ],
+            "isBackground": true,
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "group": "weda-services"
+            }
+        },
+        {
+            "label": "WEDA: Run Full Project",
+            "dependsOrder": "parallel",
+            "dependsOn": [
+                "WEDA: FastAPI (8001)",
+                "WEDA: Pipeline Worker (C1 -> C2 -> C4)",
+                "WEDA: WEB (5173)"
+            ],
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
+    ]
+}

@@ -262,6 +262,8 @@ def test_registered_provider_uses_category_prior_fallback(
     assert ranked["final_score"] == pytest.approx(0.470486)
     assert ranked["review_count"] == 0
     assert ranked["platform_review_count"] == 9
+    assert "Ranked #1 by final CATF trust score" in ranked["ranking_reason"]
+    assert "Evidence source: category_prior" in ranked["ranking_reason"]
 
 
 def test_unknown_provider_is_rejected(engine: Component4RankingEngine) -> None:

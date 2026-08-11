@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Activity, AlertTriangle, CheckCircle, Clock, Cpu, Filter, RefreshCw, Search, ShieldCheck, Star } from 'lucide-react';
 import { backendApi } from '../config/api';
-import type { InteractionDto, PipelineCreateDto, PipelineRunDto } from '../config/api';
+import type { Component2EvaluatedProviderDto, InteractionDto, PipelineCreateDto, PipelineProviderDto, PipelineRunDto } from '../config/api';
 import { requireFirebaseApiToken } from '../config/firebaseApiToken';
 import type { Customer } from '../config/firebase';
 import { SERVICE_CATEGORIES } from '../data/categories';
@@ -32,6 +32,139 @@ function auditState(run: PipelineRunDto, stage: 'component1' | 'component2' | 'c
 function formatDuration(value?: number): string {
   if (value === undefined || !Number.isFinite(value)) return 'Pending';
   return value >= 1000 ? `${(value / 1000).toFixed(2)} s` : `${value.toFixed(1)} ms`;
+}
+
+function formatScore(value?: number, digits = 3): string {
+  return typeof value === 'number' && Number.isFinite(value) ? value.toFixed(digits) : 'n/a';
+}
+
+const tableCellStyle: React.CSSProperties = {
+  borderBottom: '1px solid #cbd5e1', padding: '8px 9px', textAlign: 'left', verticalAlign: 'top'
+};
+
+function strongestC1Signal(provider: PipelineProviderDto): string {
+  const scores = [
+    ['TF-IDF', provider.tfidf_score],
+    ['semantic', provider.bert_score],
+    ['collaborative preference', provider.cf_score]
+  ] as const;
+  const available: Array<readonly [string, number]> = [];
+  scores.forEach(([label, value]) => {
+    if (typeof value === 'number') available.push([label, value]);
+  });
+  return available.length ? available.reduce((best, item) => item[1] > best[1] ? item : best)[0] : 'unknown';
+}
+
+function c1SelectionReason(provider: PipelineProviderDto): string {
+  if (provider.selection_reason) return provider.selection_reason;
+  return `Selected at hybrid rank #${provider.rank} with score ${formatScore(provider.hybrid_score, 4)}. `
+    + `${strongestC1Signal(provider)} was the strongest stored normalized signal. `
+    + 'The exact match tier was not persisted for this older run.';
+}
+
+function c2DecisionReason(provider: Component2EvaluatedProviderDto, selectedRank?: number): string {
+  if (provider.decision_reason) return provider.decision_reason;
+  if (selectedRank !== undefined) {
+    return `Passed the requested working-hours availability check and was distance-ranked #${selectedRank} `
+      + `among available providers (${provider.distance_km ?? 'unknown'} km). Weather is advisory.`;
+  }
+  if (provider.is_available) return 'Passed availability but fell outside the nearest Top-10 distance cutoff.';
+  return provider.working_hours_status || 'Rejected because the provider did not pass the availability requirements.';
+}
+
+function c4RankingReason(provider: PipelineProviderDto): string {
+  if (provider.ranking_reason) return provider.ranking_reason;
+  return `Ranked #${provider.rank} by final CATF trust score ${formatScore(provider.final_score, 4)}; `
+    + `effective review count (${formatScore(provider.effective_review_count, 2)}) and credibility `
+    + `(${formatScore(provider.mean_credibility, 4)}) are tie-breakers. Evidence source: `
+    + `${provider.score_source ?? 'not stored'}; status: ${provider.evidence_status ?? 'not stored'}.`;
+}
+
+function AuditTable({ children, minWidth = 900 }: { children: React.ReactNode; minWidth?: number }) {
+  return <div style={{ overflowX: 'auto', marginTop: 10 }}>
+    <table style={{ width: '100%', minWidth, borderCollapse: 'collapse', fontSize: 13 }}>{children}</table>
+  </div>;
+}
+
+function Component1ProviderEvidence({ run }: { run: PipelineRunDto }) {
+  const providers = run.component1?.providers ?? [];
+  if (!providers.length) return <p>Component 1 provider records are not available yet.</p>;
+  return <details style={{ marginTop: 10 }}>
+    <summary style={{ cursor: 'pointer', fontWeight: 700 }}>View actual Component 1 Top-{providers.length} providers and selection reasons</summary>
+    <AuditTable minWidth={1080}>
+      <thead><tr>{['Rank', 'Provider', 'Category / location', 'Hybrid', 'TF-IDF', 'Semantic', 'Preference', 'Why selected'].map(label => <th key={label} style={tableCellStyle}>{label}</th>)}</tr></thead>
+      <tbody>{providers.map(provider => <tr key={provider.provider_id}>
+        <td style={tableCellStyle}>#{provider.rank}</td>
+        <td style={tableCellStyle}><strong>{provider.provider_name}</strong><br/><code>{provider.provider_id}</code></td>
+        <td style={tableCellStyle}>{provider.category}<br/>{provider.city}, {provider.district}</td>
+        <td style={tableCellStyle}>{formatScore(provider.hybrid_score)}</td>
+        <td style={tableCellStyle}>{formatScore(provider.tfidf_score)}</td>
+        <td style={tableCellStyle}>{formatScore(provider.bert_score)}</td>
+        <td style={tableCellStyle}>{formatScore(provider.cf_score)}</td>
+        <td style={{ ...tableCellStyle, minWidth: 330 }}>{c1SelectionReason(provider)}</td>
+      </tr>)}</tbody>
+    </AuditTable>
+  </details>;
+}
+
+function Component2ProviderEvidence({ run }: { run: PipelineRunDto }) {
+  const evaluated = run.component2?.all_evaluated_providers ?? [];
+  const selectedIds = (run.component2?.output_results.provider_ids ?? []) as string[];
+  const byId = new Map(evaluated.map(provider => [provider.provider_id, provider]));
+  const selected = selectedIds.map((providerId, index) => ({
+    provider: byId.get(providerId) ?? { provider_id: providerId }, rank: index + 1
+  }));
+  const selectedSet = new Set(selectedIds);
+  const rejected = evaluated.filter(provider => !selectedSet.has(provider.provider_id));
+  if (!evaluated.length && !selected.length) return <p>Component 2 provider records are not available yet.</p>;
+  return <details style={{ marginTop: 10 }}>
+    <summary style={{ cursor: 'pointer', fontWeight: 700 }}>View actual Component 2 selected Top-{selected.length} and {rejected.length} non-selected providers</summary>
+    <h5 style={{ marginBottom: 4 }}>Selected providers, in the exact backend output order</h5>
+    <AuditTable minWidth={930}>
+      <thead><tr>{['Rank', 'Provider', 'Distance', 'Availability evidence', 'Weather', 'Why selected'].map(label => <th key={label} style={tableCellStyle}>{label}</th>)}</tr></thead>
+      <tbody>{selected.map(({ provider, rank }) => <tr key={provider.provider_id}>
+        <td style={tableCellStyle}>#{rank}</td>
+        <td style={tableCellStyle}><strong>{provider.provider_name ?? provider.provider_id}</strong><br/><code>{provider.provider_id}</code></td>
+        <td style={tableCellStyle}>{provider.distance_km ?? 'unknown'} km</td>
+        <td style={tableCellStyle}>{provider.working_hours_status ?? 'Available'}</td>
+        <td style={tableCellStyle}>{provider.weather_risk ?? run.component2?.output_results.weather_risk ?? 'unknown'}</td>
+        <td style={{ ...tableCellStyle, minWidth: 330 }}>{c2DecisionReason(provider, rank)}</td>
+      </tr>)}</tbody>
+    </AuditTable>
+    {rejected.length > 0 && <details style={{ marginTop: 8 }}>
+      <summary style={{ cursor: 'pointer' }}>View rejected / outside-cutoff providers and reasons ({rejected.length})</summary>
+      <AuditTable minWidth={800}>
+        <thead><tr>{['C1 provider', 'Distance', 'Decision', 'Reason'].map(label => <th key={label} style={tableCellStyle}>{label}</th>)}</tr></thead>
+        <tbody>{rejected.map(provider => <tr key={provider.provider_id}>
+          <td style={tableCellStyle}><strong>{provider.provider_name ?? provider.provider_id}</strong><br/><code>{provider.provider_id}</code></td>
+          <td style={tableCellStyle}>{provider.distance_km ?? 'unknown'} km</td>
+          <td style={tableCellStyle}>{provider.is_available ? 'Eligible, outside Top-10' : 'Rejected'}</td>
+          <td style={{ ...tableCellStyle, minWidth: 360 }}>{c2DecisionReason(provider)}</td>
+        </tr>)}</tbody>
+      </AuditTable>
+    </details>}
+  </details>;
+}
+
+function Component4ProviderEvidence({ run }: { run: PipelineRunDto }) {
+  const providers = run.component4?.providers ?? [];
+  if (!providers.length) return <p>Component 4 provider records are not available yet.</p>;
+  return <details style={{ marginTop: 10 }}>
+    <summary style={{ cursor: 'pointer', fontWeight: 700 }}>View actual Component 4 Top-{providers.length} providers and ranking reasons</summary>
+    <AuditTable minWidth={1100}>
+      <thead><tr>{['Rank', 'Provider', 'Final CATF', 'Credibility', 'Reliability', 'Evidence', 'Aspect scores', 'Why selected'].map(label => <th key={label} style={tableCellStyle}>{label}</th>)}</tr></thead>
+      <tbody>{providers.map(provider => <tr key={provider.provider_id}>
+        <td style={tableCellStyle}>#{provider.rank}</td>
+        <td style={tableCellStyle}><strong>{provider.provider_name}</strong><br/><code>{provider.provider_id}</code></td>
+        <td style={tableCellStyle}>{formatScore(provider.final_score)}</td>
+        <td style={tableCellStyle}>{formatScore(provider.mean_credibility)}</td>
+        <td style={tableCellStyle}>{formatScore(provider.reliability_factor)}</td>
+        <td style={tableCellStyle}>{provider.evidence_status ?? 'n/a'}<br/><small>{provider.score_source ?? 'source not stored'}</small></td>
+        <td style={tableCellStyle}>{provider.aspect_scores ? Object.entries(provider.aspect_scores).map(([aspect, score]) => <div key={aspect}>{aspect}: {formatScore(score)}</div>) : 'n/a'}</td>
+        <td style={{ ...tableCellStyle, minWidth: 350 }}>{c4RankingReason(provider)}</td>
+      </tr>)}</tbody>
+    </AuditTable>
+  </details>;
 }
 
 function PipelineExecutionAudit({ run }: { run: PipelineRunDto }) {
@@ -67,7 +200,7 @@ function PipelineExecutionAudit({ run }: { run: PipelineRunDto }) {
     {
       key: 'component2', title: 'Component 2 · Availability filter', icon: <Filter size={18} />,
       state: c2State,
-      description: 'Deterministic Firebase filter—not a trained ML model. Applies distance, working hours, availability, and weather rules to C1 only.',
+      description: 'Deterministic Firebase filter—not a trained ML model. Checks working-hours availability, ranks passing C1 providers by distance, and reports weather as advisory context.',
       facts: [
         `Engine: ${run.component2?.engine ?? 'deterministic_distance_hours_weather_filter'}`,
         `Version: ${run.component2?.component_version ?? 'Pending'} / ${run.component2?.model_version ?? 'Pending'}`,
@@ -110,6 +243,9 @@ function PipelineExecutionAudit({ run }: { run: PipelineRunDto }) {
             <ul style={{ margin: 0, paddingLeft: 20, display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(260px,1fr))', gap: '3px 18px' }}>
               {stage.facts.map(fact => <li key={fact}>{fact}</li>)}
             </ul>
+            {stage.key === 'component1' && <Component1ProviderEvidence run={run} />}
+            {stage.key === 'component2' && <Component2ProviderEvidence run={run} />}
+            {stage.key === 'component4' && <Component4ProviderEvidence run={run} />}
           </article>;
         })}
       </div>
@@ -205,7 +341,20 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
 
   const retry = async () => {
     if (!run) return;
-    setRun(await backendApi.retryPipeline(await requireFirebaseApiToken(), run.run_id));
+    setBusy(true); setError('');
+    try {
+      const token = await requireFirebaseApiToken();
+      const latest = await backendApi.getPipeline(token, run.run_id);
+      if (latest.status !== 'failed') {
+        setRun(latest);
+        return;
+      }
+      setRun(await backendApi.retryPipeline(token, run.run_id));
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setBusy(false);
+    }
   };
 
   const completed = interactions.filter(item => item.interaction_type === 'booking_completed');
@@ -250,10 +399,6 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
             <button className="btn btn-primary" disabled={busy || !!run.selected_provider_id} onClick={() => selectProvider(provider.provider_id)}>{run.selected_provider_id === provider.provider_id ? 'Booking requested' : 'Select & request booking'}</button>
           </article>;
         })}</div>
-        <details style={{ marginTop: 14 }}><summary>Top-20 → Top-10 → Top-5 audit and rejection reasons</summary>
-          <p>C1: {run.component1?.providers.length || 0}; C2: {run.component2?.output_results.provider_ids?.length || 0}; C4: {run.component4.providers.length}</p>
-          <ul>{run.component2?.all_evaluated_providers.map(item => <li key={item.provider_id}>{item.provider_id}: {item.working_hours_status}; distance {item.distance_km ?? 'unknown'} km; weather {item.weather_risk}</li>)}</ul>
-        </details>
       </div>}
     </div>}
 

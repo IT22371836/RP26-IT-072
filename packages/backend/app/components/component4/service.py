@@ -628,6 +628,14 @@ class Component4RankingEngine:
             {
                 **provider,
                 "rank": rank,
+                "ranking_reason": (
+                    f"Ranked #{rank} by final CATF trust score "
+                    f"{float(provider['final_score']):.4f}. Tie-breakers are effective "
+                    f"review count ({float(provider['effective_review_count']):.2f}) "
+                    f"then mean credibility ({float(provider['mean_credibility']):.4f}). "
+                    f"Evidence source: {provider['score_source']}; evidence status: "
+                    f"{provider['evidence_status']}."
+                ),
             }
             for rank, provider in enumerate(ranked, start=1)
         ]
@@ -735,6 +743,7 @@ class Component4RankingOrchestrator:
                 "reliability_factor": provider.reliability_factor,
                 "evidence_status": provider.evidence_status,
                 "score_source": provider.score_source,
+                "ranking_reason": provider.ranking_reason,
                 "created_at": created_at,
                 **response.versions.model_dump(),
             }

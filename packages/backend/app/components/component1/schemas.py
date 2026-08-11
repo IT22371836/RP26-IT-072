@@ -38,6 +38,8 @@ class ProviderRecommendation(BaseModel):
     tfidf_score: float = Field(ge=0, le=1)
     bert_score: float = Field(ge=0, le=1)
     cf_score: float = Field(ge=0, le=1)
+    selection_tier: str | None = None
+    selection_reason: str | None = None
 
 
 class RecommendationResponse(BaseModel):

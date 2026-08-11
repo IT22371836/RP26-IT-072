@@ -320,6 +320,8 @@ class InMemoryInteractionRepository:
 class InMemoryFirebaseBookingHistory:
     def __init__(self) -> None:
         self.by_uid: dict[str, dict[str, dict[str, Any]]] = {}
+        self.provider_reviews: dict[str, dict[str, dict[str, Any]]] = {}
+        self.provider_review_statistics: dict[str, dict[str, Any]] = {}
 
     async def get_customer_booking_history(
         self, firebase_uid: str
@@ -339,6 +341,29 @@ class InMemoryFirebaseBookingHistory:
         self, firebase_uid: str, booking_id: str, updates: dict[str, Any]
     ) -> None:
         self.by_uid[firebase_uid][booking_id].update(updates)
+
+    async def create_provider_review(
+        self, provider_id: str, booking_id: str, payload: dict[str, Any]
+    ) -> bool:
+        reviews = self.provider_reviews.setdefault(provider_id, {})
+        if booking_id in reviews:
+            return False
+        reviews[booking_id] = dict(payload)
+        return True
+
+    async def refresh_provider_review_statistics(
+        self, provider_id: str
+    ) -> dict[str, Any]:
+        ratings = [
+            float(item["rating"])
+            for item in self.provider_reviews.get(provider_id, {}).values()
+        ]
+        statistics = {
+            "averageRating": sum(ratings) / len(ratings) if ratings else 0.0,
+            "count": len(ratings),
+        }
+        self.provider_review_statistics[provider_id] = statistics
+        return statistics
 
 
 async def register_and_login(
@@ -790,6 +815,22 @@ def test_customer_and_provider_authenticated_api_flow() -> None:
                 assert firebase_booking["review_text"] == (
                     "Excellent installation and helpful explanation."
                 )
+                provider_id = provider_profile.json()["provider_id"]
+                provider_review = firebase_bookings.provider_reviews[provider_id][
+                    booking.json()["interaction_id"]
+                ]
+                assert provider_review["customer_uid"] == (
+                    f"firebase-{customer['user_id']}"
+                )
+                assert provider_review["rating"] == 5
+                assert provider_review["review_text"] == (
+                    "Excellent installation and helpful explanation."
+                )
+                assert provider_review["verified_booking"] is True
+                assert firebase_bookings.provider_review_statistics[provider_id] == {
+                    "averageRating": 5.0,
+                    "count": 1,
+                }
                 refreshed_provider = await client.get(
                     "/api/v1/providers/me", headers=provider_headers
                 )

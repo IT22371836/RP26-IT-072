@@ -20,6 +20,14 @@ class ArtifactValidationError(Exception):
 
 
 class HybridRecommendationEngine:
+    RUNTIME_PROVIDER_FIELDS = {
+        "hybrid_score",
+        "tfidf_score",
+        "bert_score",
+        "cf_score",
+        "selection_tier",
+        "selection_reason",
+    }
     CATEGORY_ALIASES = {
         "electrician": "electricians",
         "plumber": "plumbers",
@@ -58,6 +66,12 @@ class HybridRecommendationEngine:
             for chunk in iter(lambda: file.read(1024 * 1024), b""):
                 digest.update(chunk)
         return digest.hexdigest()
+
+    @classmethod
+    def required_artifact_provider_fields(cls) -> set[str]:
+        """Static provider columns required before request-time scoring."""
+
+        return set(ProviderRecommendation.model_fields) - cls.RUNTIME_PROVIDER_FIELDS
 
     def load(self) -> None:
         manifest_path = self.artifact_dir / "manifest.json"
@@ -121,12 +135,7 @@ class HybridRecommendationEngine:
             == expected_count
         ):
             raise ArtifactValidationError("Component 1 artifact row counts do not match")
-        required_provider_fields = set(ProviderRecommendation.model_fields) - {
-            "hybrid_score",
-            "tfidf_score",
-            "bert_score",
-            "cf_score",
-        }
+        required_provider_fields = self.required_artifact_provider_fields()
         if not isinstance(providers, list) or any(
             not isinstance(provider, dict) or not required_provider_fields.issubset(provider)
             for provider in providers
@@ -312,11 +321,25 @@ class HybridRecommendationEngine:
 
         candidates: list[int] = []
         selected: set[int] = set()
-        for use_category, use_district, use_city in (
-            (True, True, True),
-            (True, True, False),
-            (True, False, False),
-            (False, False, False),
+        selection_tiers: dict[int, str] = {}
+        exact_dimensions = [
+            label
+            for label, value in (
+                ("category", category_key),
+                ("district", district_key),
+                ("city", city_key),
+            )
+            if value
+        ]
+        if len(exact_dimensions) > 1:
+            exact_scope = ", ".join(exact_dimensions[:-1]) + f" and {exact_dimensions[-1]}"
+        else:
+            exact_scope = exact_dimensions[0] if exact_dimensions else "requested filters"
+        for use_category, use_district, use_city, tier_name in (
+            (True, True, True, f"exact {exact_scope} match"),
+            (True, True, False, "category and district match"),
+            (True, False, False, "category match with location fallback"),
+            (False, False, False, "global relevance fallback"),
         ):
             tier = [
                 index
@@ -330,13 +353,24 @@ class HybridRecommendationEngine:
                 )
             ]
             tier.sort(key=lambda index: float(hybrid[index]), reverse=True)
-            candidates.extend(tier[: top_k - len(candidates)])
+            selected_from_tier = tier[: top_k - len(candidates)]
+            candidates.extend(selected_from_tier)
+            selection_tiers.update(
+                {index: tier_name for index in selected_from_tier}
+            )
             selected.update(tier)
             if len(candidates) == top_k:
                 break
 
         results = []
         for index in candidates[:top_k]:
+            signal_scores = {
+                "TF-IDF relevance": float(tfidf[index]),
+                "semantic relevance": float(bert[index]),
+                "collaborative preference": float(cf[index]),
+            }
+            strongest_signal = max(signal_scores, key=signal_scores.get)
+            tier_name = selection_tiers[index]
             results.append(
                 ProviderRecommendation(
                     **providers[index],
@@ -344,6 +378,14 @@ class HybridRecommendationEngine:
                     tfidf_score=float(tfidf[index]),
                     bert_score=float(bert[index]),
                     cf_score=float(cf[index]),
+                    selection_tier=tier_name,
+                    selection_reason=(
+                        f"Selected through the {tier_name} tier with hybrid score "
+                        f"{float(hybrid[index]):.4f}. Normalized signals: TF-IDF "
+                        f"{float(tfidf[index]):.4f}, semantic {float(bert[index]):.4f}, "
+                        f"collaborative preference {float(cf[index]):.4f}; strongest "
+                        f"signal was {strongest_signal}."
+                    ),
                 )
             )
         return results

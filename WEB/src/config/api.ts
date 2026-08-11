@@ -131,16 +131,39 @@ export interface PipelineProviderDto {
   district: string;
   city: string;
   rank: number;
+  rating?: number;
+  review_count?: number;
   hybrid_score?: number;
   tfidf_score?: number;
   bert_score?: number;
   cf_score?: number;
+  selection_tier?: string;
+  selection_reason?: string;
   final_score?: number;
   aspect_scores?: Record<string, number>;
   mean_credibility?: number;
+  effective_review_count?: number;
+  reliability_factor?: number;
   evidence_status?: string;
+  score_source?: string;
   platform_rating?: number;
   platform_review_count?: number;
+  ranking_reason?: string;
+}
+
+export interface Component2EvaluatedProviderDto {
+  provider_id: string;
+  provider_name?: string;
+  distance_km?: number | null;
+  service_day?: string;
+  is_available?: boolean;
+  working_hours_status?: string;
+  location_type?: string;
+  weather_risk?: string;
+  recommendation?: string;
+  filter_decision?: 'selected' | 'eligible_not_selected' | 'rejected';
+  selection_rank?: number | null;
+  decision_reason?: string;
 }
 
 export interface PipelineExecutionLogDto {
@@ -176,7 +199,7 @@ export interface PipelineRunDto {
   } | null;
   component2: {
     output_results: Record<string, any>;
-    all_evaluated_providers: Array<Record<string, any>>;
+    all_evaluated_providers: Component2EvaluatedProviderDto[];
     component_version: string;
     model_version: string;
     engine?: string;

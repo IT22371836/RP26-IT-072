@@ -102,6 +102,7 @@ class RankedProvider(BaseModel):
     score_source: Literal["catf_evidence", "category_prior"]
     platform_rating: float = Field(ge=0, le=5)
     platform_review_count: int = Field(ge=0)
+    ranking_reason: str | None = None
 
 
 class Component4RankResponse(BaseModel):

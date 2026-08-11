@@ -203,6 +203,101 @@ class FirebaseRtdbClient:
             return {}
         return {key: item for key, item in value.items() if isinstance(item, dict)}
 
+    async def get_provider_reviews(
+        self, provider_id: str
+    ) -> dict[str, dict[str, Any]]:
+        value = await asyncio.to_thread(
+            self._reference(f"providers/{provider_id}/reviews").get
+        )
+        if not isinstance(value, dict):
+            return {}
+        return {key: item for key, item in value.items() if isinstance(item, dict)}
+
+    async def create_provider_review(
+        self,
+        provider_id: str,
+        booking_id: str,
+        payload: dict[str, Any],
+    ) -> bool:
+        """Create one idempotent provider review for a verified booking."""
+
+        provider = await asyncio.to_thread(
+            self._reference(f"providers/{provider_id}").get
+        )
+        if not isinstance(provider, dict):
+            raise FirebaseComponent2Error(
+                f"Firebase provider {provider_id} does not exist"
+            )
+        reference = self._reference(f"providers/{provider_id}/reviews/{booking_id}")
+        created = False
+
+        def transaction(current: Any) -> Any:
+            nonlocal created
+            if current is None:
+                created = True
+                return deepcopy(payload)
+            if (
+                isinstance(current, dict)
+                and current.get("booking_id") == booking_id
+                and current.get("provider_id") == provider_id
+                and current.get("customer_uid") == payload.get("customer_uid")
+                and current.get("rating") == payload.get("rating")
+                and current.get("review_text") == payload.get("review_text")
+            ):
+                return current
+            raise FirebaseRequestConflictError(
+                f"Firebase provider review {booking_id} already contains different data"
+            )
+
+        try:
+            await asyncio.to_thread(reference.transaction, transaction)
+            return created
+        except FirebaseRequestConflictError:
+            raise
+        except Exception as error:
+            if isinstance(error.__cause__, FirebaseRequestConflictError):
+                raise error.__cause__ from error
+            raise FirebaseComponent2Error("Firebase provider review creation failed") from error
+
+    async def refresh_provider_review_statistics(
+        self, provider_id: str
+    ) -> dict[str, Any]:
+        """Recalculate platform-only aggregates without replacing research ratings."""
+
+        reviews = await self.get_provider_reviews(provider_id)
+        ratings = [
+            float(item["rating"])
+            for item in reviews.values()
+            if item.get("source") == "platform_booking"
+            and isinstance(item.get("rating"), (int, float))
+            and 1 <= float(item["rating"]) <= 5
+        ]
+        reviewed_at = sorted(
+            str(item.get("reviewed_at"))
+            for item in reviews.values()
+            if item.get("source") == "platform_booking" and item.get("reviewed_at")
+        )
+        statistics = {
+            "averageRating": sum(ratings) / len(ratings) if ratings else 0.0,
+            "count": len(ratings),
+            "lastReviewedAt": reviewed_at[-1] if reviewed_at else None,
+            "source": "platform_booking_reviews",
+        }
+        try:
+            await asyncio.to_thread(
+                self._reference(f"providers/{provider_id}").update,
+                {
+                    "platformRating": statistics["averageRating"],
+                    "platformReviewCount": statistics["count"],
+                    "reviewStats": statistics,
+                },
+            )
+        except Exception as error:
+            raise FirebaseComponent2Error(
+                "Firebase provider review statistics update failed"
+            ) from error
+        return statistics
+
     async def create_customer_booking(
         self,
         firebase_uid: str,

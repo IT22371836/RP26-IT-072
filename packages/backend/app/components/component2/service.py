@@ -218,6 +218,43 @@ class Component2FilteringService:
                 item["provider_id"],
             ),
         )[:top_k]
+        selected_ranks = {
+            item["provider_id"]: rank for rank, item in enumerate(available, start=1)
+        }
+        for item in evaluated:
+            selection_rank = selected_ranks.get(item["provider_id"])
+            if selection_rank is not None:
+                item.update(
+                    {
+                        "filter_decision": "selected",
+                        "selection_rank": selection_rank,
+                        "decision_reason": (
+                            "Passed the requested working-hours availability check and "
+                            f"was distance-ranked #{selection_rank} among available "
+                            f"providers ({item['distance_km']:.2f} km). Weather risk "
+                            f"{item['weather_risk']} is advisory."
+                        ),
+                    }
+                )
+            elif item["is_available"] is True:
+                item.update(
+                    {
+                        "filter_decision": "eligible_not_selected",
+                        "selection_rank": None,
+                        "decision_reason": (
+                            "Passed the requested working-hours availability check but "
+                            "fell outside the nearest Top-10 distance cutoff."
+                        ),
+                    }
+                )
+            else:
+                item.update(
+                    {
+                        "filter_decision": "rejected",
+                        "selection_rank": None,
+                        "decision_reason": str(item["working_hours_status"]),
+                    }
+                )
         output = {
             "provider_ids": [item["provider_id"] for item in available],
             "evaluated_providers": available,

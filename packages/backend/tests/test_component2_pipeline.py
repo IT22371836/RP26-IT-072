@@ -72,6 +72,12 @@ def test_component2_preserves_contract_and_returns_only_c1_subset() -> None:
     assert result.output_results["provider_ids"] == ["P00001"]
     assert result.output_results["weather_risk"] == "UNKNOWN"
     assert len(result.all_evaluated_providers) == 2
+    selected, rejected = result.all_evaluated_providers
+    assert selected["filter_decision"] == "selected"
+    assert selected["selection_rank"] == 1
+    assert "distance-ranked #1" in selected["decision_reason"]
+    assert rejected["filter_decision"] == "rejected"
+    assert rejected["decision_reason"] == rejected["working_hours_status"]
 
 
 def test_zero_result_is_preserved_and_fallback_source_is_valid() -> None:

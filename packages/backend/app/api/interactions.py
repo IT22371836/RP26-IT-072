@@ -311,11 +311,17 @@ async def rate_completed_booking(
     if not booking_id:
         raise HTTPException(status_code=409, detail="Original booking request was not found")
     firebase_uid = await firebase_uid_for_user(users, source["user_id"])
+    document = next_interaction(
+        source,
+        InteractionType.RATED,
+        payload.rating,
+        payload.review_text,
+    )
+    rated_at = document["timestamp"].isoformat()
     try:
         await ensure_firebase_booking(
             firebase, firebase_uid, str(booking_id), booking_source or source
         )
-        now = utc_now()
         await firebase.update_customer_booking(
             firebase_uid,
             str(booking_id),
@@ -323,21 +329,34 @@ async def rate_completed_booking(
                 "status": "booking_completed",
                 "rating": payload.rating,
                 "review_text": payload.review_text,
-                "rated_at": now.isoformat(),
-                "updated_at": now.isoformat(),
+                "rated_at": rated_at,
+                "updated_at": rated_at,
             },
         )
+        await firebase.create_provider_review(
+            source["provider_id"],
+            str(booking_id),
+            {
+                "review_id": str(booking_id),
+                "booking_id": str(booking_id),
+                "request_id": source["request_id"],
+                "customer_uid": firebase_uid,
+                "provider_id": source["provider_id"],
+                "provider_name": source.get("provider_name"),
+                "category": source["category"],
+                "rating": payload.rating,
+                "review_text": payload.review_text,
+                "reviewed_at": rated_at,
+                "verified_booking": True,
+                "source": "platform_booking",
+            },
+        )
+        await firebase.refresh_provider_review_statistics(source["provider_id"])
     except FirebaseComponent2Error as error:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Firebase booking history is unavailable",
+            detail="Firebase customer/provider review storage is unavailable",
         ) from error
-    document = next_interaction(
-        source,
-        InteractionType.RATED,
-        payload.rating,
-        payload.review_text,
-    )
     await repository.create(document)
     await refresh_provider_statistics(repository, providers, source["provider_id"])
     return InteractionPublic.model_validate(document)

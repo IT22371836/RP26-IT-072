@@ -18,12 +18,27 @@
       "$providerId": {
         ".read": "auth != null && auth.uid === $providerId",
         ".write": "auth != null && auth.uid === $providerId",
+        ".validate": "newData.child('reviews').val() === data.child('reviews').val() && newData.child('reviewStats').val() === data.child('reviewStats').val() && newData.child('platformRating').val() === data.child('platformRating').val() && newData.child('platformReviewCount').val() === data.child('platformReviewCount').val() && newData.child('rating').val() === data.child('rating').val() && newData.child('reviewCount').val() === data.child('reviewCount').val()",
         "id": { ".validate": "newData.val() === $providerId" },
         "uid": { ".validate": "newData.val() === $providerId" },
         "role": { ".validate": "newData.val() === 'provider'" },
         "pipelineSeed": { ".write": false },
         "researchSeed": { ".write": false }
       }
+    },
+    "research_customers": {
+      ".read": false,
+      ".write": false
+    },
+    "research_provider_reviews": {
+      "$providerId": {
+        ".read": "auth != null && auth.uid === $providerId",
+        ".write": false
+      }
+    },
+    "research_review_imports": {
+      ".read": false,
+      ".write": false
     },
     "filter_requests": {
       ".read": false,

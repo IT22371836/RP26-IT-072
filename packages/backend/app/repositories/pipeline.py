@@ -238,7 +238,10 @@ class PipelineRepository:
 
         client = self.collection.database.client
         async with client.start_session() as session:
-            async with session.start_transaction():
+            # PyMongo's native asynchronous session returns the transaction
+            # context manager from an awaitable. Entering the coroutine itself
+            # raises TypeError before any Mongo writes are attempted.
+            async with await session.start_transaction():
                 document = await self.collection.find_one_and_update(
                     {
                         "run_id": run_id,

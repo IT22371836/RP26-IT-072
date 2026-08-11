@@ -1,4 +1,5 @@
 import { runtimeConfig } from './runtime';
+import { requireFirebaseApiToken } from './firebaseApiToken';
 
 export interface CustomerLocationDto {
   latitude: number;
@@ -212,11 +213,23 @@ async function request<T>(
   if (init.body) headers.set('Content-Type', 'application/json');
   if (token) headers.set('Authorization', `Bearer ${token}`);
 
-  const response = await fetch(`${runtimeConfig.apiBaseUrl}${path}`, {
+  let response = await fetch(`${runtimeConfig.apiBaseUrl}${path}`, {
     ...init,
     credentials: 'omit',
     headers
   });
+  if (response.status === 401 && token) {
+    try {
+      headers.set('Authorization', `Bearer ${await requireFirebaseApiToken(true)}`);
+      response = await fetch(`${runtimeConfig.apiBaseUrl}${path}`, {
+        ...init,
+        credentials: 'omit',
+        headers
+      });
+    } catch {
+      // Preserve the original API response when Firebase cannot refresh.
+    }
+  }
   const contentType = response.headers.get('content-type') || '';
   const body: unknown = contentType.includes('application/json')
     ? await response.json()
@@ -235,10 +248,21 @@ async function request<T>(
 async function requestBlob(path: string, token?: string): Promise<Blob> {
   const headers = new Headers({ Accept: 'image/jpeg, image/png, application/pdf' });
   if (token) headers.set('Authorization', `Bearer ${token}`);
-  const response = await fetch(`${runtimeConfig.apiBaseUrl}${path}`, {
+  let response = await fetch(`${runtimeConfig.apiBaseUrl}${path}`, {
     credentials: 'omit',
     headers
   });
+  if (response.status === 401 && token) {
+    try {
+      headers.set('Authorization', `Bearer ${await requireFirebaseApiToken(true)}`);
+      response = await fetch(`${runtimeConfig.apiBaseUrl}${path}`, {
+        credentials: 'omit',
+        headers
+      });
+    } catch {
+      // Preserve the original API response when Firebase cannot refresh.
+    }
+  }
   if (!response.ok) {
     const details = await response.json().catch(() => null);
     const message = details && typeof details === 'object' && 'detail' in details

@@ -59,6 +59,10 @@ export const db = getDatabase(app);
 export const storage = getStorage(app);
 export const auth = getAuth(app);
 
+let tokenRequest: Promise<string> | null = null;
+let tokenRequestUid: string | null = null;
+let tokenRequestForcesRefresh = false;
+
 // Helper function to upload images to Firebase Storage under folder/entityId/
 export async function uploadImageToStorage(
   folder: 'customers' | 'providers',
@@ -745,32 +749,66 @@ export async function loginUser(
   throw new Error("Invalid login details. Please check your email and password.");
 }
 
-export async function getCurrentFirebaseIdToken(): Promise<string> {
-  if (!auth.currentUser) {
+async function loadVerifiedFirebaseIdToken(forceRefresh: boolean): Promise<string> {
+  await auth.authStateReady();
+  const currentUser = auth.currentUser;
+  if (!currentUser) {
     throw new Error("A current Firebase session is required. Please sign in again.");
   }
-  const token = await auth.currentUser.getIdToken(true);
-  try {
-    const encodedPayload = token.split('.')[1];
-    const rawPayload = encodedPayload.replace(/-/g, '+').replace(/_/g, '/');
-    const normalizedPayload = rawPayload.padEnd(Math.ceil(rawPayload.length / 4) * 4, '=');
-    const payload = JSON.parse(atob(normalizedPayload)) as { aud?: string; iss?: string };
-    const expectedProject = firebaseConfig.projectId;
-    if (
-      payload.aud !== expectedProject
-      || payload.iss !== `https://securetoken.google.com/${expectedProject}`
-    ) {
-      localStorage.removeItem(ACTIVE_SESSION_KEY);
-      await signOut(auth);
-      throw new Error(
-        `Your Firebase session belongs to a different project. Sign in again to ${expectedProject}.`
-      );
-    }
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('different project')) throw error;
-    throw new Error('Firebase returned an invalid session token. Please sign out and sign in again.');
+
+  // Firebase automatically refreshes tokens that are close to expiry. A forced
+  // refresh is reserved for the single retry after an API explicitly returns 401.
+  const result = await currentUser.getIdTokenResult(forceRefresh);
+  const expectedProject = firebaseConfig.projectId;
+  if (
+    result.claims.aud !== expectedProject
+    || result.claims.iss !== `https://securetoken.google.com/${expectedProject}`
+  ) {
+    localStorage.removeItem(ACTIVE_SESSION_KEY);
+    await signOut(auth);
+    throw new Error(
+      `Your Firebase session belongs to a different project. Sign in again to ${expectedProject}.`
+    );
   }
-  return token;
+  return result.token;
+}
+
+export async function getCurrentFirebaseIdToken(
+  forceRefresh = false
+): Promise<string> {
+  await auth.authStateReady();
+  const uid = auth.currentUser?.uid;
+  if (!uid) {
+    throw new Error("A current Firebase session is required. Please sign in again.");
+  }
+
+  if (
+    tokenRequest
+    && tokenRequestUid === uid
+    && (!forceRefresh || tokenRequestForcesRefresh)
+  ) {
+    return tokenRequest;
+  }
+
+  if (forceRefresh && tokenRequest && tokenRequestUid === uid) {
+    await tokenRequest.catch(() => undefined);
+    if (auth.currentUser?.uid !== uid) {
+      throw new Error("The Firebase account changed while refreshing its session.");
+    }
+  }
+
+  let request: Promise<string>;
+  request = loadVerifiedFirebaseIdToken(forceRefresh).finally(() => {
+    if (tokenRequest === request) {
+      tokenRequest = null;
+      tokenRequestUid = null;
+      tokenRequestForcesRefresh = false;
+    }
+  });
+  tokenRequest = request;
+  tokenRequestUid = uid;
+  tokenRequestForcesRefresh = forceRefresh;
+  return request;
 }
 
 export async function logoutFirebaseUser() {

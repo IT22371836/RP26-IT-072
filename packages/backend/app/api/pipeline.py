@@ -294,16 +294,37 @@ async def select_pipeline_provider(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Firebase booking history is unavailable",
         ) from error
-    run = await repository.create_selection_with_interactions(
-        run_id,
-        current_user.user_id,
-        payload.provider_id,
-        booking_id,
-        [
-            {**base, "interaction_id": new_public_id("I"), "interaction_type": "selected"},
-            {**base, "interaction_id": booking_id, "interaction_type": "booking_requested"},
-        ],
-    )
+    try:
+        run = await repository.create_selection_with_interactions(
+            run_id,
+            current_user.user_id,
+            payload.provider_id,
+            booking_id,
+            [
+                {
+                    **base,
+                    "interaction_id": new_public_id("I"),
+                    "interaction_type": "selected",
+                },
+                {
+                    **base,
+                    "interaction_id": booking_id,
+                    "interaction_type": "booking_requested",
+                },
+            ],
+        )
+    except Exception as error:
+        if firebase_created:
+            try:
+                await firebase.delete_customer_booking_if_matching(
+                    firebase_uid, booking_id, run_id
+                )
+            except Exception:
+                pass
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Booking persistence is temporarily unavailable",
+        ) from error
     if run is None:
         if firebase_created:
             await firebase.delete_customer_booking_if_matching(

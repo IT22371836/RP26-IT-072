@@ -37,6 +37,7 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
   );
   const activeRunId = run?.run_id;
   const activeRunStatus = run?.status;
+  const activeRunStorageKey = `${STORAGE_KEY}:${currentUser.id}`;
 
   const reloadHistory = async () => {
     const token = await requireFirebaseApiToken();
@@ -48,12 +49,12 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
 
   useEffect(() => {
     reloadHistory().catch(err => setError(err.message));
-    const runId = localStorage.getItem(STORAGE_KEY);
+    const runId = localStorage.getItem(activeRunStorageKey);
     if (runId) requireFirebaseApiToken()
       .then(token => backendApi.getPipeline(token, runId))
       .then(setRun)
-      .catch(() => localStorage.removeItem(STORAGE_KEY));
-  }, []);
+      .catch(() => localStorage.removeItem(activeRunStorageKey));
+  }, [activeRunStorageKey]);
 
   useEffect(() => {
     if (!activeRunId || !activeRunStatus || !ACTIVE.has(activeRunStatus)) return;
@@ -64,12 +65,12 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
         if (stopped) return;
         setRun(next); polls += 1;
         if (ACTIVE.has(next.status)) window.setTimeout(poll, polls < 15 ? 2000 : 5000);
-        else { localStorage.removeItem(STORAGE_KEY); reloadHistory().catch(() => undefined); }
+        else { localStorage.removeItem(activeRunStorageKey); reloadHistory().catch(() => undefined); }
       } catch (err: any) { if (!stopped) setError(err.message); }
     };
     const timer = window.setTimeout(poll, 2000);
     return () => { stopped = true; window.clearTimeout(timer); };
-  }, [activeRunId, activeRunStatus]);
+  }, [activeRunId, activeRunStatus, activeRunStorageKey]);
 
   const start = async (event: React.FormEvent) => {
     event.preventDefault(); setError('');
@@ -79,7 +80,7 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
       const idempotencyKey = crypto.randomUUID();
       const token = await requireFirebaseApiToken();
       const started = await backendApi.startPipeline(token, form, idempotencyKey);
-      localStorage.setItem(STORAGE_KEY, started.run_id);
+      localStorage.setItem(activeRunStorageKey, started.run_id);
       setRun(await backendApi.getPipeline(token, started.run_id));
     } catch (err: any) { setError(err.message); } finally { setBusy(false); }
   };

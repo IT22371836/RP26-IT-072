@@ -12,8 +12,16 @@ function readEnum<T extends string>(
   throw new Error(`${name} must be one of: ${allowed.join(', ')}`);
 }
 
+function apiBaseUrl(): string {
+  const configured = import.meta.env.VITE_API_BASE_URL?.trim();
+  const currentHost = typeof window === 'undefined' ? '127.0.0.1' : window.location.hostname;
+  const currentProtocol = typeof window === 'undefined' ? 'http:' : window.location.protocol;
+  const base = (configured || `${currentProtocol}//${currentHost}:8001`).replace(/\/+$/, '');
+  return base.endsWith('/api/v1') ? base : `${base}/api/v1`;
+}
+
 export const runtimeConfig = Object.freeze({
-  apiBaseUrl: (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001/api/v1').replace(/\/$/, ''),
+  apiBaseUrl: apiBaseUrl(),
   dataSource: readEnum<DataSource>(
     'VITE_DATA_SOURCE',
     import.meta.env.VITE_DATA_SOURCE,

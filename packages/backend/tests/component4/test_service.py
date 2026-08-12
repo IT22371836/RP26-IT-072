@@ -235,6 +235,33 @@ def test_fewer_than_five_candidates_returns_every_candidate(
     assert result["output_count"] == 3
 
 
+def test_all_candidates_include_top5_and_outside_cutoff_reasons(
+    engine: Component4RankingEngine,
+) -> None:
+    result = engine.rank(
+        rank_request(
+            request_id="RAUDIT1",
+            provider_ids=[f"P{index:05d}" for index in range(1, 7)],
+        ),
+        [],
+    )
+
+    assert len(result["providers"]) == 5
+    assert len(result["evaluated_providers"]) == 6
+    assert [provider["rank"] for provider in result["evaluated_providers"]] == list(
+        range(1, 7)
+    )
+    assert all(
+        provider["ranking_decision"] == "selected"
+        for provider in result["evaluated_providers"][:5]
+    )
+    excluded = result["evaluated_providers"][5]
+    assert excluded["ranking_decision"] == "outside_top5"
+    assert "rank #6" in excluded["ranking_reason"]
+    assert "outside the requested Top-5 cutoff" in excluded["ranking_reason"]
+    assert "below the cutoff score" in excluded["ranking_reason"]
+
+
 def test_registered_provider_uses_category_prior_fallback(
     engine: Component4RankingEngine,
 ) -> None:
@@ -327,13 +354,14 @@ def test_orchestrator_persists_and_reuses_the_completed_run(
         assert second.cached is True
         assert first.providers == second.providers
         assert repository.persist_count == 1
-        assert len(repository.provider_documents) == 5
+        assert len(repository.provider_documents) == 10
         assert first.handoff.source == "development_fixture"
         assert first.handoff.user_id == "UTEST1"
         assert repository.provider_documents[0]["handoff"] == first.handoff.model_dump()
         assert [
             document["final_catf_score"] for document in repository.provider_documents
-        ] == [provider.final_score for provider in first.providers]
+        ] == [provider.final_score for provider in first.evaluated_providers]
+        assert repository.provider_documents[-1]["ranking_decision"] == "outside_top5"
 
     asyncio.run(run_test())
 

@@ -7,7 +7,11 @@ __pycache__/
 *.egg-info/
 .venv/
 .pytest_cache/
+.test-tmp-*/
 .ruff_cache/
+
+# Local background-process logs and PID files
+.run/
 
 # Local model caches and generated training outputs
 **/.cache/

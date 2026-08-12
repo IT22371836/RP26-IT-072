@@ -148,9 +148,26 @@ function Component2ProviderEvidence({ run }: { run: PipelineRunDto }) {
 
 function Component4ProviderEvidence({ run }: { run: PipelineRunDto }) {
   const providers = run.component4?.providers ?? [];
+  const selectedIds = new Set(providers.map(provider => provider.provider_id));
+  const persistedEvaluated = run.component4?.evaluated_providers ?? [];
+  const c2ById = new Map(
+    (run.component2?.all_evaluated_providers ?? []).map(provider => [provider.provider_id, provider])
+  );
+  const legacyOutside = persistedEvaluated.length ? [] : (run.component4?.candidate_provider_ids ?? [])
+    .filter(providerId => !selectedIds.has(providerId))
+    .map((providerId, index): PipelineProviderDto => ({
+      provider_id: providerId,
+      provider_name: c2ById.get(providerId)?.provider_name ?? providerId,
+      category: '', district: '', city: '', rank: providers.length + index + 1,
+      ranking_decision: 'outside_top5',
+      ranking_reason: 'Not selected because this provider was present in the stored Component 4 input but absent from the final Top-5. This older run did not persist every CATF score, so its exact score and tie-breaker position are unavailable; run a new request for the complete ranking audit.'
+    }));
+  const evaluated = persistedEvaluated.length ? persistedEvaluated : [...providers, ...legacyOutside];
+  const outsideCutoff = evaluated.filter(provider => !selectedIds.has(provider.provider_id));
   if (!providers.length) return <p>Component 4 provider records are not available yet.</p>;
   return <details style={{ marginTop: 10 }}>
-    <summary style={{ cursor: 'pointer', fontWeight: 700 }}>View actual Component 4 Top-{providers.length} providers and ranking reasons</summary>
+    <summary style={{ cursor: 'pointer', fontWeight: 700 }}>View actual Component 4 Top-{providers.length} and {outsideCutoff.length} outside-cutoff providers</summary>
+    <h5 style={{ marginBottom: 4 }}>Selected providers, in final CATF ranking order</h5>
     <AuditTable minWidth={1100}>
       <thead><tr>{['Rank', 'Provider', 'Final CATF', 'Credibility', 'Reliability', 'Evidence', 'Aspect scores', 'Why selected'].map(label => <th key={label} style={tableCellStyle}>{label}</th>)}</tr></thead>
       <tbody>{providers.map(provider => <tr key={provider.provider_id}>
@@ -164,6 +181,22 @@ function Component4ProviderEvidence({ run }: { run: PipelineRunDto }) {
         <td style={{ ...tableCellStyle, minWidth: 350 }}>{c4RankingReason(provider)}</td>
       </tr>)}</tbody>
     </AuditTable>
+    {outsideCutoff.length > 0 && <details style={{ marginTop: 8 }}>
+      <summary style={{ cursor: 'pointer' }}>View Component 4 non-selected providers and reasons ({outsideCutoff.length})</summary>
+      <AuditTable minWidth={1050}>
+        <thead><tr>{['CATF rank', 'Provider', 'Final CATF', 'Credibility', 'Reliability', 'Evidence', 'Decision', 'Why not selected'].map(label => <th key={label} style={tableCellStyle}>{label}</th>)}</tr></thead>
+        <tbody>{outsideCutoff.map(provider => <tr key={provider.provider_id}>
+          <td style={tableCellStyle}>#{provider.rank}</td>
+          <td style={tableCellStyle}><strong>{provider.provider_name}</strong><br/><code>{provider.provider_id}</code></td>
+          <td style={tableCellStyle}>{formatScore(provider.final_score)}</td>
+          <td style={tableCellStyle}>{formatScore(provider.mean_credibility)}</td>
+          <td style={tableCellStyle}>{formatScore(provider.reliability_factor)}</td>
+          <td style={tableCellStyle}>{provider.evidence_status ?? 'n/a'}<br/><small>{provider.score_source ?? 'source not stored'}</small></td>
+          <td style={tableCellStyle}>Outside Top-5 cutoff</td>
+          <td style={{ ...tableCellStyle, minWidth: 390 }}>{c4RankingReason(provider)}</td>
+        </tr>)}</tbody>
+      </AuditTable>
+    </details>}
   </details>;
 }
 
@@ -219,6 +252,7 @@ function PipelineExecutionAudit({ run }: { run: PipelineRunDto }) {
         `Artifact/model loaded: ${run.component4?.model_loaded === true ? 'Yes' : c4State === 'completed' ? 'Yes' : 'Pending'}`,
         `Versions: ${run.component4 ? Object.values(run.component4.versions).join(' · ') : 'Pending'}`,
         `Candidates: ${run.component4?.input_count ?? (run.component2 ? c2Count : 'Top-10 pending')} → ${c4Count || 'Top-5 pending'}`,
+        `Outside Top-5 cutoff: ${run.component4 ? Math.max(0, (run.component4.input_count ?? c2Count) - c4Count) : 'Pending'}`,
         `Source: ${run.component4?.handoff?.source ?? run.fallback?.source ?? 'component2'}`,
         `Runtime: ${formatDuration(run.component4?.pipeline_processing_time_ms ?? run.component4?.processing_time_ms)}`
       ]

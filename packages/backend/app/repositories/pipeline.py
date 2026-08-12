@@ -89,6 +89,11 @@ def pipeline_execution_event(
             "model_versions": component4.get("versions"),
             "input_provider_count": component4.get("input_count"),
             "output_provider_count": component4.get("output_count"),
+            "outside_cutoff_provider_count": max(
+                0,
+                int(component4.get("input_count") or 0)
+                - int(component4.get("output_count") or 0),
+            ),
             "source": component4.get("handoff", {}).get("source"),
             "processing_time_ms": component4.get("pipeline_processing_time_ms")
             or component4.get("processing_time_ms"),

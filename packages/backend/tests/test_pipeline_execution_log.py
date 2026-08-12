@@ -65,6 +65,7 @@ def test_component_events_expose_safe_model_versions_counts_and_runtime() -> Non
     assert component4["stage"] == "component4"
     assert component4["details"]["source"] == "component2"
     assert component4["details"]["output_provider_count"] == 5
+    assert component4["details"]["outside_cutoff_provider_count"] == 2
 
 
 def test_older_pipeline_documents_remain_response_compatible() -> None:

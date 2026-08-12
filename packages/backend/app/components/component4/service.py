@@ -623,22 +623,45 @@ class Component4RankingEngine:
                 -float(item["mean_credibility"]),
                 str(item["provider_id"]),
             ),
-        )[: min(payload.top_k, len(candidates))]
-        providers = [
-            {
-                **provider,
-                "rank": rank,
-                "ranking_reason": (
+        )
+        selected_count = min(payload.top_k, len(ranked))
+        cutoff_score = (
+            float(ranked[selected_count - 1]["final_score"])
+            if selected_count
+            else 0.0
+        )
+        evaluated_providers = []
+        for rank, provider in enumerate(ranked, start=1):
+            selected = rank <= selected_count
+            if selected:
+                reason = (
                     f"Ranked #{rank} by final CATF trust score "
                     f"{float(provider['final_score']):.4f}. Tie-breakers are effective "
                     f"review count ({float(provider['effective_review_count']):.2f}) "
                     f"then mean credibility ({float(provider['mean_credibility']):.4f}). "
                     f"Evidence source: {provider['score_source']}; evidence status: "
                     f"{provider['evidence_status']}."
-                ),
-            }
-            for rank, provider in enumerate(ranked, start=1)
-        ]
+                )
+            else:
+                reason = (
+                    f"Not selected because CATF rank #{rank} was outside the requested "
+                    f"Top-{selected_count} cutoff. Final CATF trust score "
+                    f"{float(provider['final_score']):.4f} was below the cutoff score "
+                    f"{cutoff_score:.4f}. Tie-breakers are effective review count "
+                    f"({float(provider['effective_review_count']):.2f}) then mean "
+                    f"credibility ({float(provider['mean_credibility']):.4f}). Evidence "
+                    f"source: {provider['score_source']}; evidence status: "
+                    f"{provider['evidence_status']}."
+                )
+            evaluated_providers.append(
+                {
+                    **provider,
+                    "rank": rank,
+                    "ranking_decision": "selected" if selected else "outside_top5",
+                    "ranking_reason": reason,
+                }
+            )
+        providers = evaluated_providers[:selected_count]
         canonical = {
             "source": payload.source,
             "request_id": payload.request_id,
@@ -668,6 +691,7 @@ class Component4RankingEngine:
             "requested_top_k": payload.top_k,
             "candidate_provider_ids": payload.provider_ids,
             "providers": providers,
+            "evaluated_providers": evaluated_providers,
             "versions": self.versions,
         }
 
@@ -725,6 +749,7 @@ class Component4RankingOrchestrator:
             "response": response_payload,
         }
         created_at = utc_now()
+        persisted_providers = response.evaluated_providers or response.providers
         provider_documents = [
             {
                 "run_id": response.run_id,
@@ -744,10 +769,11 @@ class Component4RankingOrchestrator:
                 "evidence_status": provider.evidence_status,
                 "score_source": provider.score_source,
                 "ranking_reason": provider.ranking_reason,
+                "ranking_decision": provider.ranking_decision,
                 "created_at": created_at,
                 **response.versions.model_dump(),
             }
-            for provider in response.providers
+            for provider in persisted_providers
         ]
         await self.repository.persist_completed(run_document, provider_documents)
         return response

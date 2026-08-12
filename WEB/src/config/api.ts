@@ -149,6 +149,7 @@ export interface PipelineProviderDto {
   platform_rating?: number;
   platform_review_count?: number;
   ranking_reason?: string;
+  ranking_decision?: 'selected' | 'outside_top5';
 }
 
 export interface Component2EvaluatedProviderDto {
@@ -209,6 +210,8 @@ export interface PipelineRunDto {
   } | null;
   component4: {
     providers: PipelineProviderDto[];
+    evaluated_providers?: PipelineProviderDto[];
+    candidate_provider_ids?: string[];
     versions: Record<string, string>;
     component_version?: string;
     input_count?: number;

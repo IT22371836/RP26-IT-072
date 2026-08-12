@@ -499,14 +499,40 @@ class PipelineWorker:
 
 async def run_forever() -> None:
     settings = get_settings()
-    await MongoDatabase.connect(settings)
-    await ensure_application_indexes(MongoDatabase.get_database())
-    worker = PipelineWorker(MongoDatabase.get_database(), settings)
-    LOGGER.info("Pipeline worker %s started", settings.pipeline_worker_id)
+    retry_delay = max(1.0, settings.pipeline_poll_interval_seconds)
     try:
         while True:
-            if not await worker.run_once():
-                await asyncio.sleep(settings.pipeline_poll_interval_seconds)
+            try:
+                await MongoDatabase.connect(settings)
+                await ensure_application_indexes(MongoDatabase.get_database())
+                worker = PipelineWorker(MongoDatabase.get_database(), settings)
+                LOGGER.info("Pipeline worker %s started", settings.pipeline_worker_id)
+                while True:
+                    try:
+                        processed = await worker.run_once()
+                        retry_delay = max(1.0, settings.pipeline_poll_interval_seconds)
+                        if not processed:
+                            await asyncio.sleep(settings.pipeline_poll_interval_seconds)
+                    except asyncio.CancelledError:
+                        raise
+                    except Exception:
+                        LOGGER.exception(
+                            "Pipeline worker lost its backend connection; reconnecting in %.1fs",
+                            retry_delay,
+                        )
+                        await MongoDatabase.disconnect()
+                        await asyncio.sleep(retry_delay)
+                        retry_delay = min(retry_delay * 2, 30.0)
+                        break
+            except asyncio.CancelledError:
+                raise
+            except Exception:
+                LOGGER.exception(
+                    "Pipeline worker startup failed; retrying in %.1fs", retry_delay
+                )
+                await MongoDatabase.disconnect()
+                await asyncio.sleep(retry_delay)
+                retry_delay = min(retry_delay * 2, 30.0)
     finally:
         await MongoDatabase.disconnect()
 

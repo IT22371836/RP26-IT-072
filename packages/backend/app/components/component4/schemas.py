@@ -91,7 +91,7 @@ class RankedProvider(BaseModel):
     category: str
     district: str
     city: str
-    rank: int = Field(ge=1, le=5)
+    rank: int = Field(ge=1, le=10)
     final_score: float = Field(ge=0, le=1)
     aspect_scores: AspectScores
     mean_credibility: float = Field(ge=0, le=1)
@@ -103,6 +103,7 @@ class RankedProvider(BaseModel):
     platform_rating: float = Field(ge=0, le=5)
     platform_review_count: int = Field(ge=0)
     ranking_reason: str | None = None
+    ranking_decision: Literal["selected", "outside_top5"] = "selected"
 
 
 class Component4RankResponse(BaseModel):
@@ -116,6 +117,7 @@ class Component4RankResponse(BaseModel):
     requested_top_k: int = Field(ge=1, le=5)
     candidate_provider_ids: list[str]
     providers: list[RankedProvider]
+    evaluated_providers: list[RankedProvider] = Field(default_factory=list)
     versions: Component4Versions
     cached: bool
     processing_time_ms: float = Field(ge=0)

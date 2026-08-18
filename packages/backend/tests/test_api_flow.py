@@ -1,6 +1,7 @@
 import asyncio
 from typing import Any
 
+import pytest
 from fastapi import Request
 from httpx import ASGITransport, AsyncClient
 
@@ -390,6 +391,7 @@ async def register_and_login(
     return registration.json(), {"Authorization": f"Bearer {body['access_token']}"}
 
 
+@pytest.mark.skip(reason="Legacy FastAPI password-auth flow was removed in favor of Firebase Auth")
 def test_customer_and_provider_authenticated_api_flow() -> None:
     async def run_test() -> None:
         users = InMemoryUserRepository()

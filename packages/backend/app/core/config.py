@@ -21,10 +21,6 @@ class Settings(BaseSettings):
     app_debug: bool = False
     api_v1_prefix: str = "/api/v1"
 
-    mongodb_uri: str = Field(default="mongodb://localhost:27017", min_length=1)
-    mongodb_database: str = Field(default="weda_platform_renew_dev", min_length=1)
-    mongodb_server_selection_timeout_ms: int = Field(default=5000, ge=1000, le=30000)
-
     component1_artifact_dir: Path = (
         BACKEND_DIR / "app" / "components" / "component1" / "artifacts"
     )
@@ -93,15 +89,7 @@ class Settings(BaseSettings):
         return (BACKEND_DIR / value).resolve()
 
     @model_validator(mode="after")
-    def reject_development_secret_in_production(self) -> "Settings":
-        if self.app_env.lower() == "production" and self.jwt_secret_key.startswith(
-            "development-only"
-        ):
-            raise ValueError("JWT_SECRET_KEY must be configured for production")
-        if self.app_env.lower() == "production" and not self.auth_cookie_enabled:
-            raise ValueError("AUTH_COOKIE_ENABLED must be true in production")
-        if self.app_env.lower() == "production" and not self.auth_cookie_secure:
-            raise ValueError("AUTH_COOKIE_SECURE must be true in production")
+    def require_firebase_in_production(self) -> "Settings":
         if self.app_env.lower() == "production" and not self.firebase_project_id:
             raise ValueError("FIREBASE_PROJECT_ID must be configured in production")
         if self.app_env.lower() == "production" and not self.firebase_storage_bucket:

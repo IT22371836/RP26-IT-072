@@ -3,7 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
-from datetime import date, datetime, time
+from datetime import UTC, date, datetime, time
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, status
@@ -56,7 +56,18 @@ async def pipeline_worker_health(
 ) -> dict[str, Any]:
     worker = await repository.get_worker(settings.pipeline_worker_id)
     heartbeat = worker.get("heartbeat_at") if worker else None
-    age_seconds = (utc_now() - heartbeat).total_seconds() if heartbeat else None
+    if isinstance(heartbeat, str):
+        try:
+            heartbeat_value = datetime.fromisoformat(heartbeat.replace("Z", "+00:00"))
+            if heartbeat_value.tzinfo is None:
+                heartbeat_value = heartbeat_value.replace(tzinfo=UTC)
+        except ValueError:
+            heartbeat_value = None
+    else:
+        heartbeat_value = heartbeat
+    age_seconds = (
+        (utc_now() - heartbeat_value).total_seconds() if heartbeat_value else None
+    )
     return {
         "ready": age_seconds is not None and age_seconds <= max(
             10, settings.pipeline_poll_interval_seconds * 5
@@ -138,9 +149,7 @@ async def start_pipeline(
             )
             stored = await repository.mark_created(run_id)
         except Exception:
-            await repository.collection.delete_one(
-                {"run_id": run_id, "status": PipelineStatus.INITIALIZING.value}
-            )
+            await repository.delete_initializing(run_id)
             raise
     return PipelineStartResponse(
         run_id=stored["run_id"],
@@ -214,17 +223,6 @@ async def retry_pipeline_run(
             status_code=409,
             detail="Only an owned, retryable failed run can be retried",
         )
-    await repository.collection.update_one(
-        {"run_id": run_id},
-        {
-            "$push": {
-                "retry_history": {
-                    "requested_at": utc_now(),
-                    "requested_by": current_user.user_id,
-                }
-            }
-        },
-    )
     return _response(document)
 
 

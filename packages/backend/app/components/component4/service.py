@@ -513,7 +513,7 @@ class Component4RankingEngine:
             "pending_external_gates": [
                 "real Component 2 Top-10 API adapter",
                 "real Component 2 to Component 4 UAT",
-                "external API load test against the deployed service and shared MongoDB",
+                "external API load test against the deployed service and Firebase RTDB",
             ],
             "detail": (
                 "Component 4 is a validated release candidate. Whole-pipeline production "

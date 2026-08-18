@@ -12,7 +12,7 @@ from app.components.component2.service import Component2FilteringService
 from app.components.component4.schemas import Component4RankRequest
 from app.components.component4.service import Component4RankingOrchestrator, get_component4_engine
 from app.core.config import Settings, get_settings
-from app.core.database import MongoDatabase
+from app.core.firebase_database import FirebaseDatabase
 from app.integrations.firebase_component2 import (
     FirebaseComponent2Error,
     FirebaseRtdbClient,
@@ -74,9 +74,7 @@ class PipelineWorker:
         if document is None:
             return False
         run_id = str(document["run_id"])
-        await self.pipeline.worker_heartbeat(
-            self.settings.pipeline_worker_id, active_run_id=run_id
-        )
+        await self.pipeline.worker_heartbeat(self.settings.pipeline_worker_id, active_run_id=run_id)
         heartbeat = asyncio.create_task(self._heartbeat(run_id))
         try:
             await self._execute(document)
@@ -233,20 +231,13 @@ class PipelineWorker:
         started_at = utc_now()
         started = perf_counter()
         try:
-            mongo_providers, firebase_providers = await asyncio.gather(
-                self.providers.list_all(limit=10_000),
-                self.firebase.get_verified_provider_candidates(),
-            )
+            firebase_providers = await self.firebase.get_verified_provider_candidates()
         except FirebaseComponent2Error as error:
-            raise PipelineExecutionError(
-                "firebase_failure", str(error), retryable=True
-            ) from error
-        artifact_provider_ids = {
-            str(provider["provider_id"]) for provider in engine.providers
-        }
+            raise PipelineExecutionError("firebase_failure", str(error), retryable=True) from error
+        artifact_provider_ids = {str(provider["provider_id"]) for provider in engine.providers}
         live_providers = merge_verified_provider_candidates(
             artifact_provider_ids,
-            mongo_providers,
+            [],
             firebase_providers,
         )
         user = await self.users.find_by_id(user_id)
@@ -260,9 +251,7 @@ class PipelineWorker:
         try:
             booking_history = await self.firebase.get_customer_booking_history(firebase_uid)
         except FirebaseComponent2Error as error:
-            raise PipelineExecutionError(
-                "firebase_failure", str(error), retryable=True
-            ) from error
+            raise PipelineExecutionError("firebase_failure", str(error), retryable=True) from error
         clicks = await self.interactions.click_preference_provider_ids(user_id)
         preferences = [*booking_history_preference_ids(booking_history), *clicks]
         results = await asyncio.to_thread(
@@ -347,7 +336,6 @@ class PipelineWorker:
             "component_version": engine.manifest["component_version"],
             "model_version": engine.manifest["model_version"],
             "artifact_provider_count": engine.status()["provider_count"],
-            "mongo_provider_count": len(mongo_providers),
             "verified_firebase_provider_count": len(firebase_providers),
             "additional_verified_provider_count": len(live_providers),
             "candidate_pool_count": len(artifact_provider_ids) + len(live_providers),
@@ -503,9 +491,9 @@ async def run_forever() -> None:
     try:
         while True:
             try:
-                await MongoDatabase.connect(settings)
-                await ensure_application_indexes(MongoDatabase.get_database())
-                worker = PipelineWorker(MongoDatabase.get_database(), settings)
+                database = FirebaseDatabase.connect(settings)
+                await ensure_application_indexes(database)
+                worker = PipelineWorker(database, settings)
                 LOGGER.info("Pipeline worker %s started", settings.pipeline_worker_id)
                 while True:
                     try:
@@ -520,21 +508,19 @@ async def run_forever() -> None:
                             "Pipeline worker lost its backend connection; reconnecting in %.1fs",
                             retry_delay,
                         )
-                        await MongoDatabase.disconnect()
+                        FirebaseDatabase.disconnect()
                         await asyncio.sleep(retry_delay)
                         retry_delay = min(retry_delay * 2, 30.0)
                         break
             except asyncio.CancelledError:
                 raise
             except Exception:
-                LOGGER.exception(
-                    "Pipeline worker startup failed; retrying in %.1fs", retry_delay
-                )
-                await MongoDatabase.disconnect()
+                LOGGER.exception("Pipeline worker startup failed; retrying in %.1fs", retry_delay)
+                FirebaseDatabase.disconnect()
                 await asyncio.sleep(retry_delay)
                 retry_delay = min(retry_delay * 2, 30.0)
     finally:
-        await MongoDatabase.disconnect()
+        FirebaseDatabase.disconnect()
 
 
 def main() -> None:

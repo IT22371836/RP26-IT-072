@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Response, status
 from app.api.dependencies import (
     get_interaction_repository,
     get_provider_repository,
-    require_role,
+    require_firebase_role,
 )
 from app.components.component1.service import (
     HybridRecommendationEngine,
@@ -48,7 +48,7 @@ from app.services.file_storage import (
 )
 
 router = APIRouter(prefix="/providers", tags=["providers"])
-provider_user = require_role(UserRole.PROVIDER)
+provider_user = require_firebase_role(UserRole.PROVIDER)
 
 
 def document_storage_service(

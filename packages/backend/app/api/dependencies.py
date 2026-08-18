@@ -6,7 +6,7 @@ from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from app.core.config import Settings, get_settings
-from app.core.database import get_database
+from app.core.firebase_database import get_database
 from app.core.security import InvalidAccessTokenError, decode_access_token_claims
 from app.integrations.firebase_component2 import FirebaseComponent2Error, FirebaseRtdbClient
 from app.repositories.component1 import Component1Repository
@@ -146,7 +146,7 @@ async def get_firebase_current_user(
     settings: Annotated[Settings, Depends(get_settings)],
     verifier: Annotated[FirebaseTokenVerifier, Depends(get_firebase_token_verifier)],
 ) -> UserPublic:
-    """Authorize ML-facing APIs with Firebase, without a FastAPI login session."""
+    """Authorize application APIs exclusively with a Firebase ID token."""
 
     unauthorized = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,

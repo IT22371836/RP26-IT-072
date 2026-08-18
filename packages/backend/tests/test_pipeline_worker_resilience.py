@@ -11,15 +11,12 @@ def test_worker_reconnects_after_transient_database_failure(monkeypatch) -> None
 
     class Database:
         @classmethod
-        async def connect(cls, _settings) -> None:
+        def connect(cls, _settings):
             events.append("connect")
-
-        @classmethod
-        def get_database(cls):
             return object()
 
         @classmethod
-        async def disconnect(cls) -> None:
+        def disconnect(cls) -> None:
             events.append("disconnect")
 
     class Worker:
@@ -44,7 +41,7 @@ def test_worker_reconnects_after_transient_database_failure(monkeypatch) -> None
         pipeline_poll_interval_seconds=0.1,
         pipeline_worker_id="test-worker",
     ))
-    monkeypatch.setattr(worker_module, "MongoDatabase", Database)
+    monkeypatch.setattr(worker_module, "FirebaseDatabase", Database)
     monkeypatch.setattr(worker_module, "PipelineWorker", Worker)
     monkeypatch.setattr(worker_module, "ensure_application_indexes", indexes)
     monkeypatch.setattr(worker_module.asyncio, "sleep", sleep)

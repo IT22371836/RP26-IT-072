@@ -40,6 +40,18 @@
       ".read": false,
       ".write": false
     },
+    "core": {
+      ".read": false,
+      ".write": false
+    },
+    "component1": {
+      ".read": false,
+      ".write": false
+    },
+    "component4": {
+      ".read": false,
+      ".write": false
+    },
     "filter_requests": {
       ".read": false,
       ".write": false

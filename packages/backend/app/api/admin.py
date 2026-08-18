@@ -9,7 +9,7 @@ from app.api.dependencies import (
     get_provider_repository,
     get_service_request_repository,
     get_user_repository,
-    require_role,
+    require_firebase_role,
 )
 from app.api.providers import (
     document_storage_service,
@@ -27,7 +27,7 @@ from app.schemas.service_request import ServiceRequestPublic
 from app.services.file_storage import FirebaseDocumentStorage
 
 router = APIRouter(prefix="/admin", tags=["administration"])
-admin_user = require_role(UserRole.ADMIN)
+admin_user = require_firebase_role(UserRole.ADMIN)
 
 
 class AdminOverview(BaseModel):

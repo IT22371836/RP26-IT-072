@@ -293,38 +293,25 @@ def test_missing_firebase_admin_file_is_reported_as_service_unavailable(
     asyncio.run(run_test())
 
 
-def test_production_settings_require_secure_cookie_and_firebase_project() -> None:
+def test_production_settings_require_firebase_project_and_storage() -> None:
     base = {
         "_env_file": None,
         "app_env": "production",
-        "jwt_secret_key": "production-secret-key-that-is-long-enough",
     }
-    with pytest.raises(ValueError, match="AUTH_COOKIE_ENABLED"):
-        Settings(**base)
-    with pytest.raises(ValueError, match="AUTH_COOKIE_SECURE"):
-        Settings(**base, auth_cookie_enabled=True)
     with pytest.raises(ValueError, match="FIREBASE_PROJECT_ID"):
-        Settings(
-            **base,
-            auth_cookie_enabled=True,
-            auth_cookie_secure=True,
-        )
+        Settings(**base)
     with pytest.raises(ValueError, match="FIREBASE_STORAGE_BUCKET"):
         Settings(
             **base,
-            auth_cookie_enabled=True,
-            auth_cookie_secure=True,
             firebase_project_id="production-project",
         )
 
     production = Settings(
         **base,
-        auth_cookie_enabled=True,
-        auth_cookie_secure=True,
         firebase_project_id="production-project",
         firebase_storage_bucket="production-project.firebasestorage.app",
     )
-    assert production.auth_cookie_samesite == "lax"
+    assert production.firebase_project_id == "production-project"
 
 
 def test_link_rejects_duplicate_email_inactive_and_admin_accounts() -> None:
@@ -362,6 +349,7 @@ def test_link_rejects_duplicate_email_inactive_and_admin_accounts() -> None:
     asyncio.run(run_test())
 
 
+@pytest.mark.skip(reason="Password changes are owned exclusively by Firebase Authentication")
 def test_password_change_increments_auth_version_and_invalidates_old_token() -> None:
     async def run_test() -> None:
         repository = TransitionUserRepository([user_document()])
@@ -402,6 +390,7 @@ def test_password_change_increments_auth_version_and_invalidates_old_token() -> 
     asyncio.run(run_test())
 
 
+@pytest.mark.skip(reason="Backend JWT cookies were removed; clients send Firebase ID tokens")
 def test_cookie_transport_is_http_only_and_authenticates_without_browser_token() -> None:
     async def run_test() -> None:
         config = settings(
@@ -447,6 +436,7 @@ def test_cookie_transport_is_http_only_and_authenticates_without_browser_token()
     asyncio.run(run_test())
 
 
+@pytest.mark.skip(reason="Backend JWT endpoints were removed; Firebase verifier covers token state")
 def test_disabled_expired_and_wrong_role_tokens_are_rejected() -> None:
     async def request_status(document: dict[str, Any], token: str) -> int:
         config = settings()
@@ -489,6 +479,7 @@ def test_disabled_expired_and_wrong_role_tokens_are_rejected() -> None:
     assert asyncio.run(request_status(user_document(), wrong_role_token)) == 401
 
 
+@pytest.mark.skip(reason="Account-link endpoint was removed; Firebase is the only identity source")
 def test_firebase_link_endpoint_uses_verified_service_and_returns_backend_token() -> None:
     async def run_test() -> None:
         repository = TransitionUserRepository([user_document()])

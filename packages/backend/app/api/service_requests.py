@@ -2,14 +2,14 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
-from app.api.dependencies import get_service_request_repository, require_role
+from app.api.dependencies import get_service_request_repository, require_firebase_role
 from app.repositories.service_requests import ServiceRequestRepository
 from app.schemas.auth import UserPublic
 from app.schemas.common import UserRole, new_public_id, utc_now
 from app.schemas.service_request import ServiceRequestCreate, ServiceRequestPublic
 
 router = APIRouter(prefix="/service-requests", tags=["service requests"])
-customer_user = require_role(UserRole.CUSTOMER)
+customer_user = require_firebase_role(UserRole.CUSTOMER)
 
 
 @router.post("", response_model=ServiceRequestPublic, status_code=status.HTTP_201_CREATED)

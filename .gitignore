@@ -12,6 +12,7 @@ __pycache__/
 
 # Local background-process logs and PID files
 .run/
+.runlogs/
 
 # Local model caches and generated training outputs
 **/.cache/

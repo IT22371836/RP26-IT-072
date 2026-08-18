@@ -1,6 +1,5 @@
 import re
 
-
 PROVIDER_ID_PATTERN = r"^(?:P[A-Z0-9]+|[A-Za-z0-9_-]{20,128})$"
 
 

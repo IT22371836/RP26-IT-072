@@ -11,11 +11,13 @@ dependencies = [
   "pydantic-settings>=2.7,<3.0",
   "pwdlib[argon2]>=0.2,<1.0",
   "pyjwt>=2.10,<3.0",
-  "pymongo>=4.13,<5.0",
   "uvicorn[standard]>=0.34,<1.0",
 ]
 
 [project.optional-dependencies]
+migration = [
+  "pymongo>=4.13,<5.0",
+]
 component1 = [
   "joblib>=1.4,<2.0",
   "numpy>=2.0,<3.0",

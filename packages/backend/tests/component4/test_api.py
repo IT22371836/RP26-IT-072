@@ -15,7 +15,7 @@ from app.components.component4.router import admin_user, customer_user, engine_d
 from app.components.component4.service import Component4RankingEngine
 from app.components.component4.telemetry import component4_runtime_telemetry
 from app.core.config import Settings, get_settings
-from app.core.database import MongoDatabase
+from app.core.firebase_database import FirebaseDatabase
 from app.main import app
 from app.schemas.auth import UserPublic
 from app.schemas.common import UserRole
@@ -440,8 +440,8 @@ def test_model_weight_and_health_endpoints() -> None:
     async def run_test() -> None:
         engine = loaded_engine()
         app.dependency_overrides[engine_dependency] = lambda: engine
-        original_ping = MongoDatabase.ping
-        MongoDatabase.ping = AsyncMock(return_value=True)  # type: ignore[method-assign]
+        original_ping = FirebaseDatabase.ping
+        FirebaseDatabase.ping = AsyncMock(return_value=True)  # type: ignore[method-assign]
 
         try:
             transport = ASGITransport(app=app)
@@ -454,7 +454,7 @@ def test_model_weight_and_health_endpoints() -> None:
                 weights = await client.get("/api/v1/component4/weights/Electricians")
                 health = await client.get("/api/v1/component4/health")
         finally:
-            MongoDatabase.ping = original_ping  # type: ignore[method-assign]
+            FirebaseDatabase.ping = original_ping  # type: ignore[method-assign]
             app.dependency_overrides.clear()
 
         assert models.status_code == 200
@@ -500,18 +500,18 @@ def test_model_weight_and_health_endpoints() -> None:
 def test_component4_health_reports_shared_database_failure() -> None:
     async def run_test() -> None:
         app.dependency_overrides[engine_dependency] = loaded_engine
-        original_ping = MongoDatabase.ping
-        MongoDatabase.ping = AsyncMock(return_value=False)  # type: ignore[method-assign]
+        original_ping = FirebaseDatabase.ping
+        FirebaseDatabase.ping = AsyncMock(return_value=False)  # type: ignore[method-assign]
 
         try:
             transport = ASGITransport(app=app)
             async with AsyncClient(transport=transport, base_url="http://testserver") as client:
                 response = await client.get("/api/v1/component4/health")
         finally:
-            MongoDatabase.ping = original_ping  # type: ignore[method-assign]
+            FirebaseDatabase.ping = original_ping  # type: ignore[method-assign]
             app.dependency_overrides.clear()
 
         assert response.status_code == 503
-        assert response.json()["detail"] == "Shared MongoDB is unavailable"
+        assert response.json()["detail"] == "Firebase RTDB is unavailable"
 
     asyncio.run(run_test())

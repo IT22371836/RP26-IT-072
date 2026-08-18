@@ -2,7 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.api.dependencies import get_customer_profile_repository, require_role
+from app.api.dependencies import get_customer_profile_repository, require_firebase_role
 from app.repositories.concurrency import ProfileConcurrencyError
 from app.repositories.customers import CustomerProfileRepository
 from app.schemas.auth import UserPublic
@@ -10,7 +10,7 @@ from app.schemas.common import UserRole, new_public_id, utc_now
 from app.schemas.customer import CustomerProfilePublic, CustomerProfileUpdate
 
 router = APIRouter(prefix="/customers", tags=["customers"])
-customer_user = require_role(UserRole.CUSTOMER)
+customer_user = require_firebase_role(UserRole.CUSTOMER)
 
 
 async def ensure_customer_profile(user_id: str, repository: CustomerProfileRepository) -> dict:

@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-from datetime import timedelta
+import hashlib
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from pymongo import ASCENDING, DESCENDING, ReturnDocument
-from pymongo.errors import DuplicateKeyError
-
 from app.pipeline.schemas import PipelineStatus
+from app.repositories.firebase_store import FirebaseStore, nested_get, nested_set, sorted_records
 from app.schemas.common import utc_now
 
 STATUS_STAGE = {
@@ -22,7 +21,6 @@ STATUS_STAGE = {
     PipelineStatus.RETRY_PENDING: "pipeline",
     PipelineStatus.CANCELLED: "pipeline",
 }
-
 STATUS_MESSAGES = {
     PipelineStatus.INITIALIZING: "Pipeline request initialized",
     PipelineStatus.CREATED: "Pipeline queued for the worker",
@@ -39,18 +37,16 @@ STATUS_MESSAGES = {
 
 
 def pipeline_execution_event(
-    status: PipelineStatus,
-    timestamp: Any,
-    updates: dict[str, Any] | None = None,
+    status: PipelineStatus, timestamp: Any, updates: dict[str, Any] | None = None
 ) -> dict[str, Any]:
-    """Create a compact, customer-safe persisted audit event for one transition."""
-
     values = updates or {}
     details: dict[str, Any] = {}
-    component1 = values.get("component1")
-    component2 = values.get("component2")
-    component4 = values.get("component4")
-    error = values.get("error")
+    component1, component2, component4, error = (
+        values.get("component1"),
+        values.get("component2"),
+        values.get("component4"),
+        values.get("error"),
+    )
     if isinstance(component1, dict):
         details = {
             "engine": component1.get("engine"),
@@ -59,9 +55,7 @@ def pipeline_execution_event(
             "input_provider_count": component1.get("candidate_pool_count")
             or component1.get("artifact_provider_count"),
             "artifact_provider_count": component1.get("artifact_provider_count"),
-            "verified_firebase_provider_count": component1.get(
-                "verified_firebase_provider_count"
-            ),
+            "verified_firebase_provider_count": component1.get("verified_firebase_provider_count"),
             "additional_verified_provider_count": component1.get(
                 "additional_verified_provider_count"
             ),
@@ -71,14 +65,14 @@ def pipeline_execution_event(
         }
     elif isinstance(component2, dict):
         evaluated = component2.get("all_evaluated_providers", [])
-        provider_ids = component2.get("output_results", {}).get("provider_ids", [])
+        ids = component2.get("output_results", {}).get("provider_ids", [])
         details = {
             "engine": component2.get("engine"),
             "component_version": component2.get("component_version"),
             "model_version": component2.get("model_version"),
             "input_provider_count": len(evaluated),
-            "output_provider_count": len(provider_ids),
-            "rejected_provider_count": max(0, len(evaluated) - len(provider_ids)),
+            "output_provider_count": len(ids),
+            "rejected_provider_count": max(0, len(evaluated) - len(ids)),
             "weather_risk": component2.get("output_results", {}).get("weather_risk"),
             "processing_time_ms": component2.get("processing_time_ms"),
         }
@@ -91,18 +85,14 @@ def pipeline_execution_event(
             "output_provider_count": component4.get("output_count"),
             "outside_cutoff_provider_count": max(
                 0,
-                int(component4.get("input_count") or 0)
-                - int(component4.get("output_count") or 0),
+                int(component4.get("input_count") or 0) - int(component4.get("output_count") or 0),
             ),
             "source": component4.get("handoff", {}).get("source"),
             "processing_time_ms": component4.get("pipeline_processing_time_ms")
             or component4.get("processing_time_ms"),
         }
     elif isinstance(error, dict):
-        details = {
-            "error_code": error.get("code"),
-            "retryable": error.get("retryable"),
-        }
+        details = {"error_code": error.get("code"), "retryable": error.get("retryable")}
     return {
         "stage": STATUS_STAGE[status],
         "status": status.value,
@@ -112,111 +102,173 @@ def pipeline_execution_event(
     }
 
 
+def _parse_time(value: Any) -> datetime:
+    if isinstance(value, datetime):
+        return value if value.tzinfo else value.replace(tzinfo=UTC)
+    try:
+        parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+        return parsed if parsed.tzinfo else parsed.replace(tzinfo=UTC)
+    except (TypeError, ValueError):
+        return datetime.min.replace(tzinfo=UTC)
+
+
+def _matches_filters(document: dict[str, Any], filters: dict[str, Any]) -> bool:
+    for path, expected in filters.items():
+        actual = nested_get(document, path)
+        if isinstance(expected, dict) and any(
+            operator in expected for operator in ("$gte", "$lte")
+        ):
+            actual_time = _parse_time(actual)
+            if "$gte" in expected and actual_time < _parse_time(expected["$gte"]):
+                return False
+            if "$lte" in expected and actual_time > _parse_time(expected["$lte"]):
+                return False
+        elif actual != expected:
+            return False
+    return True
+
+
 class PipelineRepository:
+    PATH = "pipeline/runs"
+
     def __init__(self, database: Any) -> None:
-        self.collection = database["pipeline_runs"]
-        self.workers = database["pipeline_workers"]
+        self.store = FirebaseStore(database)
 
     async def ensure_indexes(self) -> None:
-        await self.collection.create_index([("run_id", ASCENDING)], unique=True)
-        await self.collection.create_index(
-            [("user_id", ASCENDING), ("idempotency_key", ASCENDING)], unique=True
-        )
-        await self.collection.create_index([("user_id", ASCENDING), ("created_at", DESCENDING)])
-        await self.collection.create_index([("status", ASCENDING), ("created_at", ASCENDING)])
-        await self.collection.create_index([("lease_expires_at", ASCENDING)], sparse=True)
-        await self.workers.create_index([("worker_id", ASCENDING)], unique=True)
+        return None
 
     async def create_or_get(self, document: dict[str, Any]) -> tuple[dict[str, Any], bool]:
-        try:
-            await self.collection.insert_one(document)
+        digest = hashlib.sha256(
+            f"{document['user_id']}\0{document['idempotency_key']}".encode()
+        ).hexdigest()
+        index_path = f"pipeline/idempotency/{digest}"
+        created = False
+
+        def claim(current: Any) -> Any:
+            nonlocal created
+            if current is None:
+                created = True
+                return document["run_id"]
+            return current
+
+        run_id = await self.store.transaction(index_path, claim)
+        if created:
+            await self.store.set(f"{self.PATH}/{document['run_id']}", document)
             return document, True
-        except DuplicateKeyError:
-            existing = await self.collection.find_one(
-                {
-                    "user_id": document["user_id"],
-                    "idempotency_key": document["idempotency_key"],
-                }
-            )
-            if existing is None:
-                raise
-            return existing, False
+        existing = await self.find_by_id(str(run_id))
+        if existing is None:
+            raise RuntimeError("Pipeline idempotency index references a missing run")
+        return existing, False
 
     async def mark_created(self, run_id: str) -> dict[str, Any]:
         now = utc_now()
-        document = await self.collection.find_one_and_update(
-            {"run_id": run_id, "status": PipelineStatus.INITIALIZING.value},
-            {
-                "$set": {"status": PipelineStatus.CREATED.value, "updated_at": now},
-                "$push": {
-                    "execution_log": pipeline_execution_event(
-                        PipelineStatus.CREATED, now
-                    )
-                },
-            },
-            return_document=ReturnDocument.AFTER,
-        )
-        if document is None:
+        changed = False
+
+        def apply(current: Any) -> Any:
+            nonlocal changed
+            if (
+                isinstance(current, dict)
+                and current.get("status") == PipelineStatus.INITIALIZING.value
+            ):
+                current.update({"status": PipelineStatus.CREATED.value, "updated_at": now})
+                current.setdefault("execution_log", []).append(
+                    pipeline_execution_event(PipelineStatus.CREATED, now)
+                )
+                changed = True
+            return current
+
+        document = await self.store.transaction(f"{self.PATH}/{run_id}", apply)
+        if not changed or not isinstance(document, dict):
             raise RuntimeError("Pipeline run could not be initialized")
         return document
 
+    async def delete_initializing(self, run_id: str) -> None:
+        document = await self.find_by_id(run_id)
+        if (
+            not isinstance(document, dict)
+            or document.get("status") != PipelineStatus.INITIALIZING.value
+        ):
+            return
+        digest = hashlib.sha256(
+            f"{document['user_id']}\0{document['idempotency_key']}".encode()
+        ).hexdigest()
+        await self.store.delete(f"{self.PATH}/{run_id}")
+        indexed_run = await self.store.get(f"pipeline/idempotency/{digest}")
+        if indexed_run == run_id:
+            await self.store.delete(f"pipeline/idempotency/{digest}")
+
     async def find_by_id(self, run_id: str) -> dict[str, Any] | None:
-        return await self.collection.find_one({"run_id": run_id})
+        value = await self.store.get(f"{self.PATH}/{run_id}")
+        return value if isinstance(value, dict) else None
 
     async def list_for_user(
         self, user_id: str, limit: int, offset: int = 0
     ) -> list[dict[str, Any]]:
-        return await self.collection.find({"user_id": user_id}).sort(
-            "created_at", DESCENDING
-        ).skip(offset).to_list(length=limit)
+        values = await self.store.get(self.PATH) or {}
+        records = sorted_records(
+            {
+                k: v
+                for k, v in values.items()
+                if isinstance(v, dict) and v.get("user_id") == user_id
+            },
+            field="created_at",
+        )
+        return records[offset : offset + limit]
 
     async def list_all(
-        self,
-        limit: int,
-        offset: int = 0,
-        filters: dict[str, Any] | None = None,
+        self, limit: int, offset: int = 0, filters: dict[str, Any] | None = None
     ) -> list[dict[str, Any]]:
-        return await self.collection.find(filters or {}).sort(
-            "created_at", DESCENDING
-        ).skip(offset).to_list(length=limit)
+        values = await self.store.get(self.PATH) or {}
+        records = [v for v in values.values() if isinstance(v, dict)]
+        if filters:
+            records = [item for item in records if _matches_filters(item, filters)]
+        records.sort(key=lambda item: str(item.get("created_at") or ""), reverse=True)
+        return records[offset : offset + limit]
 
     async def claim_next(self, worker_id: str, lease_seconds: int) -> dict[str, Any] | None:
         now = utc_now()
-        recoverable = [
+        selected: dict[str, Any] | None = None
+        recoverable = {
             PipelineStatus.COMPONENT1_RUNNING.value,
             PipelineStatus.COMPONENT1_COMPLETED.value,
             PipelineStatus.COMPONENT2_RUNNING.value,
             PipelineStatus.COMPONENT2_COMPLETED.value,
             PipelineStatus.COMPONENT4_RUNNING.value,
-        ]
-        return await self.collection.find_one_and_update(
-            {
-                "$or": [
-                    {
-                        "status": {
-                            "$in": [
-                                PipelineStatus.CREATED.value,
-                                PipelineStatus.RETRY_PENDING.value,
-                            ]
-                        }
-                    },
-                    {
-                        "status": {"$in": recoverable},
-                        "lease_expires_at": {"$lt": now},
-                    },
-                ]
-            },
-            {
-                "$set": {
+        }
+
+        def claim(runs: Any) -> Any:
+            nonlocal selected
+            if not isinstance(runs, dict):
+                return runs
+            candidates = []
+            for key, item in runs.items():
+                if not isinstance(item, dict):
+                    continue
+                status = item.get("status")
+                queued = status in {
+                    PipelineStatus.CREATED.value,
+                    PipelineStatus.RETRY_PENDING.value,
+                }
+                expired = status in recoverable and _parse_time(item.get("lease_expires_at")) < now
+                if queued or expired:
+                    candidates.append((str(item.get("created_at") or ""), key, item))
+            if not candidates:
+                return runs
+            _, key, item = min(candidates)
+            item.update(
+                {
                     "worker_id": worker_id,
                     "lease_expires_at": now + timedelta(seconds=lease_seconds),
                     "updated_at": now,
-                },
-                "$inc": {"attempt_count": 1},
-            },
-            sort=[("created_at", ASCENDING)],
-            return_document=ReturnDocument.AFTER,
-        )
+                    "attempt_count": int(item.get("attempt_count") or 0) + 1,
+                }
+            )
+            selected = item
+            runs[key] = item
+            return runs
+
+        await self.store.transaction(self.PATH, claim)
+        return selected
 
     async def transition(
         self,
@@ -226,8 +278,8 @@ class PipelineRepository:
         updates: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         now = utc_now()
-        values = {"status": status.value, "updated_at": now, **(updates or {})}
-        stage_timestamp_paths = {
+        changed = False
+        stage_paths = {
             PipelineStatus.COMPONENT1_RUNNING: "stage_timestamps.component1.started_at",
             PipelineStatus.COMPONENT1_COMPLETED: "stage_timestamps.component1.completed_at",
             PipelineStatus.COMPONENT2_RUNNING: "stage_timestamps.component2.started_at",
@@ -235,63 +287,60 @@ class PipelineRepository:
             PipelineStatus.COMPONENT4_RUNNING: "stage_timestamps.component4.started_at",
             PipelineStatus.COMPLETED: "stage_timestamps.component4.completed_at",
         }
-        if timestamp_path := stage_timestamp_paths.get(status):
-            values[timestamp_path] = now
-        if status == PipelineStatus.COMPLETED:
-            values["completed_at"] = now
-        document = await self.collection.find_one_and_update(
-            {"run_id": run_id, "worker_id": worker_id},
-            {
-                "$set": values,
-                "$push": {
-                    "execution_log": pipeline_execution_event(status, now, updates)
-                },
-            },
-            return_document=ReturnDocument.AFTER,
-        )
-        if document is None:
+
+        def apply(current: Any) -> Any:
+            nonlocal changed
+            if not isinstance(current, dict) or current.get("worker_id") != worker_id:
+                return current
+            current.update({"status": status.value, "updated_at": now})
+            for key, value in (updates or {}).items():
+                nested_set(current, key, value)
+            if status in stage_paths:
+                nested_set(current, stage_paths[status], now)
+            if status == PipelineStatus.COMPLETED:
+                current["completed_at"] = now
+            current.setdefault("execution_log", []).append(
+                pipeline_execution_event(status, now, updates)
+            )
+            changed = True
+            return current
+
+        document = await self.store.transaction(f"{self.PATH}/{run_id}", apply)
+        if not changed or not isinstance(document, dict):
             raise RuntimeError("Pipeline lease was lost")
         return document
 
     async def heartbeat(self, run_id: str, worker_id: str, lease_seconds: int) -> bool:
         now = utc_now()
-        result = await self.collection.update_one(
-            {"run_id": run_id, "worker_id": worker_id},
-            {
-                "$set": {
-                    "lease_expires_at": now + timedelta(seconds=lease_seconds),
-                    "worker_heartbeat_at": now,
-                }
-            },
-        )
-        return result.matched_count == 1
+        matched = False
 
-    async def worker_heartbeat(
-        self, worker_id: str, *, active_run_id: str | None = None
-    ) -> None:
-        await self.workers.update_one(
-            {"worker_id": worker_id},
-            {
-                "$set": {
-                    "worker_id": worker_id,
-                    "active_run_id": active_run_id,
-                    "heartbeat_at": utc_now(),
-                }
-            },
-            upsert=True,
+        def apply(current: Any) -> Any:
+            nonlocal matched
+            if isinstance(current, dict) and current.get("worker_id") == worker_id:
+                current.update(
+                    {
+                        "lease_expires_at": now + timedelta(seconds=lease_seconds),
+                        "worker_heartbeat_at": now,
+                    }
+                )
+                matched = True
+            return current
+
+        await self.store.transaction(f"{self.PATH}/{run_id}", apply)
+        return matched
+
+    async def worker_heartbeat(self, worker_id: str, *, active_run_id: str | None = None) -> None:
+        await self.store.set(
+            f"pipeline/workers/{worker_id}",
+            {"worker_id": worker_id, "active_run_id": active_run_id, "heartbeat_at": utc_now()},
         )
 
     async def get_worker(self, worker_id: str) -> dict[str, Any] | None:
-        return await self.workers.find_one({"worker_id": worker_id})
+        value = await self.store.get(f"pipeline/workers/{worker_id}")
+        return value if isinstance(value, dict) else None
 
     async def fail(
-        self,
-        run_id: str,
-        worker_id: str,
-        *,
-        code: str,
-        message: str,
-        retryable: bool,
+        self, run_id: str, worker_id: str, *, code: str, message: str, retryable: bool
     ) -> None:
         await self.transition(
             run_id,
@@ -305,55 +354,73 @@ class PipelineRepository:
 
     async def retry(self, run_id: str, user_id: str) -> dict[str, Any] | None:
         now = utc_now()
-        return await self.collection.find_one_and_update(
-            {
-                "run_id": run_id,
-                "user_id": user_id,
-                "status": PipelineStatus.FAILED.value,
-                "error.retryable": True,
-            },
-            {
-                "$set": {
-                    "status": PipelineStatus.RETRY_PENDING.value,
-                    "error": None,
-                    "worker_id": None,
-                    "lease_expires_at": None,
-                    "updated_at": now,
-                },
-                "$push": {
-                    "execution_log": pipeline_execution_event(
-                        PipelineStatus.RETRY_PENDING, now
-                    )
-                },
-            },
-            return_document=ReturnDocument.AFTER,
-        )
+        changed = False
+
+        def apply(current: Any) -> Any:
+            nonlocal changed
+            if (
+                isinstance(current, dict)
+                and current.get("user_id") == user_id
+                and current.get("status") == PipelineStatus.FAILED.value
+                and current.get("error", {}).get("retryable") is True
+            ):
+                current.update(
+                    {
+                        "status": PipelineStatus.RETRY_PENDING.value,
+                        "error": None,
+                        "worker_id": None,
+                        "lease_expires_at": None,
+                        "updated_at": now,
+                    }
+                )
+                current.setdefault("retry_history", []).append(
+                    {"requested_at": now, "requested_by": user_id}
+                )
+                current.setdefault("execution_log", []).append(
+                    pipeline_execution_event(PipelineStatus.RETRY_PENDING, now)
+                )
+                changed = True
+            return current
+
+        result = await self.store.transaction(f"{self.PATH}/{run_id}", apply)
+        return result if changed and isinstance(result, dict) else None
 
     async def set_selection(
-        self,
-        run_id: str,
-        user_id: str,
-        provider_id: str,
-        interaction_id: str,
+        self, run_id: str, user_id: str, provider_id: str, interaction_id: str
     ) -> dict[str, Any] | None:
-        return await self.collection.find_one_and_update(
-            {
-                "run_id": run_id,
-                "user_id": user_id,
-                "status": PipelineStatus.COMPLETED.value,
-                "selected_provider_id": None,
-                "component4.providers.provider_id": provider_id,
-            },
-            {
-                "$set": {
-                    "selected_provider_id": provider_id,
-                    "booking_interaction_id": interaction_id,
-                    "selected_at": utc_now(),
-                    "updated_at": utc_now(),
-                }
-            },
-            return_document=ReturnDocument.AFTER,
-        )
+        changed = False
+
+        def apply(current: Any) -> Any:
+            nonlocal changed
+            valid_ids = (
+                [
+                    item.get("provider_id")
+                    for item in current.get("component4", {}).get("providers", [])
+                ]
+                if isinstance(current, dict)
+                else []
+            )
+            if (
+                isinstance(current, dict)
+                and current.get("user_id") == user_id
+                and current.get("status") == PipelineStatus.COMPLETED.value
+                and not current.get("selected_provider_id")
+                and provider_id in valid_ids
+            ):
+                now = utc_now()
+                current.update(
+                    {
+                        "selected_provider_id": provider_id,
+                        "booking_interaction_id": interaction_id,
+                        "selected_at": now,
+                        "updated_at": now,
+                    }
+                )
+                changed = True
+            return current
+
+        result = await self.store.transaction(f"{self.PATH}/{run_id}", apply)
+        return result if changed and isinstance(result, dict) else None
 
     async def create_selection_with_interactions(
         self,
@@ -363,51 +430,35 @@ class PipelineRepository:
         interaction_id: str,
         interaction_documents: list[dict[str, Any]],
     ) -> dict[str, Any] | None:
-        """Commit the one-time selection and its two interaction events together."""
-
-        client = self.collection.database.client
-        async with client.start_session() as session:
-            # PyMongo's native asynchronous session returns the transaction
-            # context manager from an awaitable. Entering the coroutine itself
-            # raises TypeError before any Mongo writes are attempted.
-            async with await session.start_transaction():
-                document = await self.collection.find_one_and_update(
-                    {
-                        "run_id": run_id,
-                        "user_id": user_id,
-                        "status": PipelineStatus.COMPLETED.value,
-                        "selected_provider_id": None,
-                        "component4.providers.provider_id": provider_id,
-                    },
-                    {
-                        "$set": {
-                            "selected_provider_id": provider_id,
-                            "booking_interaction_id": interaction_id,
-                            "selected_at": utc_now(),
-                            "updated_at": utc_now(),
-                        }
-                    },
-                    return_document=ReturnDocument.AFTER,
-                    session=session,
-                )
-                if document is None:
-                    return None
-                await self.collection.database["interactions"].insert_many(
-                    interaction_documents,
-                    ordered=True,
-                    session=session,
-                )
-                return document
+        result = await self.set_selection(run_id, user_id, provider_id, interaction_id)
+        if result is None:
+            return None
+        try:
+            await self.store.multi_update(
+                {
+                    f"component1/interactions/{item['interaction_id']}": item
+                    for item in interaction_documents
+                }
+            )
+        except Exception:
+            await self.rollback_selection(run_id, interaction_id)
+            raise
+        return result
 
     async def rollback_selection(self, run_id: str, interaction_id: str) -> None:
-        await self.collection.update_one(
-            {"run_id": run_id, "booking_interaction_id": interaction_id},
-            {
-                "$set": {
-                    "selected_provider_id": None,
-                    "booking_interaction_id": None,
-                    "selected_at": None,
-                    "updated_at": utc_now(),
-                }
-            },
-        )
+        def apply(current: Any) -> Any:
+            if (
+                isinstance(current, dict)
+                and current.get("booking_interaction_id") == interaction_id
+            ):
+                current.update(
+                    {
+                        "selected_provider_id": None,
+                        "booking_interaction_id": None,
+                        "selected_at": None,
+                        "updated_at": utc_now(),
+                    }
+                )
+            return current
+
+        await self.store.transaction(f"{self.PATH}/{run_id}", apply)

@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, patch
 
 from httpx import ASGITransport, AsyncClient, Response
 
-from app.core.database import MongoDatabase
+from app.core.firebase_database import FirebaseDatabase
 from app.main import app
 
 
@@ -24,15 +24,15 @@ def test_liveness() -> None:
 
 
 def test_readiness_when_database_is_connected() -> None:
-    with patch.object(MongoDatabase, "ping", new=AsyncMock(return_value=True)):
+    with patch.object(FirebaseDatabase, "ping", new=AsyncMock(return_value=True)):
         response = request("/api/v1/health/ready")
 
     assert response.status_code == 200
-    assert response.json() == {"status": "ok", "database": "connected"}
+    assert response.json() == {"status": "ok", "database": "firebase-connected"}
 
 
 def test_readiness_when_database_is_unavailable() -> None:
-    with patch.object(MongoDatabase, "ping", new=AsyncMock(return_value=False)):
+    with patch.object(FirebaseDatabase, "ping", new=AsyncMock(return_value=False)):
         response = request("/api/v1/health/ready")
 
     assert response.status_code == 503

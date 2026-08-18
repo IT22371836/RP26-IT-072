@@ -3,9 +3,8 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from app.api.dependencies import (
-    get_current_user,
     get_integration_read_repository,
-    require_role,
+    require_firebase_role,
 )
 from app.repositories.integration import IntegrationReadRepository
 from app.schemas.auth import UserPublic
@@ -13,12 +12,13 @@ from app.schemas.common import UserRole
 from app.schemas.integration import ContextFilterResultWeb, DailyDemandWebResponse
 
 router = APIRouter(prefix="/integration", tags=["WEB integration"])
-admin_user = require_role(UserRole.ADMIN)
+authenticated_user = require_firebase_role(UserRole.CUSTOMER, UserRole.PROVIDER, UserRole.ADMIN)
+admin_user = require_firebase_role(UserRole.ADMIN)
 
 
 @router.get("/daily-demand/current", response_model=DailyDemandWebResponse)
 async def get_current_daily_demand(
-    _: Annotated[UserPublic, Depends(get_current_user)],
+    _: Annotated[UserPublic, Depends(authenticated_user)],
     repository: Annotated[
         IntegrationReadRepository,
         Depends(get_integration_read_repository),

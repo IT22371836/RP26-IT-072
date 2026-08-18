@@ -7,7 +7,7 @@ from app.api.dependencies import (
     get_component4_repository,
     get_provider_repository,
     get_service_request_repository,
-    require_role,
+    require_firebase_role,
 )
 from app.components.component4.schemas import (
     Component4FinalReadinessResponse,
@@ -31,7 +31,7 @@ from app.components.component4.service import (
 )
 from app.components.component4.telemetry import component4_runtime_telemetry
 from app.core.config import Settings, get_settings
-from app.core.database import MongoDatabase
+from app.core.firebase_database import FirebaseDatabase
 from app.repositories.component4 import Component4Repository
 from app.repositories.providers import ProviderRepository
 from app.repositories.service_requests import ServiceRequestRepository
@@ -39,8 +39,8 @@ from app.schemas.auth import UserPublic
 from app.schemas.common import UserRole
 
 router = APIRouter(prefix="/component4", tags=["component 4"])
-customer_user = require_role(UserRole.CUSTOMER)
-admin_user = require_role(UserRole.ADMIN)
+customer_user = require_firebase_role(UserRole.CUSTOMER)
+admin_user = require_firebase_role(UserRole.ADMIN)
 
 
 def engine_dependency(
@@ -119,10 +119,7 @@ async def _execute_ranking(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="The Component 4 handoff user does not match the authenticated customer",
         )
-    if (
-        settings.app_env.lower() == "production"
-        and payload.source == "development_fixture"
-    ):
+    if settings.app_env.lower() == "production" and payload.source == "development_fixture":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="The Component 2 development fixture is forbidden in production",
@@ -210,9 +207,7 @@ async def active_models(
 async def integration_readiness(
     engine: Annotated[Component4RankingEngine, Depends(engine_dependency)],
 ) -> Component4IntegrationReadinessResponse:
-    return Component4IntegrationReadinessResponse.model_validate(
-        engine.integration_readiness()
-    )
+    return Component4IntegrationReadinessResponse.model_validate(engine.integration_readiness())
 
 
 @router.get(
@@ -222,9 +217,7 @@ async def integration_readiness(
 async def release_readiness(
     engine: Annotated[Component4RankingEngine, Depends(engine_dependency)],
 ) -> Component4ReleaseReadinessResponse:
-    return Component4ReleaseReadinessResponse.model_validate(
-        engine.release_readiness()
-    )
+    return Component4ReleaseReadinessResponse.model_validate(engine.release_readiness())
 
 
 @router.get(
@@ -234,9 +227,7 @@ async def release_readiness(
 async def handoff_readiness(
     engine: Annotated[Component4RankingEngine, Depends(engine_dependency)],
 ) -> Component4HandoffReadinessResponse:
-    return Component4HandoffReadinessResponse.model_validate(
-        engine.handoff_readiness()
-    )
+    return Component4HandoffReadinessResponse.model_validate(engine.handoff_readiness())
 
 
 @router.get(
@@ -246,9 +237,7 @@ async def handoff_readiness(
 async def final_readiness(
     engine: Annotated[Component4RankingEngine, Depends(engine_dependency)],
 ) -> Component4FinalReadinessResponse:
-    return Component4FinalReadinessResponse.model_validate(
-        engine.final_readiness()
-    )
+    return Component4FinalReadinessResponse.model_validate(engine.final_readiness())
 
 
 @router.get(
@@ -278,14 +267,14 @@ async def active_weights(
 async def component4_health(
     engine: Annotated[Component4RankingEngine, Depends(engine_dependency)],
 ) -> Component4HealthResponse:
-    database_ready = await MongoDatabase.ping()
+    database_ready = await FirebaseDatabase.ping()
     health = Component4HealthResponse(
         ready=engine.ready and database_ready,
         database_ready=database_ready,
         artifacts_ready=engine.ready,
         provider_score_count=len(engine.provider_scores),
         component_version=engine.status()["component_version"],
-        detail="Component 4 is ready" if database_ready else "Shared MongoDB is unavailable",
+        detail="Component 4 is ready" if database_ready else "Firebase RTDB is unavailable",
     )
     if not health.ready:
         raise HTTPException(

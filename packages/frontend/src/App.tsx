@@ -116,7 +116,7 @@ function AuthScreen({ onAuthenticated }: { onAuthenticated: (session: Session) =
         setNotice("Account created. Sign in to continue.");
       } else {
         const response = await api.login(email, password);
-        onAuthenticated({ token: response.access_token, user: response.user });
+        onAuthenticated({ token: response.access_token ?? "", user: response.user });
       }
     } catch (reason) {
       setError(reason instanceof ApiError ? reason.message : "Unable to connect to the service.");
@@ -700,7 +700,12 @@ export default function App() {
   }, []);
 
   const authenticated = useMemo(() => (next: Session) => { localStorage.setItem(SESSION_KEY, JSON.stringify(next)); setSession(next); }, []);
-  function logout() { localStorage.removeItem(SESSION_KEY); setSession(null); }
+  function logout() {
+    void api.logout().finally(() => {
+      localStorage.removeItem(SESSION_KEY);
+      setSession(null);
+    });
+  }
 
   if (checking) return <div className="app-loading"><Logo /><LoaderCircle className="spin" /></div>;
   return <div className="app-shell"><Header session={session} onLogout={logout} />{!session ? <AuthScreen onAuthenticated={authenticated} /> : session.user.role === "customer" ? <CustomerDashboard session={session} /> : session.user.role === "provider" ? <ProviderDashboard session={session} /> : <AdminDashboard session={session} />}</div>;

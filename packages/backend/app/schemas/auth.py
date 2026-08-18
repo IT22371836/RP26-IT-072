@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
@@ -39,6 +40,16 @@ class LoginRequest(BaseModel):
         return str(value).strip().lower()
 
 
+class FirebaseAccountLinkRequest(BaseModel):
+    firebase_id_token: str = Field(min_length=100, max_length=10000)
+    new_password: str = Field(min_length=8, max_length=128)
+
+
+class PasswordChangeRequest(BaseModel):
+    current_password: str = Field(min_length=1, max_length=128)
+    new_password: str = Field(min_length=8, max_length=128)
+
+
 class UserPublic(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -51,7 +62,8 @@ class UserPublic(BaseModel):
 
 
 class TokenResponse(BaseModel):
-    access_token: str
+    access_token: str | None
     token_type: str = "bearer"
     expires_in: int
     user: UserPublic
+    token_transport: Literal["bearer", "cookie"] = "bearer"

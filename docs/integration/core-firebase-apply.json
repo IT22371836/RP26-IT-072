@@ -1,0 +1,36 @@
+{
+  "mode": "apply",
+  "mongo_database": "Weda_platform_renew_dev",
+  "firebase_roots_before": [
+    "component1",
+    "component4",
+    "customers",
+    "daily_demand",
+    "filter_requests",
+    "providers"
+  ],
+  "protected_roots": [
+    "customers",
+    "daily_demand",
+    "filter_requests",
+    "providers"
+  ],
+  "record_counts": {
+    "component1/providers": 1,
+    "component1/service_requests": 9,
+    "component1/interactions": 105,
+    "component4/provider_scores": 5,
+    "component4/runs": 1,
+    "core/users": 4,
+    "core/customer_profiles": 2,
+    "core/provider_verification_events": 0
+  },
+  "planned_leaf_updates": 40,
+  "unchanged_leaf_values": 1118,
+  "conflicting_leaf_values_preserved": 0,
+  "conflict_paths": [],
+  "applied": true,
+  "protected_roots_unchanged": true,
+  "remaining_missing_leaf_values": 0,
+  "post_apply_conflicts": []
+}

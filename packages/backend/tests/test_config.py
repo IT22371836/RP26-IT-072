@@ -14,13 +14,12 @@ def test_cors_origins_are_parsed() -> None:
     assert settings.cors_origin_list == ["http://localhost:5173", "https://example.com"]
 
 
-def test_production_rejects_development_jwt_secret() -> None:
-    with pytest.raises(ValidationError, match="JWT_SECRET_KEY must be configured"):
+def test_production_requires_firebase_configuration() -> None:
+    with pytest.raises(ValidationError, match="FIREBASE_PROJECT_ID"):
         Settings(
             app_env="production",
-            mongodb_uri="mongodb://localhost:27017",
-            mongodb_database="test_database",
-            jwt_secret_key="development-only-change-me-32-bytes",
+            firebase_project_id=None,
+            firebase_storage_bucket=None,
         )
 
 

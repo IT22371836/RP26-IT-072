@@ -1,0 +1,49 @@
+
+> web@0.0.0 dev
+> vite --host 127.0.0.1
+
+[2m11:54:20[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m Re-optimizing dependencies because vite config has changed
+
+  [32m[1mVITE[22m v8.1.5[39m  [2mready in [0m[1m982[22m[2m[0m ms[22m
+
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://127.0.0.1:[1m5173[22m/[39m
+[2m13:34:37[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/LoginForm.tsx[22m
+[2m13:34:37[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/CustomerDashboard.tsx[22m
+[2m13:34:38[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx[22m
+[2m13:35:39[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/CustomerDashboard.tsx[22m
+[2m13:36:10[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/AdminManualRelationsModal.tsx[22m
+[2m13:47:41[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/LoginForm.tsx, /src/components/CustomerDashboard.tsx, /src/App.tsx[22m
+[2m13:47:41[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/LoginForm.tsx, /src/components/CustomerDashboard.tsx, /src/App.tsx[22m
+[2m13:47:41[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/CustomerDashboard.tsx, /src/App.tsx[22m
+[2m13:47:43[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/ProviderDashboard.tsx[22m
+[2m13:47:44[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx[22m
+[2m13:53:10[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/components/CustomerRegisterForm.tsx, /src/components/LoginForm.tsx, /src/components/ProviderRegisterForm.tsx, /src/components/CustomerDashboard.tsx, /src/components/ProviderDashboard.tsx, /src/components/Dashboard.tsx, /src/components/WorkingHoursView.tsx, /src/components/DocumentUploadModal.tsx, /src/components/AdminManualRelationsModal.tsx, /src/components/ProviderCategoryDemandWidget.tsx[22m
+[2m13:53:57[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/LoginForm.tsx, /src/components/CustomerDashboard.tsx, /src/App.tsx, /src/components/ProviderDashboard.tsx[22m
+[2m13:53:57[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/ProviderDashboard.tsx, /src/App.tsx[22m
+[2m13:54:25[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/ProviderDashboard.tsx, /src/App.tsx[22m
+[2m13:54:26[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/DocumentUploadModal.tsx[22m
+[2m13:54:26[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/ProviderDashboard.tsx[22m
+[2m13:54:56[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/ProviderDashboard.tsx[22m
+[2m14:02:40[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/components/CustomerRegisterForm.tsx, /src/components/LoginForm.tsx, /src/components/ProviderRegisterForm.tsx, /src/components/CustomerDashboard.tsx, /src/components/ProviderDashboard.tsx, /src/components/Dashboard.tsx, /src/components/WorkingHoursView.tsx, /src/components/AdminManualRelationsModal.tsx, /src/components/ProviderCategoryDemandWidget.tsx, /src/components/DocumentUploadModal.tsx[22m
+[2m14:02:41[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/LoginForm.tsx, /src/components/CustomerDashboard.tsx, /src/App.tsx, /src/components/ProviderDashboard.tsx, /src/components/DocumentUploadModal.tsx[22m
+[2m14:02:41[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/ProviderDashboard.tsx, /src/App.tsx, /src/components/DocumentUploadModal.tsx[22m
+[2m14:02:43[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/Dashboard.tsx[22m
+[2m14:03:37[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/Dashboard.tsx[22m
+[2m16:11:03[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/LoginForm.tsx, /src/components/CustomerDashboard.tsx, /src/App.tsx, /src/components/ProviderDashboard.tsx, /src/components/DocumentUploadModal.tsx, /src/components/Dashboard.tsx[22m
+[2m16:11:05[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/components/CustomerRegisterForm.tsx, /src/components/LoginForm.tsx, /src/components/ProviderRegisterForm.tsx, /src/components/CustomerDashboard.tsx, /src/components/ProviderDashboard.tsx, /src/components/Dashboard.tsx, /src/components/WorkingHoursView.tsx, /src/components/AdminManualRelationsModal.tsx, /src/components/ProviderCategoryDemandWidget.tsx, /src/components/DocumentUploadModal.tsx[22m
+[2m16:11:05[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/LoginForm.tsx, /src/components/CustomerDashboard.tsx, /src/App.tsx, /src/components/ProviderDashboard.tsx, /src/components/DocumentUploadModal.tsx, /src/components/Dashboard.tsx[22m
+[2m16:11:06[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/Dashboard.tsx[22m
+[2m16:11:29[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/LoginForm.tsx, /src/components/CustomerDashboard.tsx, /src/App.tsx, /src/components/ProviderDashboard.tsx, /src/components/DocumentUploadModal.tsx, /src/components/Dashboard.tsx[22m
+[2m16:11:30[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/LoginForm.tsx, /src/components/CustomerDashboard.tsx, /src/App.tsx, /src/components/ProviderDashboard.tsx, /src/components/DocumentUploadModal.tsx, /src/components/Dashboard.tsx[22m
+[2m16:11:50[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/LoginForm.tsx[22m
+[2m16:11:51[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx[22m
+[2m16:14:43[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/Dashboard.tsx[22m
+[2m16:14:57[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/Dashboard.tsx[22m
+[2m16:37:25[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/CustomerDashboard.tsx, /src/App.tsx, /src/components/ProviderDashboard.tsx, /src/components/DocumentUploadModal.tsx, /src/components/Dashboard.tsx, /src/components/LoginForm.tsx[22m
+[2m16:37:26[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/components/CustomerRegisterForm.tsx, /src/components/LoginForm.tsx, /src/components/ProviderRegisterForm.tsx, /src/components/CustomerDashboard.tsx, /src/components/ProviderDashboard.tsx, /src/components/Dashboard.tsx, /src/components/WorkingHoursView.tsx, /src/components/AdminManualRelationsModal.tsx, /src/components/ProviderCategoryDemandWidget.tsx, /src/components/DocumentUploadModal.tsx[22m
+[2m16:37:26[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/CustomerDashboard.tsx[22m
+[2m16:38:12[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/ProviderDashboard.tsx, /src/App.tsx, /src/components/DocumentUploadModal.tsx, /src/components/Dashboard.tsx[22m
+[2m16:38:13[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/DocumentUploadModal.tsx[22m
+[2m16:38:40[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/ProviderDocumentsView.tsx[22m
+[2m16:38:41[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/ProviderDashboard.tsx[22m
+[2m16:38:42[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/Dashboard.tsx[22m

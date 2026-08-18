@@ -6,14 +6,18 @@ requires-python = ">=3.11"
 dependencies = [
   "fastapi>=0.115,<1.0",
   "email-validator>=2.2,<3.0",
+  "firebase-admin>=6.6,<8.0",
+  "requests>=2.32,<3.0",
   "pydantic-settings>=2.7,<3.0",
   "pwdlib[argon2]>=0.2,<1.0",
   "pyjwt>=2.10,<3.0",
-  "pymongo>=4.13,<5.0",
   "uvicorn[standard]>=0.34,<1.0",
 ]
 
 [project.optional-dependencies]
+migration = [
+  "pymongo>=4.13,<5.0",
+]
 component1 = [
   "joblib>=1.4,<2.0",
   "numpy>=2.0,<3.0",
@@ -23,6 +27,7 @@ component1 = [
   "sentence-transformers>=3.4,<6.0",
 ]
 dev = [
+  "bcrypt>=4.2,<5.0",
   "httpx>=0.28,<1.0",
   "pytest>=8.3,<9.0",
   "ruff>=0.11,<1.0",

@@ -6,19 +6,19 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.router import api_router
 from app.core.config import get_settings
-from app.core.database import MongoDatabase
+from app.core.firebase_database import FirebaseDatabase
 from app.repositories.indexes import ensure_application_indexes
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     settings = get_settings()
-    await MongoDatabase.connect(settings)
-    await ensure_application_indexes(MongoDatabase.get_database())
+    database = FirebaseDatabase.connect(settings)
+    await ensure_application_indexes(database)
     try:
         yield
     finally:
-        await MongoDatabase.disconnect()
+        FirebaseDatabase.disconnect()
 
 
 def create_app() -> FastAPI:

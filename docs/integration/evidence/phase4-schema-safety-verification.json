@@ -1,0 +1,30 @@
+{
+  "generated_at": "2026-08-05T10:26:39.935903+00:00",
+  "missing_routes": [],
+  "mode": "read-only-schema-verification",
+  "repository_update_violations": [],
+  "safety_contract": {
+    "component1_request_ownership_required": true,
+    "component4_request_ownership_required": true,
+    "legacy_models_allow_unknown_fields": true,
+    "profile_optimistic_concurrency": "optional expected_updated_at token",
+    "web_response_models_are_allowlisted": true
+  },
+  "summary": {
+    "daily_demand_records_validated_exactly": 1,
+    "filter_records_validated_exactly": 2,
+    "passed": true,
+    "privacy_allowlist_passed": true,
+    "provider_models_validated": {
+      "credibility_records": 6,
+      "document_sets": 6,
+      "extracted_features": 6,
+      "locations": 6,
+      "working_hours": 6
+    },
+    "repository_update_violations": 0,
+    "required_api_routes_expected": 4,
+    "required_api_routes_present": 4,
+    "source_database_writes": 0
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "firebase_rtdb_export": {
+    "bytes": 35134,
+    "file": "firebase-rtdb-export.json",
+    "sha256": "2e4f8f7cb36c97801f28a2b1e2c24a7a35d9720ba4e521ebc4713043d85d9750"
+  },
+  "generated_at": "2026-08-05T09:13:09.229882+00:00",
+  "mongodb_mongodump": {
+    "bytes": 8283,
+    "file": "mongodb.archive.gz",
+    "sha256": "2727ec6b2c10d46730e82dc1c4aa8b66501b4122368fefc99c63914cc0d5f942"
+  }
+}

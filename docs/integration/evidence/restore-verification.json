@@ -1,0 +1,182 @@
+{
+  "firebase": {
+    "counts_match": true,
+    "exact_json_match": true,
+    "expected_counts": {
+      "customers": 2,
+      "daily_demand": 1,
+      "filter_requests": 2,
+      "providers": 6
+    },
+    "restored_canonical_sha256": "2e4f8f7cb36c97801f28a2b1e2c24a7a35d9720ba4e521ebc4713043d85d9750",
+    "restored_counts": {
+      "customers": 2,
+      "daily_demand": 1,
+      "filter_requests": 2,
+      "providers": 6
+    },
+    "source_canonical_sha256": "2e4f8f7cb36c97801f28a2b1e2c24a7a35d9720ba4e521ebc4713043d85d9750",
+    "target": "local RTDB emulator namespace demo-weda-phase0"
+  },
+  "generated_at": "2026-08-05T09:49:01.917643+00:00",
+  "mongodb": {
+    "collections": {
+      "component4_provider_scores": {
+        "count_match": true,
+        "expected_count": 5,
+        "indexes_match": true,
+        "restored_count": 5,
+        "restored_index_names": [
+          "_id_",
+          "provider_id_1_created_at_-1",
+          "run_id_1_provider_id_1",
+          "run_id_1_rank_1"
+        ]
+      },
+      "component4_runs": {
+        "count_match": true,
+        "expected_count": 1,
+        "indexes_match": true,
+        "restored_count": 1,
+        "restored_index_names": [
+          "_id_",
+          "run_id_1",
+          "status_1_created_at_-1",
+          "user_id_1_request_id_1_created_at_-1"
+        ]
+      },
+      "customer_profiles": {
+        "count_match": true,
+        "expected_count": 2,
+        "indexes_match": true,
+        "restored_count": 2,
+        "restored_index_names": [
+          "_id_",
+          "customer_id_1",
+          "user_id_1"
+        ]
+      },
+      "interactions": {
+        "count_match": true,
+        "expected_count": 105,
+        "indexes_match": true,
+        "restored_count": 105,
+        "restored_index_names": [
+          "_id_",
+          "interaction_id_1",
+          "provider_id_1_timestamp_-1",
+          "user_id_1_timestamp_-1"
+        ]
+      },
+      "legacy_firebase_customers": {
+        "count_match": true,
+        "expected_count": 0,
+        "indexes_match": true,
+        "restored_count": 0,
+        "restored_index_names": [
+          "_id_",
+          "source_node_1_source_key_1",
+          "source_sha256_1"
+        ]
+      },
+      "legacy_firebase_daily_demand": {
+        "count_match": true,
+        "expected_count": 0,
+        "indexes_match": true,
+        "restored_count": 0,
+        "restored_index_names": [
+          "_id_",
+          "source_node_1_source_key_1",
+          "source_sha256_1"
+        ]
+      },
+      "legacy_firebase_filter_requests": {
+        "count_match": true,
+        "expected_count": 0,
+        "indexes_match": true,
+        "restored_count": 0,
+        "restored_index_names": [
+          "_id_",
+          "source_node_1_source_key_1",
+          "source_sha256_1"
+        ]
+      },
+      "legacy_firebase_providers": {
+        "count_match": true,
+        "expected_count": 0,
+        "indexes_match": true,
+        "restored_count": 0,
+        "restored_index_names": [
+          "_id_",
+          "source_node_1_source_key_1",
+          "source_sha256_1"
+        ]
+      },
+      "legacy_identity_map": {
+        "count_match": true,
+        "expected_count": 0,
+        "indexes_match": true,
+        "restored_count": 0,
+        "restored_index_names": [
+          "_id_",
+          "entity_type_1_firebase_key_1",
+          "firebase_uid_1",
+          "mongo_customer_id_1",
+          "mongo_provider_id_1",
+          "mongo_request_id_1",
+          "mongo_user_id_1"
+        ]
+      },
+      "provider_verification_events": {
+        "count_match": true,
+        "expected_count": 0,
+        "indexes_match": true,
+        "restored_count": 0,
+        "restored_index_names": [
+          "_id_",
+          "event_id_1",
+          "provider_id_1_created_at_-1"
+        ]
+      },
+      "providers": {
+        "count_match": true,
+        "expected_count": 1,
+        "indexes_match": true,
+        "restored_count": 1,
+        "restored_index_names": [
+          "_id_",
+          "category_1_district_1_city_1",
+          "provider_id_1",
+          "user_id_1"
+        ]
+      },
+      "service_requests": {
+        "count_match": true,
+        "expected_count": 9,
+        "indexes_match": true,
+        "restored_count": 9,
+        "restored_index_names": [
+          "_id_",
+          "category_1_district_1_city_1",
+          "request_id_1",
+          "user_id_1_created_at_-1"
+        ]
+      },
+      "users": {
+        "count_match": true,
+        "expected_count": 4,
+        "indexes_match": true,
+        "restored_count": 4,
+        "restored_index_names": [
+          "_id_",
+          "email_1",
+          "user_id_1"
+        ]
+      }
+    },
+    "passed": true,
+    "target_database": "weda_p0_restore_20260805"
+  },
+  "passed": true,
+  "source_databases_modified": false
+}

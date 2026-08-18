@@ -1,1 +1,1 @@
-"""MongoDB persistence repositories."""
+"""Firebase RTDB persistence repositories."""

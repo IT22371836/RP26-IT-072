@@ -3,11 +3,20 @@ from typing import Literal, Self
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
+from app.schemas.provider_identity import is_supported_provider_id
+
 ASPECTS = ("quality", "punctuality", "communication", "professionalism")
 
 
+Component4Source = Literal[
+    "component2",
+    "component2_zero_fallback",
+    "development_fixture",
+]
+
+
 class Component4RankRequest(BaseModel):
-    source: Literal["component2", "development_fixture"]
+    source: Component4Source
     request_id: str = Field(pattern=r"^R[A-Z0-9]+$", min_length=2, max_length=64)
     user_id: str = Field(pattern=r"^U[A-Z0-9]+$", min_length=2, max_length=64)
     component_version: str = Field(min_length=1, max_length=128)
@@ -27,16 +36,25 @@ class Component4RankRequest(BaseModel):
     @field_validator("provider_ids")
     @classmethod
     def normalize_unique_provider_ids(cls, values: list[str]) -> list[str]:
-        normalized = [value.strip().upper() for value in values]
-        if any(not value.startswith("P") or not value[1:].isalnum() for value in normalized):
-            raise ValueError("provider_ids must be canonical IDs beginning with P")
+        normalized = []
+        for value in values:
+            candidate = value.strip()
+            if (
+                len(candidate) < 20
+                and candidate[:1].lower() == "p"
+                and candidate[1:].isalnum()
+            ):
+                candidate = candidate.upper()
+            normalized.append(candidate)
+        if any(not is_supported_provider_id(value) for value in normalized):
+            raise ValueError("provider_ids must be canonical P IDs or Firebase UIDs")
         if len(normalized) != len(set(normalized)):
             raise ValueError("provider_ids must be unique")
         return normalized
 
     @model_validator(mode="after")
     def reject_placeholder_component2_versions(self) -> Self:
-        if self.source == "component2" and (
+        if self.source in {"component2", "component2_zero_fallback"} and (
             self.component_version == "not-component2"
             or self.model_version == "not-component2"
         ):
@@ -45,7 +63,7 @@ class Component4RankRequest(BaseModel):
 
 
 class Component4HandoffLineage(BaseModel):
-    source: Literal["component2", "development_fixture"]
+    source: Component4Source
     request_id: str
     user_id: str
     component_version: str
@@ -73,7 +91,7 @@ class RankedProvider(BaseModel):
     category: str
     district: str
     city: str
-    rank: int = Field(ge=1, le=5)
+    rank: int = Field(ge=1, le=10)
     final_score: float = Field(ge=0, le=1)
     aspect_scores: AspectScores
     mean_credibility: float = Field(ge=0, le=1)
@@ -84,6 +102,8 @@ class RankedProvider(BaseModel):
     score_source: Literal["catf_evidence", "category_prior"]
     platform_rating: float = Field(ge=0, le=5)
     platform_review_count: int = Field(ge=0)
+    ranking_reason: str | None = None
+    ranking_decision: Literal["selected", "outside_top5"] = "selected"
 
 
 class Component4RankResponse(BaseModel):
@@ -97,6 +117,7 @@ class Component4RankResponse(BaseModel):
     requested_top_k: int = Field(ge=1, le=5)
     candidate_provider_ids: list[str]
     providers: list[RankedProvider]
+    evaluated_providers: list[RankedProvider] = Field(default_factory=list)
     versions: Component4Versions
     cached: bool
     processing_time_ms: float = Field(ge=0)

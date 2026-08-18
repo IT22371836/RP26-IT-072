@@ -1,0 +1,1221 @@
+{
+  "migration_version": "firebase-to-mongo-v1",
+  "mode": "dry-run",
+  "generated_at": "2026-08-05T08:00:39.123082+00:00",
+  "inventory": {
+    "total_records": 8,
+    "nodes": {
+      "customers": {
+        "record_count": 1,
+        "field_paths": [
+          "customers.{record}.city",
+          "customers.{record}.createdAt",
+          "customers.{record}.createdTimestamp",
+          "customers.{record}.customerImage",
+          "customers.{record}.district",
+          "customers.{record}.email",
+          "customers.{record}.fullName",
+          "customers.{record}.id",
+          "customers.{record}.location.latitude",
+          "customers.{record}.location.longitude",
+          "customers.{record}.phone",
+          "customers.{record}.preferredLanguage",
+          "customers.{record}.role"
+        ],
+        "field_type_counts": {
+          "customers.{record}.city": {
+            "string": 1
+          },
+          "customers.{record}.createdAt": {
+            "string": 1
+          },
+          "customers.{record}.createdTimestamp": {
+            "number": 1
+          },
+          "customers.{record}.customerImage": {
+            "string": 1
+          },
+          "customers.{record}.district": {
+            "string": 1
+          },
+          "customers.{record}.email": {
+            "string": 1
+          },
+          "customers.{record}.fullName": {
+            "string": 1
+          },
+          "customers.{record}.id": {
+            "string": 1
+          },
+          "customers.{record}.location.latitude": {
+            "number": 1
+          },
+          "customers.{record}.location.longitude": {
+            "number": 1
+          },
+          "customers.{record}.phone": {
+            "string": 1
+          },
+          "customers.{record}.preferredLanguage": {
+            "string": 1
+          },
+          "customers.{record}.role": {
+            "string": 1
+          }
+        }
+      },
+      "daily_demand": {
+        "record_count": 1,
+        "field_paths": [
+          "daily_demand.{record}.by_category.A_C Services.Friday",
+          "daily_demand.{record}.by_category.A_C Services.Monday",
+          "daily_demand.{record}.by_category.A_C Services.Saturday",
+          "daily_demand.{record}.by_category.A_C Services.Sunday",
+          "daily_demand.{record}.by_category.A_C Services.Thursday",
+          "daily_demand.{record}.by_category.A_C Services.Tuesday",
+          "daily_demand.{record}.by_category.A_C Services.Wednesday",
+          "daily_demand.{record}.by_category.A_C Services.avg_daily",
+          "daily_demand.{record}.by_category.A_C Services.demand_level",
+          "daily_demand.{record}.by_category.A_C Services.service_category",
+          "daily_demand.{record}.by_category.A_C Services.total_weekly",
+          "daily_demand.{record}.by_category.CCTV Installation.Friday",
+          "daily_demand.{record}.by_category.CCTV Installation.Monday",
+          "daily_demand.{record}.by_category.CCTV Installation.Saturday",
+          "daily_demand.{record}.by_category.CCTV Installation.Sunday",
+          "daily_demand.{record}.by_category.CCTV Installation.Thursday",
+          "daily_demand.{record}.by_category.CCTV Installation.Tuesday",
+          "daily_demand.{record}.by_category.CCTV Installation.Wednesday",
+          "daily_demand.{record}.by_category.CCTV Installation.avg_daily",
+          "daily_demand.{record}.by_category.CCTV Installation.demand_level",
+          "daily_demand.{record}.by_category.CCTV Installation.service_category",
+          "daily_demand.{record}.by_category.CCTV Installation.total_weekly",
+          "daily_demand.{record}.by_category.Carpenters.Friday",
+          "daily_demand.{record}.by_category.Carpenters.Monday",
+          "daily_demand.{record}.by_category.Carpenters.Saturday",
+          "daily_demand.{record}.by_category.Carpenters.Sunday",
+          "daily_demand.{record}.by_category.Carpenters.Thursday",
+          "daily_demand.{record}.by_category.Carpenters.Tuesday",
+          "daily_demand.{record}.by_category.Carpenters.Wednesday",
+          "daily_demand.{record}.by_category.Carpenters.avg_daily",
+          "daily_demand.{record}.by_category.Carpenters.demand_level",
+          "daily_demand.{record}.by_category.Carpenters.service_category",
+          "daily_demand.{record}.by_category.Carpenters.total_weekly",
+          "daily_demand.{record}.by_category.Ceiling Works.Friday",
+          "daily_demand.{record}.by_category.Ceiling Works.Monday",
+          "daily_demand.{record}.by_category.Ceiling Works.Saturday",
+          "daily_demand.{record}.by_category.Ceiling Works.Sunday",
+          "daily_demand.{record}.by_category.Ceiling Works.Thursday",
+          "daily_demand.{record}.by_category.Ceiling Works.Tuesday",
+          "daily_demand.{record}.by_category.Ceiling Works.Wednesday",
+          "daily_demand.{record}.by_category.Ceiling Works.avg_daily",
+          "daily_demand.{record}.by_category.Ceiling Works.demand_level",
+          "daily_demand.{record}.by_category.Ceiling Works.service_category",
+          "daily_demand.{record}.by_category.Ceiling Works.total_weekly",
+          "daily_demand.{record}.by_category.Cleaners.Friday",
+          "daily_demand.{record}.by_category.Cleaners.Monday",
+          "daily_demand.{record}.by_category.Cleaners.Saturday",
+          "daily_demand.{record}.by_category.Cleaners.Sunday",
+          "daily_demand.{record}.by_category.Cleaners.Thursday",
+          "daily_demand.{record}.by_category.Cleaners.Tuesday",
+          "daily_demand.{record}.by_category.Cleaners.Wednesday",
+          "daily_demand.{record}.by_category.Cleaners.avg_daily",
+          "daily_demand.{record}.by_category.Cleaners.demand_level",
+          "daily_demand.{record}.by_category.Cleaners.service_category",
+          "daily_demand.{record}.by_category.Cleaners.total_weekly",
+          "daily_demand.{record}.by_category.Cushion Works.Friday",
+          "daily_demand.{record}.by_category.Cushion Works.Monday",
+          "daily_demand.{record}.by_category.Cushion Works.Saturday",
+          "daily_demand.{record}.by_category.Cushion Works.Sunday",
+          "daily_demand.{record}.by_category.Cushion Works.Thursday",
+          "daily_demand.{record}.by_category.Cushion Works.Tuesday",
+          "daily_demand.{record}.by_category.Cushion Works.Wednesday",
+          "daily_demand.{record}.by_category.Cushion Works.avg_daily",
+          "daily_demand.{record}.by_category.Cushion Works.demand_level",
+          "daily_demand.{record}.by_category.Cushion Works.service_category",
+          "daily_demand.{record}.by_category.Cushion Works.total_weekly",
+          "daily_demand.{record}.by_category.Electricians.Friday",
+          "daily_demand.{record}.by_category.Electricians.Monday",
+          "daily_demand.{record}.by_category.Electricians.Saturday",
+          "daily_demand.{record}.by_category.Electricians.Sunday",
+          "daily_demand.{record}.by_category.Electricians.Thursday",
+          "daily_demand.{record}.by_category.Electricians.Tuesday",
+          "daily_demand.{record}.by_category.Electricians.Wednesday",
+          "daily_demand.{record}.by_category.Electricians.avg_daily",
+          "daily_demand.{record}.by_category.Electricians.demand_level",
+          "daily_demand.{record}.by_category.Electricians.service_category",
+          "daily_demand.{record}.by_category.Electricians.total_weekly",
+          "daily_demand.{record}.by_category.Masons.Friday",
+          "daily_demand.{record}.by_category.Masons.Monday",
+          "daily_demand.{record}.by_category.Masons.Saturday",
+          "daily_demand.{record}.by_category.Masons.Sunday",
+          "daily_demand.{record}.by_category.Masons.Thursday",
+          "daily_demand.{record}.by_category.Masons.Tuesday",
+          "daily_demand.{record}.by_category.Masons.Wednesday",
+          "daily_demand.{record}.by_category.Masons.avg_daily",
+          "daily_demand.{record}.by_category.Masons.demand_level",
+          "daily_demand.{record}.by_category.Masons.service_category",
+          "daily_demand.{record}.by_category.Masons.total_weekly",
+          "daily_demand.{record}.by_category.Painters.Friday",
+          "daily_demand.{record}.by_category.Painters.Monday",
+          "daily_demand.{record}.by_category.Painters.Saturday",
+          "daily_demand.{record}.by_category.Painters.Sunday",
+          "daily_demand.{record}.by_category.Painters.Thursday",
+          "daily_demand.{record}.by_category.Painters.Tuesday",
+          "daily_demand.{record}.by_category.Painters.Wednesday",
+          "daily_demand.{record}.by_category.Painters.avg_daily",
+          "daily_demand.{record}.by_category.Painters.demand_level",
+          "daily_demand.{record}.by_category.Painters.service_category",
+          "daily_demand.{record}.by_category.Painters.total_weekly",
+          "daily_demand.{record}.by_category.Plumbers.Friday",
+          "daily_demand.{record}.by_category.Plumbers.Monday",
+          "daily_demand.{record}.by_category.Plumbers.Saturday",
+          "daily_demand.{record}.by_category.Plumbers.Sunday",
+          "daily_demand.{record}.by_category.Plumbers.Thursday",
+          "daily_demand.{record}.by_category.Plumbers.Tuesday",
+          "daily_demand.{record}.by_category.Plumbers.Wednesday",
+          "daily_demand.{record}.by_category.Plumbers.avg_daily",
+          "daily_demand.{record}.by_category.Plumbers.demand_level",
+          "daily_demand.{record}.by_category.Plumbers.service_category",
+          "daily_demand.{record}.by_category.Plumbers.total_weekly",
+          "daily_demand.{record}.by_category.Technicians.Friday",
+          "daily_demand.{record}.by_category.Technicians.Monday",
+          "daily_demand.{record}.by_category.Technicians.Saturday",
+          "daily_demand.{record}.by_category.Technicians.Sunday",
+          "daily_demand.{record}.by_category.Technicians.Thursday",
+          "daily_demand.{record}.by_category.Technicians.Tuesday",
+          "daily_demand.{record}.by_category.Technicians.Wednesday",
+          "daily_demand.{record}.by_category.Technicians.avg_daily",
+          "daily_demand.{record}.by_category.Technicians.demand_level",
+          "daily_demand.{record}.by_category.Technicians.service_category",
+          "daily_demand.{record}.by_category.Technicians.total_weekly",
+          "daily_demand.{record}.by_category.Tile Workers.Friday",
+          "daily_demand.{record}.by_category.Tile Workers.Monday",
+          "daily_demand.{record}.by_category.Tile Workers.Saturday",
+          "daily_demand.{record}.by_category.Tile Workers.Sunday",
+          "daily_demand.{record}.by_category.Tile Workers.Thursday",
+          "daily_demand.{record}.by_category.Tile Workers.Tuesday",
+          "daily_demand.{record}.by_category.Tile Workers.Wednesday",
+          "daily_demand.{record}.by_category.Tile Workers.avg_daily",
+          "daily_demand.{record}.by_category.Tile Workers.demand_level",
+          "daily_demand.{record}.by_category.Tile Workers.service_category",
+          "daily_demand.{record}.by_category.Tile Workers.total_weekly",
+          "daily_demand.{record}.by_category.Vehicle Repairs.Friday",
+          "daily_demand.{record}.by_category.Vehicle Repairs.Monday",
+          "daily_demand.{record}.by_category.Vehicle Repairs.Saturday",
+          "daily_demand.{record}.by_category.Vehicle Repairs.Sunday",
+          "daily_demand.{record}.by_category.Vehicle Repairs.Thursday",
+          "daily_demand.{record}.by_category.Vehicle Repairs.Tuesday",
+          "daily_demand.{record}.by_category.Vehicle Repairs.Wednesday",
+          "daily_demand.{record}.by_category.Vehicle Repairs.avg_daily",
+          "daily_demand.{record}.by_category.Vehicle Repairs.demand_level",
+          "daily_demand.{record}.by_category.Vehicle Repairs.service_category",
+          "daily_demand.{record}.by_category.Vehicle Repairs.total_weekly",
+          "daily_demand.{record}.by_category.Well Services.Friday",
+          "daily_demand.{record}.by_category.Well Services.Monday",
+          "daily_demand.{record}.by_category.Well Services.Saturday",
+          "daily_demand.{record}.by_category.Well Services.Sunday",
+          "daily_demand.{record}.by_category.Well Services.Thursday",
+          "daily_demand.{record}.by_category.Well Services.Tuesday",
+          "daily_demand.{record}.by_category.Well Services.Wednesday",
+          "daily_demand.{record}.by_category.Well Services.avg_daily",
+          "daily_demand.{record}.by_category.Well Services.demand_level",
+          "daily_demand.{record}.by_category.Well Services.service_category",
+          "daily_demand.{record}.by_category.Well Services.total_weekly",
+          "daily_demand.{record}.compile_date",
+          "daily_demand.{record}.end_date",
+          "daily_demand.{record}.last_updated",
+          "daily_demand.{record}.start_date",
+          "daily_demand.{record}.summary[].Avg Daily Orders",
+          "daily_demand.{record}.summary[].Friday",
+          "daily_demand.{record}.summary[].Monday",
+          "daily_demand.{record}.summary[].Saturday",
+          "daily_demand.{record}.summary[].Service Category",
+          "daily_demand.{record}.summary[].Sunday",
+          "daily_demand.{record}.summary[].Thursday",
+          "daily_demand.{record}.summary[].Total Weekly Orders",
+          "daily_demand.{record}.summary[].Tuesday",
+          "daily_demand.{record}.summary[].Wednesday",
+          "daily_demand.{record}.summary[].Weekly Demand Level",
+          "daily_demand.{record}.target_week"
+        ],
+        "field_type_counts": {
+          "daily_demand.{record}.by_category.A_C Services.Friday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.A_C Services.Monday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.A_C Services.Saturday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.A_C Services.Sunday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.A_C Services.Thursday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.A_C Services.Tuesday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.A_C Services.Wednesday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.A_C Services.avg_daily": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.A_C Services.demand_level": {
+            "string": 1
+          },
+          "daily_demand.{record}.by_category.A_C Services.service_category": {
+            "string": 1
+          },
+          "daily_demand.{record}.by_category.A_C Services.total_weekly": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.CCTV Installation.Friday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.CCTV Installation.Monday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.CCTV Installation.Saturday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.CCTV Installation.Sunday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.CCTV Installation.Thursday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.CCTV Installation.Tuesday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.CCTV Installation.Wednesday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.CCTV Installation.avg_daily": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.CCTV Installation.demand_level": {
+            "string": 1
+          },
+          "daily_demand.{record}.by_category.CCTV Installation.service_category": {
+            "string": 1
+          },
+          "daily_demand.{record}.by_category.CCTV Installation.total_weekly": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Carpenters.Friday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Carpenters.Monday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Carpenters.Saturday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Carpenters.Sunday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Carpenters.Thursday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Carpenters.Tuesday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Carpenters.Wednesday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Carpenters.avg_daily": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Carpenters.demand_level": {
+            "string": 1
+          },
+          "daily_demand.{record}.by_category.Carpenters.service_category": {
+            "string": 1
+          },
+          "daily_demand.{record}.by_category.Carpenters.total_weekly": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Ceiling Works.Friday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Ceiling Works.Monday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Ceiling Works.Saturday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Ceiling Works.Sunday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Ceiling Works.Thursday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Ceiling Works.Tuesday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Ceiling Works.Wednesday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Ceiling Works.avg_daily": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Ceiling Works.demand_level": {
+            "string": 1
+          },
+          "daily_demand.{record}.by_category.Ceiling Works.service_category": {
+            "string": 1
+          },
+          "daily_demand.{record}.by_category.Ceiling Works.total_weekly": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Cleaners.Friday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Cleaners.Monday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Cleaners.Saturday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Cleaners.Sunday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Cleaners.Thursday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Cleaners.Tuesday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Cleaners.Wednesday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Cleaners.avg_daily": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Cleaners.demand_level": {
+            "string": 1
+          },
+          "daily_demand.{record}.by_category.Cleaners.service_category": {
+            "string": 1
+          },
+          "daily_demand.{record}.by_category.Cleaners.total_weekly": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Cushion Works.Friday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Cushion Works.Monday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Cushion Works.Saturday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Cushion Works.Sunday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Cushion Works.Thursday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Cushion Works.Tuesday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Cushion Works.Wednesday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Cushion Works.avg_daily": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Cushion Works.demand_level": {
+            "string": 1
+          },
+          "daily_demand.{record}.by_category.Cushion Works.service_category": {
+            "string": 1
+          },
+          "daily_demand.{record}.by_category.Cushion Works.total_weekly": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Electricians.Friday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Electricians.Monday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Electricians.Saturday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Electricians.Sunday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Electricians.Thursday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Electricians.Tuesday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Electricians.Wednesday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Electricians.avg_daily": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Electricians.demand_level": {
+            "string": 1
+          },
+          "daily_demand.{record}.by_category.Electricians.service_category": {
+            "string": 1
+          },
+          "daily_demand.{record}.by_category.Electricians.total_weekly": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Masons.Friday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Masons.Monday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Masons.Saturday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Masons.Sunday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Masons.Thursday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Masons.Tuesday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Masons.Wednesday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Masons.avg_daily": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Masons.demand_level": {
+            "string": 1
+          },
+          "daily_demand.{record}.by_category.Masons.service_category": {
+            "string": 1
+          },
+          "daily_demand.{record}.by_category.Masons.total_weekly": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Painters.Friday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Painters.Monday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Painters.Saturday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Painters.Sunday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Painters.Thursday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Painters.Tuesday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Painters.Wednesday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Painters.avg_daily": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Painters.demand_level": {
+            "string": 1
+          },
+          "daily_demand.{record}.by_category.Painters.service_category": {
+            "string": 1
+          },
+          "daily_demand.{record}.by_category.Painters.total_weekly": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Plumbers.Friday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Plumbers.Monday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Plumbers.Saturday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Plumbers.Sunday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Plumbers.Thursday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Plumbers.Tuesday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Plumbers.Wednesday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Plumbers.avg_daily": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Plumbers.demand_level": {
+            "string": 1
+          },
+          "daily_demand.{record}.by_category.Plumbers.service_category": {
+            "string": 1
+          },
+          "daily_demand.{record}.by_category.Plumbers.total_weekly": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Technicians.Friday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Technicians.Monday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Technicians.Saturday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Technicians.Sunday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Technicians.Thursday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Technicians.Tuesday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Technicians.Wednesday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Technicians.avg_daily": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Technicians.demand_level": {
+            "string": 1
+          },
+          "daily_demand.{record}.by_category.Technicians.service_category": {
+            "string": 1
+          },
+          "daily_demand.{record}.by_category.Technicians.total_weekly": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Tile Workers.Friday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Tile Workers.Monday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Tile Workers.Saturday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Tile Workers.Sunday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Tile Workers.Thursday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Tile Workers.Tuesday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Tile Workers.Wednesday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Tile Workers.avg_daily": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Tile Workers.demand_level": {
+            "string": 1
+          },
+          "daily_demand.{record}.by_category.Tile Workers.service_category": {
+            "string": 1
+          },
+          "daily_demand.{record}.by_category.Tile Workers.total_weekly": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Vehicle Repairs.Friday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Vehicle Repairs.Monday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Vehicle Repairs.Saturday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Vehicle Repairs.Sunday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Vehicle Repairs.Thursday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Vehicle Repairs.Tuesday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Vehicle Repairs.Wednesday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Vehicle Repairs.avg_daily": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Vehicle Repairs.demand_level": {
+            "string": 1
+          },
+          "daily_demand.{record}.by_category.Vehicle Repairs.service_category": {
+            "string": 1
+          },
+          "daily_demand.{record}.by_category.Vehicle Repairs.total_weekly": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Well Services.Friday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Well Services.Monday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Well Services.Saturday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Well Services.Sunday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Well Services.Thursday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Well Services.Tuesday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Well Services.Wednesday": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Well Services.avg_daily": {
+            "number": 1
+          },
+          "daily_demand.{record}.by_category.Well Services.demand_level": {
+            "string": 1
+          },
+          "daily_demand.{record}.by_category.Well Services.service_category": {
+            "string": 1
+          },
+          "daily_demand.{record}.by_category.Well Services.total_weekly": {
+            "number": 1
+          },
+          "daily_demand.{record}.compile_date": {
+            "string": 1
+          },
+          "daily_demand.{record}.end_date": {
+            "string": 1
+          },
+          "daily_demand.{record}.last_updated": {
+            "string": 1
+          },
+          "daily_demand.{record}.start_date": {
+            "string": 1
+          },
+          "daily_demand.{record}.summary[].Avg Daily Orders": {
+            "number": 14
+          },
+          "daily_demand.{record}.summary[].Friday": {
+            "number": 14
+          },
+          "daily_demand.{record}.summary[].Monday": {
+            "number": 14
+          },
+          "daily_demand.{record}.summary[].Saturday": {
+            "number": 14
+          },
+          "daily_demand.{record}.summary[].Service Category": {
+            "string": 14
+          },
+          "daily_demand.{record}.summary[].Sunday": {
+            "number": 14
+          },
+          "daily_demand.{record}.summary[].Thursday": {
+            "number": 14
+          },
+          "daily_demand.{record}.summary[].Total Weekly Orders": {
+            "number": 14
+          },
+          "daily_demand.{record}.summary[].Tuesday": {
+            "number": 14
+          },
+          "daily_demand.{record}.summary[].Wednesday": {
+            "number": 14
+          },
+          "daily_demand.{record}.summary[].Weekly Demand Level": {
+            "string": 14
+          },
+          "daily_demand.{record}.target_week": {
+            "string": 1
+          }
+        }
+      },
+      "filter_requests": {
+        "record_count": 2,
+        "field_paths": [
+          "filter_requests.{record}.isNewRequest",
+          "filter_requests.{record}.location_type",
+          "filter_requests.{record}.output_results.evaluated_at",
+          "filter_requests.{record}.output_results.evaluated_providers[].distance_km",
+          "filter_requests.{record}.output_results.evaluated_providers[].is_available",
+          "filter_requests.{record}.output_results.evaluated_providers[].location_type",
+          "filter_requests.{record}.output_results.evaluated_providers[].provider_id",
+          "filter_requests.{record}.output_results.evaluated_providers[].provider_location.latitude",
+          "filter_requests.{record}.output_results.evaluated_providers[].provider_location.longitude",
+          "filter_requests.{record}.output_results.evaluated_providers[].provider_name",
+          "filter_requests.{record}.output_results.evaluated_providers[].recommendation",
+          "filter_requests.{record}.output_results.evaluated_providers[].request_id",
+          "filter_requests.{record}.output_results.evaluated_providers[].service_day",
+          "filter_requests.{record}.output_results.evaluated_providers[].user_id",
+          "filter_requests.{record}.output_results.evaluated_providers[].weather_risk",
+          "filter_requests.{record}.output_results.evaluated_providers[].working_hours_status",
+          "filter_requests.{record}.output_results.provider_ids[]",
+          "filter_requests.{record}.output_results.recommendation",
+          "filter_requests.{record}.output_results.weather_risk",
+          "filter_requests.{record}.output_results.weather_summary",
+          "filter_requests.{record}.request_id",
+          "filter_requests.{record}.results.provider_ids[]",
+          "filter_requests.{record}.service_date",
+          "filter_requests.{record}.service_time.end_time",
+          "filter_requests.{record}.service_time.start_time",
+          "filter_requests.{record}.user_id"
+        ],
+        "field_type_counts": {
+          "filter_requests.{record}.isNewRequest": {
+            "boolean": 2
+          },
+          "filter_requests.{record}.location_type": {
+            "string": 2
+          },
+          "filter_requests.{record}.output_results.evaluated_at": {
+            "string": 2
+          },
+          "filter_requests.{record}.output_results.evaluated_providers[].distance_km": {
+            "number": 5
+          },
+          "filter_requests.{record}.output_results.evaluated_providers[].is_available": {
+            "boolean": 5
+          },
+          "filter_requests.{record}.output_results.evaluated_providers[].location_type": {
+            "string": 5
+          },
+          "filter_requests.{record}.output_results.evaluated_providers[].provider_id": {
+            "string": 5
+          },
+          "filter_requests.{record}.output_results.evaluated_providers[].provider_location.latitude": {
+            "number": 5
+          },
+          "filter_requests.{record}.output_results.evaluated_providers[].provider_location.longitude": {
+            "number": 5
+          },
+          "filter_requests.{record}.output_results.evaluated_providers[].provider_name": {
+            "string": 5
+          },
+          "filter_requests.{record}.output_results.evaluated_providers[].recommendation": {
+            "string": 5
+          },
+          "filter_requests.{record}.output_results.evaluated_providers[].request_id": {
+            "string": 5
+          },
+          "filter_requests.{record}.output_results.evaluated_providers[].service_day": {
+            "string": 5
+          },
+          "filter_requests.{record}.output_results.evaluated_providers[].user_id": {
+            "string": 5
+          },
+          "filter_requests.{record}.output_results.evaluated_providers[].weather_risk": {
+            "string": 5
+          },
+          "filter_requests.{record}.output_results.evaluated_providers[].working_hours_status": {
+            "string": 5
+          },
+          "filter_requests.{record}.output_results.provider_ids[]": {
+            "string": 5
+          },
+          "filter_requests.{record}.output_results.recommendation": {
+            "string": 2
+          },
+          "filter_requests.{record}.output_results.weather_risk": {
+            "string": 2
+          },
+          "filter_requests.{record}.output_results.weather_summary": {
+            "string": 2
+          },
+          "filter_requests.{record}.request_id": {
+            "string": 2
+          },
+          "filter_requests.{record}.results.provider_ids[]": {
+            "string": 6
+          },
+          "filter_requests.{record}.service_date": {
+            "string": 2
+          },
+          "filter_requests.{record}.service_time.end_time": {
+            "string": 2
+          },
+          "filter_requests.{record}.service_time.start_time": {
+            "string": 2
+          },
+          "filter_requests.{record}.user_id": {
+            "string": 2
+          }
+        }
+      },
+      "providers": {
+        "record_count": 4,
+        "field_paths": [
+          "providers.{record}.category",
+          "providers.{record}.city",
+          "providers.{record}.createdAt",
+          "providers.{record}.createdTimestamp",
+          "providers.{record}.description",
+          "providers.{record}.district",
+          "providers.{record}.documents.businessRegistration[].fileId",
+          "providers.{record}.documents.businessRegistration[].fileName",
+          "providers.{record}.documents.businessRegistration[].fileUrl",
+          "providers.{record}.documents.businessRegistration[].format",
+          "providers.{record}.documents.businessRegistration[].uploadedAt",
+          "providers.{record}.documents.certification[].fileId",
+          "providers.{record}.documents.certification[].fileName",
+          "providers.{record}.documents.certification[].fileUrl",
+          "providers.{record}.documents.certification[].format",
+          "providers.{record}.documents.certification[].uploadedAt",
+          "providers.{record}.documents.experienceProof[].fileId",
+          "providers.{record}.documents.experienceProof[].fileName",
+          "providers.{record}.documents.experienceProof[].fileUrl",
+          "providers.{record}.documents.experienceProof[].format",
+          "providers.{record}.documents.experienceProof[].uploadedAt",
+          "providers.{record}.documents.identityDocument[].fileId",
+          "providers.{record}.documents.identityDocument[].fileName",
+          "providers.{record}.documents.identityDocument[].fileUrl",
+          "providers.{record}.documents.identityDocument[].format",
+          "providers.{record}.documents.identityDocument[].uploadedAt",
+          "providers.{record}.documents.portfolioWork[].fileId",
+          "providers.{record}.documents.portfolioWork[].fileName",
+          "providers.{record}.documents.portfolioWork[].fileUrl",
+          "providers.{record}.documents.portfolioWork[].format",
+          "providers.{record}.documents.portfolioWork[].uploadedAt",
+          "providers.{record}.documents.status",
+          "providers.{record}.documents.verified",
+          "providers.{record}.email",
+          "providers.{record}.experienceYears",
+          "providers.{record}.extractedFeatures.business_registered",
+          "providers.{record}.extractedFeatures.cert_issuer_reputation",
+          "providers.{record}.extractedFeatures.certification_count",
+          "providers.{record}.extractedFeatures.credibility.credibilityLevel",
+          "providers.{record}.extractedFeatures.credibility.credibilityScore",
+          "providers.{record}.extractedFeatures.credibility.lastEvaluatedAt",
+          "providers.{record}.extractedFeatures.experience_reference_count",
+          "providers.{record}.extractedFeatures.experience_years",
+          "providers.{record}.extractedFeatures.highest_cert_level",
+          "providers.{record}.extractedFeatures.identity_verified",
+          "providers.{record}.extractedFeatures.portfolio_count",
+          "providers.{record}.extractedFeatures.portfolio_quality_score",
+          "providers.{record}.extractedFeatures.provider_id",
+          "providers.{record}.extractedFeatures.service_category",
+          "providers.{record}.fullName",
+          "providers.{record}.id",
+          "providers.{record}.location.latitude",
+          "providers.{record}.location.longitude",
+          "providers.{record}.nic",
+          "providers.{record}.phone",
+          "providers.{record}.preferredLanguage",
+          "providers.{record}.providerImage",
+          "providers.{record}.role",
+          "providers.{record}.skills[]",
+          "providers.{record}.uid",
+          "providers.{record}.verified",
+          "providers.{record}.workingHours.Friday.end",
+          "providers.{record}.workingHours.Friday.isOpen",
+          "providers.{record}.workingHours.Friday.start",
+          "providers.{record}.workingHours.Monday.end",
+          "providers.{record}.workingHours.Monday.isOpen",
+          "providers.{record}.workingHours.Monday.start",
+          "providers.{record}.workingHours.Saturday.end",
+          "providers.{record}.workingHours.Saturday.isOpen",
+          "providers.{record}.workingHours.Saturday.start",
+          "providers.{record}.workingHours.Sunday.end",
+          "providers.{record}.workingHours.Sunday.isOpen",
+          "providers.{record}.workingHours.Sunday.start",
+          "providers.{record}.workingHours.Thursday.end",
+          "providers.{record}.workingHours.Thursday.isOpen",
+          "providers.{record}.workingHours.Thursday.start",
+          "providers.{record}.workingHours.Tuesday.end",
+          "providers.{record}.workingHours.Tuesday.isOpen",
+          "providers.{record}.workingHours.Tuesday.start",
+          "providers.{record}.workingHours.Wednesday.end",
+          "providers.{record}.workingHours.Wednesday.isOpen",
+          "providers.{record}.workingHours.Wednesday.start"
+        ],
+        "field_type_counts": {
+          "providers.{record}.category": {
+            "string": 4
+          },
+          "providers.{record}.city": {
+            "string": 4
+          },
+          "providers.{record}.createdAt": {
+            "string": 4
+          },
+          "providers.{record}.createdTimestamp": {
+            "number": 4
+          },
+          "providers.{record}.description": {
+            "string": 4
+          },
+          "providers.{record}.district": {
+            "string": 4
+          },
+          "providers.{record}.documents.businessRegistration[].fileId": {
+            "string": 4
+          },
+          "providers.{record}.documents.businessRegistration[].fileName": {
+            "string": 4
+          },
+          "providers.{record}.documents.businessRegistration[].fileUrl": {
+            "string": 4
+          },
+          "providers.{record}.documents.businessRegistration[].format": {
+            "string": 4
+          },
+          "providers.{record}.documents.businessRegistration[].uploadedAt": {
+            "string": 4
+          },
+          "providers.{record}.documents.certification[].fileId": {
+            "string": 8
+          },
+          "providers.{record}.documents.certification[].fileName": {
+            "string": 8
+          },
+          "providers.{record}.documents.certification[].fileUrl": {
+            "string": 8
+          },
+          "providers.{record}.documents.certification[].format": {
+            "string": 8
+          },
+          "providers.{record}.documents.certification[].uploadedAt": {
+            "string": 8
+          },
+          "providers.{record}.documents.experienceProof[].fileId": {
+            "string": 8
+          },
+          "providers.{record}.documents.experienceProof[].fileName": {
+            "string": 8
+          },
+          "providers.{record}.documents.experienceProof[].fileUrl": {
+            "string": 8
+          },
+          "providers.{record}.documents.experienceProof[].format": {
+            "string": 8
+          },
+          "providers.{record}.documents.experienceProof[].uploadedAt": {
+            "string": 8
+          },
+          "providers.{record}.documents.identityDocument[].fileId": {
+            "string": 4
+          },
+          "providers.{record}.documents.identityDocument[].fileName": {
+            "string": 4
+          },
+          "providers.{record}.documents.identityDocument[].fileUrl": {
+            "string": 4
+          },
+          "providers.{record}.documents.identityDocument[].format": {
+            "string": 4
+          },
+          "providers.{record}.documents.identityDocument[].uploadedAt": {
+            "string": 4
+          },
+          "providers.{record}.documents.portfolioWork[].fileId": {
+            "string": 4
+          },
+          "providers.{record}.documents.portfolioWork[].fileName": {
+            "string": 4
+          },
+          "providers.{record}.documents.portfolioWork[].fileUrl": {
+            "string": 4
+          },
+          "providers.{record}.documents.portfolioWork[].format": {
+            "string": 4
+          },
+          "providers.{record}.documents.portfolioWork[].uploadedAt": {
+            "string": 4
+          },
+          "providers.{record}.documents.status": {
+            "boolean": 4
+          },
+          "providers.{record}.documents.verified": {
+            "boolean": 4
+          },
+          "providers.{record}.email": {
+            "string": 4
+          },
+          "providers.{record}.experienceYears": {
+            "number": 4
+          },
+          "providers.{record}.extractedFeatures.business_registered": {
+            "number": 4
+          },
+          "providers.{record}.extractedFeatures.cert_issuer_reputation": {
+            "number": 4
+          },
+          "providers.{record}.extractedFeatures.certification_count": {
+            "number": 4
+          },
+          "providers.{record}.extractedFeatures.credibility.credibilityLevel": {
+            "string": 4
+          },
+          "providers.{record}.extractedFeatures.credibility.credibilityScore": {
+            "number": 4
+          },
+          "providers.{record}.extractedFeatures.credibility.lastEvaluatedAt": {
+            "string": 4
+          },
+          "providers.{record}.extractedFeatures.experience_reference_count": {
+            "number": 4
+          },
+          "providers.{record}.extractedFeatures.experience_years": {
+            "number": 4
+          },
+          "providers.{record}.extractedFeatures.highest_cert_level": {
+            "string": 4
+          },
+          "providers.{record}.extractedFeatures.identity_verified": {
+            "number": 4
+          },
+          "providers.{record}.extractedFeatures.portfolio_count": {
+            "number": 4
+          },
+          "providers.{record}.extractedFeatures.portfolio_quality_score": {
+            "number": 4
+          },
+          "providers.{record}.extractedFeatures.provider_id": {
+            "string": 4
+          },
+          "providers.{record}.extractedFeatures.service_category": {
+            "string": 4
+          },
+          "providers.{record}.fullName": {
+            "string": 4
+          },
+          "providers.{record}.id": {
+            "string": 4
+          },
+          "providers.{record}.location.latitude": {
+            "number": 4
+          },
+          "providers.{record}.location.longitude": {
+            "number": 4
+          },
+          "providers.{record}.nic": {
+            "string": 4
+          },
+          "providers.{record}.phone": {
+            "string": 4
+          },
+          "providers.{record}.preferredLanguage": {
+            "string": 4
+          },
+          "providers.{record}.providerImage": {
+            "string": 4
+          },
+          "providers.{record}.role": {
+            "string": 4
+          },
+          "providers.{record}.skills[]": {
+            "string": 15
+          },
+          "providers.{record}.uid": {
+            "string": 4
+          },
+          "providers.{record}.verified": {
+            "boolean": 4
+          },
+          "providers.{record}.workingHours.Friday.end": {
+            "string": 4
+          },
+          "providers.{record}.workingHours.Friday.isOpen": {
+            "boolean": 4
+          },
+          "providers.{record}.workingHours.Friday.start": {
+            "string": 4
+          },
+          "providers.{record}.workingHours.Monday.end": {
+            "string": 4
+          },
+          "providers.{record}.workingHours.Monday.isOpen": {
+            "boolean": 4
+          },
+          "providers.{record}.workingHours.Monday.start": {
+            "string": 4
+          },
+          "providers.{record}.workingHours.Saturday.end": {
+            "string": 4
+          },
+          "providers.{record}.workingHours.Saturday.isOpen": {
+            "boolean": 4
+          },
+          "providers.{record}.workingHours.Saturday.start": {
+            "string": 4
+          },
+          "providers.{record}.workingHours.Sunday.end": {
+            "string": 4
+          },
+          "providers.{record}.workingHours.Sunday.isOpen": {
+            "boolean": 4
+          },
+          "providers.{record}.workingHours.Sunday.start": {
+            "string": 4
+          },
+          "providers.{record}.workingHours.Thursday.end": {
+            "string": 4
+          },
+          "providers.{record}.workingHours.Thursday.isOpen": {
+            "boolean": 4
+          },
+          "providers.{record}.workingHours.Thursday.start": {
+            "string": 4
+          },
+          "providers.{record}.workingHours.Tuesday.end": {
+            "string": 4
+          },
+          "providers.{record}.workingHours.Tuesday.isOpen": {
+            "boolean": 4
+          },
+          "providers.{record}.workingHours.Tuesday.start": {
+            "string": 4
+          },
+          "providers.{record}.workingHours.Wednesday.end": {
+            "string": 4
+          },
+          "providers.{record}.workingHours.Wednesday.isOpen": {
+            "boolean": 4
+          },
+          "providers.{record}.workingHours.Wednesday.start": {
+            "string": 4
+          }
+        }
+      }
+    }
+  },
+  "summary": {
+    "expected": 8,
+    "planned": 8,
+    "inserted": 0,
+    "unchanged": 0,
+    "conflicts": 0,
+    "verified": 0,
+    "missing": 0,
+    "mismatched": 0,
+    "failed": 0,
+    "identity_expected": 5,
+    "identity_inserted": 0,
+    "identity_unchanged": 0,
+    "identity_conflicts": 0,
+    "identity_matched": 0,
+    "identity_ambiguous": 0,
+    "identity_unmatched": 0
+  },
+  "issues": []
+}

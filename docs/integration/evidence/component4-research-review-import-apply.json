@@ -1,0 +1,22 @@
+{
+  "mode": "apply",
+  "seed_version": "component4-research-reviews-v1",
+  "review_count": 25000,
+  "credible_review_count": 22488,
+  "flagged_review_count": 2512,
+  "research_customer_count": 21878,
+  "provider_count": 4976,
+  "missing_provider_count": 0,
+  "existing_customer_count": 0,
+  "existing_provider_index_count": 0,
+  "compatible_existing_import": false,
+  "written_batches": 395,
+  "verified_customer_count": 21878,
+  "verified_provider_count": 4976,
+  "verified_provider_review_count": 25000,
+  "conflict_count": 0,
+  "conflicts": [],
+  "customer_path": "research_customers/{generated_id}/reviews/{review_id}",
+  "provider_path": "research_provider_reviews/{provider_id}/reviews/{review_id}",
+  "firebase_auth_accounts_created": 0
+}

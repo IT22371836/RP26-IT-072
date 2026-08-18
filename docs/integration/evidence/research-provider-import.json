@@ -1,0 +1,55 @@
+{
+  "seed_version": "pipeline-shared-providers-v1",
+  "import_id": "RSEED-9BF4D681750D",
+  "mode": "apply",
+  "scope_count": 4998,
+  "full_population": true,
+  "category_counts": {
+    "A/C": 357,
+    "CCTV": 357,
+    "Carpenters": 357,
+    "Ceiling": 357,
+    "Cleaners": 357,
+    "Cushion Works": 357,
+    "Electricians": 357,
+    "Masons": 357,
+    "Painters": 357,
+    "Plumbers": 357,
+    "Technicians": 357,
+    "Tile": 357,
+    "Vehicle Repairs": 357,
+    "Wells": 357
+  },
+  "artifact_sha256": {
+    "component1": "b83f0043b84d0a582bf28ffef325fa1b26352b8836e8f31f1c3cb268e95947e6",
+    "component4_scores": "749f3ffeab657e048077272f7e1fc4a83639213b5c965cce440cb3de858c68bb",
+    "component4_provider_map": "3b60e6925eb1877a600e87b975f844fd575852d1cb5204236de7f117810d3aec"
+  },
+  "completed_stages": [
+    "backup",
+    "firebase_auth",
+    "mongo",
+    "preflight",
+    "rtdb",
+    "verification"
+  ],
+  "contains_plaintext_password": false,
+  "preflight": {
+    "mongo": {
+      "users": [],
+      "providers": []
+    },
+    "auth": [],
+    "rtdb": []
+  },
+  "verification": {
+    "expected": 4998,
+    "mongo_users": 4998,
+    "mongo_providers": 4998,
+    "firebase_auth": 4998,
+    "firebase_rtdb": 4998,
+    "component1_eligibility": 4998,
+    "component4_coverage": 4998
+  },
+  "verified": true
+}

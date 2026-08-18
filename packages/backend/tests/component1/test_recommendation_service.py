@@ -73,6 +73,14 @@ def test_normalize_constant_scores_is_neutral() -> None:
     assert scores.tolist() == [0.5, 0.5]
 
 
+def test_generated_audit_fields_are_not_required_in_static_artifacts() -> None:
+    required = HybridRecommendationEngine.required_artifact_provider_fields()
+
+    assert "provider_id" in required
+    assert "selection_tier" not in required
+    assert "selection_reason" not in required
+
+
 def test_recommend_ranks_relevant_provider_and_applies_filters() -> None:
     results = build_engine().recommend(
         query="electrician wiring",
@@ -84,6 +92,9 @@ def test_recommend_ranks_relevant_provider_and_applies_filters() -> None:
 
     assert [result.provider_id for result in results] == ["P001"]
     assert 0 <= results[0].hybrid_score <= 1
+    assert results[0].selection_tier == "exact category and district match"
+    assert "hybrid score" in results[0].selection_reason
+    assert "strongest signal" in results[0].selection_reason
 
 
 def test_recommend_broadens_location_to_preserve_candidate_handoff() -> None:
@@ -101,8 +112,9 @@ def test_recommend_broadens_location_to_preserve_candidate_handoff() -> None:
 
 
 def test_recommend_scores_newly_registered_provider_with_static_pool() -> None:
+    firebase_uid = "GsMrbJuYYHR7d0uKEqA5OVjdKV73"
     live_provider = {
-        "provider_id": "P003",
+        "provider_id": firebase_uid,
         "provider_name": "Kottawa Electrical Care",
         "category": "Electricians",
         "district": "Colombo",
@@ -126,7 +138,7 @@ def test_recommend_scores_newly_registered_provider_with_static_pool() -> None:
         additional_providers=[live_provider],
     )
 
-    assert "P003" in [provider.provider_id for provider in results]
+    assert firebase_uid in [provider.provider_id for provider in results]
 
 
 def test_missing_artifacts_fail_explicitly() -> None:

@@ -96,7 +96,7 @@ def test_copy_manifest_requires_equal_file_hashes_and_dual_urls(tmp_path: Path) 
     assert result["failures"] == ["copies[0]:sha256_mismatch"]
 
 
-def test_public_provider_and_customer_firebase_adapter_exclude_private_data() -> None:
+def test_customer_dashboard_does_not_download_provider_directory_or_private_data() -> None:
     assert "nic" not in ProviderPublic.model_fields
     assert "documents" not in ProviderPublic.model_fields
     customer_source = (
@@ -105,7 +105,7 @@ def test_public_provider_and_customer_firebase_adapter_exclude_private_data() ->
     firebase_source = (
         REPOSITORY_ROOT / "WEB" / "src" / "config" / "firebase.ts"
     ).read_text(encoding="utf-8")
-    assert "fetchPublicProviders" in customer_source
+    assert "fetchPublicProviders" not in customer_source
     assert "selectedProviderModal.nic" not in customer_source
     assert "nic: _nic" in firebase_source
     assert "documents: _documents" in firebase_source

@@ -1,7 +1,7 @@
 // CustomerDashboard Component
 import React, { useEffect, useState } from 'react';
 import { MapPin, Mail, Phone, Globe, Edit3, Save, Search, Filter, CheckCircle, Loader2, X, Briefcase, Award, Map, Eye, Wrench, Star, ShieldCheck } from 'lucide-react';
-import { fetchPublicProviders, getProviderCredibility } from '../config/firebase';
+import { getProviderCredibility } from '../config/firebase';
 import type { Customer, Provider } from '../config/firebase';
 import { updateCustomerProfileForConfiguredSource } from '../services/customer-service';
 import { SRI_LANKA_DISTRICTS, getCityCoordinates } from '../data/sriLankaData';
@@ -23,14 +23,13 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
   currentUser,
   onUpdateUser
 }) => {
-  const [providers, setProviders] = useState<Provider[]>([]);
-  const [loadingProviders, setLoadingProviders] = useState(true);
+  // Provider discovery is intentionally available only through the C1 -> C2 -> C4
+  // pipeline. The customer profile must not download or render the full provider table.
+  const providerDirectoryEnabled = false;
+  const providers: Provider[] = [];
+  const loadingProviders = false;
   const [showMasterMap, setShowMasterMap] = useState(false);
-
-  // Selected Provider for Full Profile Details Modal
   const [selectedProviderModal, setSelectedProviderModal] = useState<Provider | null>(null);
-
-  // Search & Filter state for browsing providers
   const [categoryFilter, setCategoryFilter] = useState<string>('All');
   const [districtFilter, setDistrictFilter] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -48,23 +47,6 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
   );
   const [updating, setUpdating] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
-
-  // Load providers for Customer view
-  const loadProviders = async () => {
-    setLoadingProviders(true);
-    try {
-      const pList = await fetchPublicProviders();
-      setProviders(pList);
-    } catch (err) {
-      console.error("Failed to load providers:", err);
-    } finally {
-      setLoadingProviders(false);
-    }
-  };
-
-  useEffect(() => {
-    loadProviders();
-  }, []);
 
   // Update Edit form state if currentUser prop changes
   useEffect(() => {
@@ -140,7 +122,6 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
     }
   };
 
-  // Filtered Providers list
   const filteredProviders = providers.filter(p => {
     const matchesCategory = categoryFilter === 'All' || (p.category && p.category.toLowerCase().includes(categoryFilter.toLowerCase()));
     const matchesDistrict = districtFilter === 'All' || p.district === districtFilter;
@@ -217,8 +198,8 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
         />
       </div>
 
-      {/* SERVICE PROVIDERS DIRECTORY FOR CUSTOMERS */}
-      <div style={{ marginBottom: '24px' }}>
+      {/* The full provider directory is disabled on customer profiles. */}
+      {providerDirectoryEnabled && <div style={{ marginBottom: '24px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px', marginBottom: '16px' }}>
           <div>
             <h2 style={{ fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '10px', color: '#1e293b' }}>
@@ -402,7 +383,7 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
             ))}
           </div>
         )}
-      </div>
+      </div>}
 
       {/* CUSTOMER EDIT PROFILE MODAL */}
       {isEditing && (

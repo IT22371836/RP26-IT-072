@@ -59,6 +59,7 @@ class Settings(BaseSettings):
     pipeline_lease_seconds: int = Field(default=90, ge=30, le=3600)
     pipeline_weather_timeout_seconds: float = Field(default=10.0, ge=1, le=60)
     pipeline_weather_retries: int = Field(default=3, ge=1, le=5)
+    pipeline_provider_cache_seconds: float = Field(default=300.0, ge=0, le=600)
     pipeline_component2_version: str = "firebase-filter-v1"
     pipeline_component2_model_version: str = "distance-hours-weather-v1"
     research_provider_password: str | None = Field(default=None, min_length=8, max_length=128)

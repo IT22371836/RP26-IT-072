@@ -19,6 +19,7 @@ from app.schemas.common import UserRole
 
 class ReadyEngine:
     ready = True
+    providers: list[dict[str, object]] = []
     manifest = {"component_version": "1.0.0", "model_version": "test-model"}
 
     def status(self) -> dict[str, object]:
@@ -34,7 +35,10 @@ class ReadyEngine:
 
 
 class EmptyProviderRepository:
-    async def list_all(self) -> list[object]:
+    async def list_pipeline_eligible(
+        self, limit: int = 20_000, *, cache_seconds: float = 300.0
+    ) -> list[object]:
+        del limit, cache_seconds
         return []
 
 

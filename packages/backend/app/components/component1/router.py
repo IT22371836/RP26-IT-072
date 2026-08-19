@@ -28,6 +28,7 @@ from app.integrations.firebase_component2 import (
     FirebaseComponent2Error,
     FirebaseRtdbClient,
     booking_history_preference_ids,
+    merge_verified_provider_candidates,
 )
 from app.repositories.component1 import Component1Repository
 from app.repositories.interactions import InteractionRepository
@@ -36,6 +37,7 @@ from app.repositories.service_requests import ServiceRequestRepository
 from app.repositories.users import UserRepository
 from app.schemas.auth import UserPublic
 from app.schemas.common import UserRole, new_public_id, utc_now
+from app.services.provider_eligibility import eligible_provider_pool
 
 router = APIRouter(prefix="/component1", tags=["component 1"])
 customer_user = require_firebase_role(UserRole.CUSTOMER)
@@ -59,6 +61,7 @@ async def recommend(
     payload: RecommendationRequest,
     current_user: Annotated[UserPublic, Depends(customer_user)],
     engine: Annotated[HybridRecommendationEngine, Depends(engine_dependency)],
+    settings: Annotated[Settings, Depends(get_settings)],
     provider_repository: Annotated[ProviderRepository, Depends(get_provider_repository)],
     interaction_repository: Annotated[InteractionRepository, Depends(get_interaction_repository)],
     user_repository: Annotated[UserRepository, Depends(get_user_repository)],
@@ -86,7 +89,19 @@ async def recommend(
     try:
         started_at = utc_now()
         started_timer = perf_counter()
-        live_providers = await provider_repository.list_all()
+        provider_profiles = await provider_repository.list_pipeline_eligible(
+            limit=20_000,
+            cache_seconds=settings.pipeline_provider_cache_seconds,
+        )
+        artifact_provider_ids = {
+            str(provider["provider_id"]) for provider in engine.providers
+        }
+        pool = eligible_provider_pool(provider_profiles, artifact_provider_ids)
+        live_providers = merge_verified_provider_candidates(
+            artifact_provider_ids,
+            [],
+            pool.eligible_profiles,
+        )
         user_document = await user_repository.find_by_id(current_user.user_id)
         firebase_uid = (user_document or {}).get("legacy", {}).get("firebase_uid")
         if not firebase_uid:
@@ -118,6 +133,7 @@ async def recommend(
             min_rating=payload.min_rating,
             additional_providers=live_providers,
             additional_preferences=live_preferences,
+            allowed_provider_ids=pool.allowed_provider_ids,
         )
         processing_time_ms = round((perf_counter() - started_timer) * 1000, 3)
     except (ArtifactsUnavailableError, ArtifactValidationError) as error:

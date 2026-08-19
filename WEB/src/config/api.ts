@@ -191,6 +191,8 @@ export interface PipelineRunDto {
     mongo_provider_count?: number;
     verified_firebase_provider_count?: number;
     additional_verified_provider_count?: number;
+    eligible_research_provider_count?: number;
+    eligible_website_provider_count?: number;
     candidate_pool_count?: number;
     candidate_source?: string;
     preference_signal_count?: number;

@@ -2,6 +2,7 @@ from scripts.import_pipeline_providers import (
     canonical_user_id,
     load_population,
     research_email,
+    rtdb_provider,
 )
 
 
@@ -27,3 +28,16 @@ def test_import_scope_controls_are_deterministic() -> None:
         item["provider_id"] for item in second
     ]
     assert all(item["category"] == "Masons" for item in first)
+
+
+def test_research_provider_has_complete_verified_pipeline_profile() -> None:
+    provider = rtdb_provider(load_population("Masons", 1)[0], "TEST-IMPORT")
+
+    assert provider["verified"] is True
+    assert provider["profileSource"] == "research_seed"
+    assert provider["pipelineEligibility"]["eligible"] is True
+    assert provider["pipelineEligibility"]["profileComplete"] is True
+    assert provider["nic"].startswith("RESEARCH-")
+    assert provider["phone"].startswith("research-")
+    assert provider["preferredLanguage"] == "Sinhala, English"
+    assert provider["providerImage"].startswith("https://")

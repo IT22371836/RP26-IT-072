@@ -25,6 +25,14 @@ def test_worker_reconnects_after_transient_database_failure(monkeypatch) -> None
         def __init__(self, _database, _settings) -> None:
             pass
 
+        async def warmup(self) -> dict[str, int | float]:
+            return {
+                "eligible_count": 1_010,
+                "research_count": 1_000,
+                "website_count": 10,
+                "processing_time_ms": 1.0,
+            }
+
         async def run_once(self) -> bool:
             Worker.calls += 1
             if Worker.calls == 1:

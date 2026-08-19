@@ -73,6 +73,12 @@ class FirebaseStore:
         value = await asyncio.to_thread(self.client._reference(path).get, shallow=True)
         return value if isinstance(value, dict) else {}
 
+    async def query_equal(self, path: str, child: str, value: Any) -> dict[str, Any]:
+        reference = self.client._reference(path)
+        query = reference.order_by_child(child).equal_to(json_safe(value))
+        result = await asyncio.to_thread(query.get)
+        return result if isinstance(result, dict) else {}
+
     async def set(self, path: str, value: Any) -> None:
         await asyncio.to_thread(self.client._reference(path).set, json_safe(value))
 

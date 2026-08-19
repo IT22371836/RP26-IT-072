@@ -215,6 +215,7 @@ class HybridRecommendationEngine:
         min_rating: float = 0.0,
         additional_providers: list[dict[str, Any]] | None = None,
         additional_preferences: list[str] | None = None,
+        allowed_provider_ids: set[str] | None = None,
     ) -> list[ProviderRecommendation]:
         if not self.ready or self.provider_embeddings is None:
             raise ArtifactsUnavailableError("Component 1 artifacts are not loaded")
@@ -301,6 +302,10 @@ class HybridRecommendationEngine:
             index
             for index, provider in enumerate(providers)
             if float(provider["rating"]) >= min_rating
+            and (
+                allowed_provider_ids is None
+                or str(provider["provider_id"]) in allowed_provider_ids
+            )
         ]
 
         def matches(index: int, *, use_category: bool, use_district: bool, use_city: bool) -> bool:

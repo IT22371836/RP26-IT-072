@@ -218,14 +218,14 @@ function PipelineExecutionAudit({ run }: { run: PipelineRunDto }) {
     {
       key: 'component1', title: 'Component 1 · Hybrid recommendation', icon: <Cpu size={18} />,
       state: c1State,
-      description: 'Runs the trained TF-IDF vectorizer, multilingual semantic embedding model, and collaborative preference score across the artifact plus verified live providers.',
+      description: 'Runs the trained TF-IDF vectorizer, multilingual semantic embedding model, and collaborative preference score only across verified Firebase providers that are ready for Components 1, 2, and 4.',
       facts: [
         `Engine: ${run.component1?.engine ?? 'hybrid_tfidf_semantic_cf'}`,
         `Artifact/model loaded: ${run.component1?.model_loaded === true ? 'Yes' : c1State === 'completed' ? 'Yes' : 'Pending'}`,
         `Version: ${run.component1?.component_version ?? 'Pending'} / ${run.component1?.model_version ?? 'Pending'}`,
         `Candidates: ${run.component1?.candidate_pool_count ?? run.component1?.artifact_provider_count ?? '10,000'} → ${c1Count || 'Top-20 pending'}`,
-        `Pool: ${run.component1?.artifact_provider_count ?? '10,000'} artifact + ${run.component1?.additional_verified_provider_count ?? 'Pending'} verified live`,
-        `Verified Firebase profiles read: ${run.component1?.verified_firebase_provider_count ?? 'Pending'}`,
+        `Pool: ${run.component1?.eligible_research_provider_count ?? 'Pending'} eligible research + ${run.component1?.eligible_website_provider_count ?? run.component1?.additional_verified_provider_count ?? 'Pending'} eligible website`,
+        `Verified and pipeline-ready Firebase profiles: ${run.component1?.verified_firebase_provider_count ?? 'Pending'}`,
         `Preference signals: ${run.component1?.preference_signal_count ?? 'Pending'}`,
         `Runtime: ${formatDuration(run.component1?.processing_time_ms)}`
       ]

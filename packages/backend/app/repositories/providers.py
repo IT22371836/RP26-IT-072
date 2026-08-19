@@ -1,11 +1,24 @@
 from __future__ import annotations
 
+import asyncio
 from copy import deepcopy
+from time import monotonic
 from typing import Any
 
 from app.repositories.concurrency import ProfileConcurrencyError
 from app.repositories.firebase_store import FirebaseStore, nested_set, sorted_records
 from app.schemas.common import new_public_id, utc_now
+from app.services.provider_eligibility import (
+    ELIGIBILITY_VERSION,
+    RESEARCH_PIPELINE_TARGET,
+    RESEARCH_SELECTION_VERSION,
+    RESEARCH_SOURCE,
+    WEB_SOURCE,
+    c1_profile_ready,
+    c2_profile_ready,
+    profile_source,
+    standard_profile_ready,
+)
 
 
 class ProviderProfileExistsError(Exception):
@@ -33,11 +46,16 @@ def _normalize(provider_id: str, value: dict[str, Any]) -> dict[str, Any]:
             )
     document["provider_id"] = document.get("provider_id") or provider_id
     document.setdefault("user_id", provider_id)
-    document.setdefault("rating", float(document.get("platformRating") or 0.0))
-    document.setdefault("review_count", 0)
-    document.setdefault("booking_success_rate", 0.0)
-    document.setdefault("interaction_count", 0)
-    document.setdefault("experience_years", 0)
+    if document.get("rating") is None:
+        document["rating"] = float(document.get("platformRating") or 0.0)
+    for field, default in (
+        ("review_count", 0),
+        ("booking_success_rate", 0.0),
+        ("interaction_count", 0),
+        ("experience_years", 0),
+    ):
+        if document.get(field) is None:
+            document[field] = default
     document.setdefault("skills", [])
     document.setdefault("description", "")
     document.setdefault("documents", {"status": False, "verified": False})
@@ -49,6 +67,9 @@ class ProviderRepository:
 
     def __init__(self, database: Any) -> None:
         self.store = FirebaseStore(database)
+        self._eligible_cache: list[dict[str, Any]] | None = None
+        self._eligible_cache_expires_at = 0.0
+        self._eligible_refresh_task: asyncio.Task[None] | None = None
 
     async def ensure_indexes(self) -> None:
         return None
@@ -209,6 +230,61 @@ class ProviderRepository:
             "last_action_at": now,
             "last_reason": reason,
         }
+        declared_user_id = str(
+            provider.get("userId") or provider.get("user_id") or ""
+        ).strip()
+        core_user = (
+            await self.store.get(f"core/users/{declared_user_id}")
+            if declared_user_id
+            else None
+        )
+        relations_valid = bool(
+            isinstance(core_user, dict)
+            and core_user.get("role") == "provider"
+            and core_user.get("legacy", {}).get("firebase_uid") == provider_id
+        )
+        source = profile_source(provider)
+        active_research = bool(
+            (provider.get("pipelineEligibility") or {}).get("activeResearchBaseline")
+        )
+        c4_ready = source == WEB_SOURCE or bool(
+            (provider.get("pipelineEligibility") or {}).get("c4Ready")
+        )
+        component_ready = bool(
+            verified
+            and c1_profile_ready(provider)
+            and c2_profile_ready(provider)
+            and c4_ready
+            and standard_profile_ready(provider)
+            and relations_valid
+        )
+        pipeline_ready = component_ready and (
+            source == WEB_SOURCE or (source == RESEARCH_SOURCE and active_research)
+        )
+        provider["pipelineEligibility"] = {
+            **(provider.get("pipelineEligibility") or {}),
+            "version": ELIGIBILITY_VERSION,
+            "eligible": pipeline_ready,
+            "verified": verified,
+            "c1Ready": c1_profile_ready(provider),
+            "c2Ready": c2_profile_ready(provider),
+            "c4Ready": c4_ready,
+            "profileComplete": standard_profile_ready(provider),
+            "relationsValid": relations_valid,
+            "activeResearchBaseline": active_research,
+            "selectionVersion": RESEARCH_SELECTION_VERSION,
+            "researchBaselineTarget": RESEARCH_PIPELINE_TARGET,
+            "selectionReason": (
+                "verified_website_registration"
+                if pipeline_ready and source == WEB_SOURCE
+                else "balanced_research_category_location"
+                if pipeline_ready and source == RESEARCH_SOURCE
+                else "verification_revoked"
+                if not verified
+                else "profile_or_relation_not_ready"
+            ),
+            "evaluatedAt": now,
+        }
         provider["updated_at"] = now
         await self.store.multi_update(
             {
@@ -216,6 +292,11 @@ class ProviderRepository:
                 f"core/provider_verification_events/{event['event_id']}": event,
             }
         )
+        self._eligible_cache = None
+        self._eligible_cache_expires_at = 0.0
+        if self._eligible_refresh_task is not None:
+            self._eligible_refresh_task.cancel()
+            self._eligible_refresh_task = None
         return provider, event
 
     async def list_verification_events(
@@ -236,6 +317,41 @@ class ProviderRepository:
             for key, item in list(values.items())[:limit]
             if isinstance(item, dict)
         ]
+
+    async def list_pipeline_eligible(
+        self, limit: int = 20_000, *, cache_seconds: float = 300.0
+    ) -> list[dict[str, Any]]:
+        if self._eligible_cache is not None:
+            if monotonic() >= self._eligible_cache_expires_at and (
+                self._eligible_refresh_task is None
+                or self._eligible_refresh_task.done()
+            ):
+                self._eligible_refresh_task = asyncio.create_task(
+                    self._refresh_pipeline_eligible_cache(cache_seconds)
+                )
+            return deepcopy(self._eligible_cache[:limit])
+        records = await self._query_pipeline_eligible()
+        self._eligible_cache = records
+        self._eligible_cache_expires_at = monotonic() + max(0.0, cache_seconds)
+        return deepcopy(records[:limit])
+
+    async def _query_pipeline_eligible(self) -> list[dict[str, Any]]:
+        values = await self.store.query_equal(
+            self.PATH, "pipelineEligibility/eligible", True
+        )
+        return [
+            _normalize(key, item)
+            for key, item in sorted(values.items())
+            if isinstance(item, dict)
+        ]
+
+    async def _refresh_pipeline_eligible_cache(self, cache_seconds: float) -> None:
+        try:
+            records = await self._query_pipeline_eligible()
+        except Exception:
+            return
+        self._eligible_cache = records
+        self._eligible_cache_expires_at = monotonic() + max(0.0, cache_seconds)
 
     async def list_by_ids(self, provider_ids: list[str]) -> list[dict[str, Any]]:
         if not provider_ids:

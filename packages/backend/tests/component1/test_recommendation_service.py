@@ -141,6 +141,17 @@ def test_recommend_scores_newly_registered_provider_with_static_pool() -> None:
     assert firebase_uid in [provider.provider_id for provider in results]
 
 
+def test_recommend_never_returns_provider_outside_allowed_firebase_pool() -> None:
+    results = build_engine().recommend(
+        query="electrician wiring",
+        user_id="U001",
+        top_k=20,
+        allowed_provider_ids={"P002"},
+    )
+
+    assert [provider.provider_id for provider in results] == ["P002"]
+
+
 def test_missing_artifacts_fail_explicitly() -> None:
     engine = HybridRecommendationEngine(Path("missing"))
 

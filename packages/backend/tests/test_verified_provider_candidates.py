@@ -144,4 +144,7 @@ def test_selection_and_rules_support_verified_firebase_provider_ids() -> None:
     assert PipelineSelectionRequest(provider_id=FIREBASE_UID).provider_id == FIREBASE_UID
     repository_root = Path(__file__).resolve().parents[3]
     rules = json.loads((repository_root / "database.rules.json").read_text("utf-8"))
-    assert rules["rules"]["providers"][".indexOn"] == ["verified"]
+    assert rules["rules"]["providers"][".indexOn"] == [
+        "verified",
+        "pipelineEligibility/eligible",
+    ]

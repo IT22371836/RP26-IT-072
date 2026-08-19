@@ -21,12 +21,21 @@ from pymongo import AsyncMongoClient
 
 from app.core.config import get_settings
 from app.core.security import hash_password
+from app.services.provider_eligibility import (
+    RESEARCH_PIPELINE_TARGET,
+    RESEARCH_SELECTION_VERSION,
+    select_research_baseline,
+)
 
 ROOT = Path(__file__).resolve().parents[3]
 C1_PROVIDERS = ROOT / "packages/backend/app/components/component1/artifacts/providers.json"
 C4_SCORES = ROOT / "ml/components/component4/artifacts/catf-v1/provider_catf_scores.csv"
 C4_PROVIDER_MAP = ROOT / "ml/components/component4/data/processed/provider_id_map.csv"
-SEED_VERSION = "pipeline-shared-providers-v1"
+SEED_VERSION = "pipeline-shared-providers-v3"
+DEFAULT_PROVIDER_IMAGE = (
+    "https://firebasestorage.googleapis.com/v0/b/service-e333a.appspot.com/o/"
+    "providers%2Fprovider_default.png?alt=media"
+)
 DAYS = ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
 DISTRICT_CENTROIDS = {
     "Colombo": (6.9271, 79.8612), "Gampaha": (7.0840, 79.9925),
@@ -56,6 +65,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--backup-dir", type=Path)
     parser.add_argument("--limit", type=int)
     parser.add_argument("--category")
+    parser.add_argument(
+        "--research-pipeline-target", type=int, default=RESEARCH_PIPELINE_TARGET
+    )
     return parser.parse_args()
 
 
@@ -131,6 +143,12 @@ def provider_documents(
         "researchSeed": True,
         "coordinateSource": coordinate_source,
         "workingHoursSource": "research_default_0800_1800_daily",
+        "derivedFieldSources": {
+            "nic": "synthetic_research_identifier",
+            "phone": "synthetic_non_dialable_research_contact",
+            "preferredLanguage": "research_default_sinhala_english",
+            "providerImage": "project_default_provider_image",
+        },
     }
     working_hours = {
         day: {"isOpen": True, "start": "08:00 AM", "end": "06:00 PM"} for day in DAYS
@@ -167,8 +185,14 @@ def provider_documents(
     return mongo_user, mongo_provider
 
 
-def rtdb_provider(provider: dict[str, Any], import_id: str) -> dict[str, Any]:
+def rtdb_provider(
+    provider: dict[str, Any],
+    import_id: str,
+    pipeline_eligible: bool = True,
+    research_target: int = RESEARCH_PIPELINE_TARGET,
+) -> dict[str, Any]:
     _, mongo = provider_documents(provider, import_id, None)
+    evaluated_at = mongo["created_at"].isoformat()
     return {
         "id": mongo["provider_id"],
         "uid": mongo["provider_id"],
@@ -188,7 +212,39 @@ def rtdb_provider(provider: dict[str, Any], import_id: str) -> dict[str, Any]:
         "interactionCount": mongo["interaction_count"],
         "location": mongo["location"],
         "workingHours": mongo["working_hours"],
-        "verified": False,
+        "nic": f"RESEARCH-{mongo['provider_id']}",
+        "phone": f"research-{mongo['provider_id']}",
+        "preferredLanguage": "Sinhala, English",
+        "providerImage": DEFAULT_PROVIDER_IMAGE,
+        "verified": True,
+        "verification": {
+            "status": "verified",
+            "mode": "research_seed_integrity",
+            "last_action_by": "SYSTEM_RESEARCH_IMPORT",
+            "last_action_at": evaluated_at,
+            "last_reason": "C1/C2/C4 research provider integrity verified",
+        },
+        "profileSource": "research_seed",
+        "schemaVersion": 2,
+        "pipelineEligibility": {
+            "version": 1,
+            "eligible": pipeline_eligible,
+            "verified": True,
+            "c1Ready": True,
+            "c2Ready": True,
+            "c4Ready": True,
+            "profileComplete": True,
+            "relationsValid": True,
+            "activeResearchBaseline": pipeline_eligible,
+            "selectionVersion": RESEARCH_SELECTION_VERSION,
+            "researchBaselineTarget": research_target,
+            "selectionReason": (
+                "balanced_research_category_location"
+                if pipeline_eligible
+                else "outside_balanced_research_pipeline_baseline"
+            ),
+            "evaluatedAt": evaluated_at,
+        },
         "researchSeed": True,
         "pipelineSeed": mongo["pipelineSeed"],
         "createdAt": mongo["created_at"].isoformat(),
@@ -281,7 +337,23 @@ async def build_auth_records(
 
 async def execute(args: argparse.Namespace) -> int:
     settings = get_settings()
-    providers = load_population(args.category, args.limit)
+    full_population = load_population(None, None)
+    baseline = select_research_baseline(
+        full_population,
+        {str(provider["provider_id"]) for provider in full_population},
+        args.research_pipeline_target,
+    )
+    providers = full_population
+    if args.category:
+        providers = [
+            provider
+            for provider in providers
+            if str(provider["category"]).casefold() == args.category.casefold()
+        ]
+    if args.limit is not None:
+        if args.limit < 1:
+            raise ValueError("--limit must be positive")
+        providers = providers[: args.limit]
     previous = (
         json.loads(args.report.read_text("utf-8"))
         if args.resume and args.report.exists()
@@ -293,6 +365,11 @@ async def execute(args: argparse.Namespace) -> int:
         "seed_version": SEED_VERSION,
         "import_id": import_id,
         "mode": "verify-only" if args.verify_only else "apply" if args.apply else "dry-run",
+        "research_baseline": {
+            "target": args.research_pipeline_target,
+            "selection_version": RESEARCH_SELECTION_VERSION,
+            "category_quotas": baseline.category_quotas,
+        },
         "scope_count": len(providers),
         "full_population": not args.category and args.limit is None,
         "category_counts": dict(sorted(Counter(item["category"] for item in providers).items())),
@@ -431,7 +508,12 @@ async def execute(args: argparse.Namespace) -> int:
 
         if "rtdb" not in completed:
             updates = {
-                f"providers/{item['provider_id']}": rtdb_provider(item, import_id)
+                f"providers/{item['provider_id']}": rtdb_provider(
+                    item,
+                    import_id,
+                    str(item["provider_id"]) in baseline.provider_ids,
+                    args.research_pipeline_target,
+                )
                 for item in providers
             }
             await asyncio.to_thread(db.reference("/", app=app).update, updates)

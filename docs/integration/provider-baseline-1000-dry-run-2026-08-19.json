@@ -1,0 +1,194 @@
+{
+  "applied": false,
+  "component2_filter_requests_sha256_before": "9c4176288371bfbaffa34e8ca00c2fd6a674c6f26a3f73e2c8949a4de9533861",
+  "component2_untouched": true,
+  "mode": "dry-run",
+  "plan": {
+    "counts": {
+      "eligible": 1010,
+      "inactive_research": 3998,
+      "legacy": 1,
+      "relations_repaired": 0,
+      "research": 4998,
+      "research_fields_backfilled": 0,
+      "verified": 5008,
+      "website": 10
+    },
+    "excluded_count": 3998,
+    "excluded_sample": [
+      {
+        "provider_id": "P00001",
+        "reason": "outside_balanced_research_pipeline_baseline",
+        "source": "research_seed"
+      },
+      {
+        "provider_id": "P00002",
+        "reason": "outside_balanced_research_pipeline_baseline",
+        "source": "research_seed"
+      },
+      {
+        "provider_id": "P00003",
+        "reason": "outside_balanced_research_pipeline_baseline",
+        "source": "research_seed"
+      },
+      {
+        "provider_id": "P00004",
+        "reason": "outside_balanced_research_pipeline_baseline",
+        "source": "research_seed"
+      },
+      {
+        "provider_id": "P00005",
+        "reason": "outside_balanced_research_pipeline_baseline",
+        "source": "research_seed"
+      },
+      {
+        "provider_id": "P00006",
+        "reason": "outside_balanced_research_pipeline_baseline",
+        "source": "research_seed"
+      },
+      {
+        "provider_id": "P00007",
+        "reason": "outside_balanced_research_pipeline_baseline",
+        "source": "research_seed"
+      },
+      {
+        "provider_id": "P00009",
+        "reason": "outside_balanced_research_pipeline_baseline",
+        "source": "research_seed"
+      },
+      {
+        "provider_id": "P00010",
+        "reason": "outside_balanced_research_pipeline_baseline",
+        "source": "research_seed"
+      },
+      {
+        "provider_id": "P00011",
+        "reason": "outside_balanced_research_pipeline_baseline",
+        "source": "research_seed"
+      },
+      {
+        "provider_id": "P00012",
+        "reason": "outside_balanced_research_pipeline_baseline",
+        "source": "research_seed"
+      },
+      {
+        "provider_id": "P00014",
+        "reason": "outside_balanced_research_pipeline_baseline",
+        "source": "research_seed"
+      },
+      {
+        "provider_id": "P00015",
+        "reason": "outside_balanced_research_pipeline_baseline",
+        "source": "research_seed"
+      },
+      {
+        "provider_id": "P00017",
+        "reason": "outside_balanced_research_pipeline_baseline",
+        "source": "research_seed"
+      },
+      {
+        "provider_id": "P00018",
+        "reason": "outside_balanced_research_pipeline_baseline",
+        "source": "research_seed"
+      },
+      {
+        "provider_id": "P00020",
+        "reason": "outside_balanced_research_pipeline_baseline",
+        "source": "research_seed"
+      },
+      {
+        "provider_id": "P00021",
+        "reason": "outside_balanced_research_pipeline_baseline",
+        "source": "research_seed"
+      },
+      {
+        "provider_id": "P00022",
+        "reason": "outside_balanced_research_pipeline_baseline",
+        "source": "research_seed"
+      },
+      {
+        "provider_id": "P00023",
+        "reason": "outside_balanced_research_pipeline_baseline",
+        "source": "research_seed"
+      },
+      {
+        "provider_id": "P00024",
+        "reason": "outside_balanced_research_pipeline_baseline",
+        "source": "research_seed"
+      }
+    ],
+    "processed": 5009,
+    "quarantined": [
+      {
+        "provider_id": "PE6E498C97D87",
+        "reason": "profile_or_component_readiness_incomplete",
+        "source": "legacy_unknown"
+      }
+    ]
+  },
+  "projected": {
+    "eligible_count": 1010,
+    "eligible_research_category_counts": {
+      "A/C": 72,
+      "CCTV": 72,
+      "Carpenters": 72,
+      "Ceiling": 72,
+      "Cleaners": 72,
+      "Cushion Works": 72,
+      "Electricians": 71,
+      "Masons": 71,
+      "Painters": 71,
+      "Plumbers": 71,
+      "Technicians": 71,
+      "Tile": 71,
+      "Vehicle Repairs": 71,
+      "Wells": 71
+    },
+    "eligible_research_category_district_coverage": {
+      "A/C": 10,
+      "CCTV": 10,
+      "Carpenters": 10,
+      "Ceiling": 10,
+      "Cleaners": 10,
+      "Cushion Works": 10,
+      "Electricians": 10,
+      "Masons": 10,
+      "Painters": 10,
+      "Plumbers": 10,
+      "Technicians": 10,
+      "Tile": 10,
+      "Vehicle Repairs": 10,
+      "Wells": 10
+    },
+    "eligible_research_count": 1000,
+    "eligible_website_count": 10,
+    "legacy_count": 1,
+    "missing_research_field_values": 0,
+    "provider_count": 5009,
+    "research_c1_c4_intersection_count": 4998,
+    "research_count": 4998,
+    "verified_count": 5008,
+    "verified_research_count": 4998,
+    "website_count": 10
+  },
+  "research_baseline": {
+    "category_quotas": {
+      "A/C": 72,
+      "CCTV": 72,
+      "Carpenters": 72,
+      "Ceiling": 72,
+      "Cleaners": 72,
+      "Cushion Works": 72,
+      "Electricians": 71,
+      "Masons": 71,
+      "Painters": 71,
+      "Plumbers": 71,
+      "Technicians": 71,
+      "Tile": 71,
+      "Vehicle Repairs": 71,
+      "Wells": 71
+    },
+    "selection_version": "research-balanced-category-location-v1",
+    "target": 1000
+  }
+}

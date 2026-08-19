@@ -75,6 +75,30 @@ def finite_float(value: Any, field: str) -> float:
     return numeric
 
 
+def live_non_negative_int(value: Any, default: int = 0) -> int:
+    """Coerce an optional live-profile counter without weakening artifact validation."""
+
+    try:
+        numeric = float(value)
+    except (TypeError, ValueError):
+        return default
+    if not math.isfinite(numeric):
+        return default
+    return max(0, int(numeric))
+
+
+def live_bounded_rating(value: Any) -> float:
+    """Return a safe 0-5 rating for Firebase profiles with missing legacy fields."""
+
+    try:
+        numeric = float(value)
+    except (TypeError, ValueError):
+        return 0.0
+    if not math.isfinite(numeric):
+        return 0.0
+    return min(5.0, max(0.0, numeric))
+
+
 class Component4RankingEngine:
     """Immutable CATF snapshot with optional Phase 8 evaluation metadata."""
 
@@ -561,8 +585,8 @@ class Component4RankingEngine:
             "reliability_factor": 0.0,
             "evidence_status": "insufficient",
             "score_source": "category_prior",
-            "platform_rating": finite_float(provider.get("rating", 0), "rating"),
-            "platform_review_count": int(provider.get("review_count", 0)),
+            "platform_rating": live_bounded_rating(provider.get("rating")),
+            "platform_review_count": live_non_negative_int(provider.get("review_count")),
         }
 
     def provider_trust_snapshot(
@@ -595,10 +619,15 @@ class Component4RankingEngine:
             if static is not None:
                 candidate = dict(static)
                 live = live_index.get(provider_id)
-                if live is not None and int(live.get("review_count", 0)) > 0:
-                    platform_rating = finite_float(live.get("rating", 0), "rating")
+                live_review_count = (
+                    live_non_negative_int(live.get("review_count"))
+                    if live is not None
+                    else 0
+                )
+                if live is not None and live_review_count > 0:
+                    platform_rating = live_bounded_rating(live.get("rating"))
                     candidate["platform_rating"] = platform_rating
-                    candidate["platform_review_count"] = int(live.get("review_count", 0))
+                    candidate["platform_review_count"] = live_review_count
                     candidate["final_score"] = min(
                         1.0,
                         max(

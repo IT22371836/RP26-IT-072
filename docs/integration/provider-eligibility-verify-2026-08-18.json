@@ -1,0 +1,28 @@
+{
+  "component2_filter_requests_sha256": "09fcaf0331660ea9a2ef774b2cb25d92c7d1d841d112d0d1bb16b27f4e44b4e7",
+  "component2_untouched": true,
+  "expected": {
+    "eligible_count": 5008,
+    "eligible_research_count": 4998,
+    "eligible_website_count": 10,
+    "legacy_count": 1,
+    "missing_research_field_values": 0,
+    "provider_count": 5009,
+    "research_c1_c4_intersection_count": 4998,
+    "research_count": 4998,
+    "website_count": 10
+  },
+  "mode": "verify-only",
+  "summary": {
+    "eligible_count": 5008,
+    "eligible_research_count": 4998,
+    "eligible_website_count": 10,
+    "legacy_count": 1,
+    "missing_research_field_values": 0,
+    "provider_count": 5009,
+    "research_c1_c4_intersection_count": 4998,
+    "research_count": 4998,
+    "website_count": 10
+  },
+  "verified": true
+}

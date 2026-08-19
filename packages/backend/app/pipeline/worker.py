@@ -28,6 +28,7 @@ from app.repositories.pipeline import PipelineRepository
 from app.repositories.providers import ProviderRepository
 from app.repositories.users import UserRepository
 from app.schemas.common import new_public_id, utc_now
+from app.services.provider_eligibility import eligible_provider_pool
 
 LOGGER = logging.getLogger("weda.pipeline.worker")
 
@@ -50,6 +51,37 @@ class PipelineWorker:
         self.component1_runs = Component1Repository(database)
         self.component4_runs = Component4Repository(database)
         self.firebase = FirebaseRtdbClient(settings)
+
+    async def warmup(self) -> dict[str, Any]:
+        started = perf_counter()
+        component1, component4 = await asyncio.gather(
+            asyncio.to_thread(
+                get_recommendation_engine, self.settings.component1_artifact_dir
+            ),
+            asyncio.to_thread(
+                get_component4_engine,
+                self.settings.component4_artifact_dir,
+                self.settings.component4_category_priors_path,
+            ),
+        )
+        if not component1.ready or not component4.ready:
+            raise RuntimeError("Component 1 or Component 4 artifacts failed warmup")
+        artifact_provider_ids = {
+            str(provider["provider_id"]) for provider in component1.providers
+        }
+        provider_profiles = await self.providers.list_pipeline_eligible(
+            limit=20_000,
+            cache_seconds=self.settings.pipeline_provider_cache_seconds,
+        )
+        pool = eligible_provider_pool(provider_profiles, artifact_provider_ids)
+        if len(pool.allowed_provider_ids) < 20:
+            raise RuntimeError("Provider eligibility pool failed worker warmup")
+        return {
+            "eligible_count": len(pool.allowed_provider_ids),
+            "research_count": pool.research_count,
+            "website_count": pool.website_count,
+            "processing_time_ms": round((perf_counter() - started) * 1000, 3),
+        }
 
     async def _heartbeat(self, run_id: str) -> None:
         interval = max(10, self.settings.pipeline_lease_seconds // 3)
@@ -230,15 +262,22 @@ class PipelineWorker:
             )
         started_at = utc_now()
         started = perf_counter()
-        try:
-            firebase_providers = await self.firebase.get_verified_provider_candidates()
-        except FirebaseComponent2Error as error:
-            raise PipelineExecutionError("firebase_failure", str(error), retryable=True) from error
         artifact_provider_ids = {str(provider["provider_id"]) for provider in engine.providers}
+        provider_profiles = await self.providers.list_pipeline_eligible(
+            limit=20_000,
+            cache_seconds=self.settings.pipeline_provider_cache_seconds,
+        )
+        eligible_pool = eligible_provider_pool(provider_profiles, artifact_provider_ids)
+        if len(eligible_pool.allowed_provider_ids) < 20:
+            raise PipelineExecutionError(
+                "provider_eligibility_failure",
+                "Fewer than 20 verified Firebase providers satisfy the C1/C2/C4 eligibility contract",
+                retryable=False,
+            )
         live_providers = merge_verified_provider_candidates(
             artifact_provider_ids,
             [],
-            firebase_providers,
+            eligible_pool.eligible_profiles,
         )
         user = await self.users.find_by_id(user_id)
         firebase_uid = (user or {}).get("legacy", {}).get("firebase_uid")
@@ -265,6 +304,7 @@ class PipelineWorker:
             0.0,
             live_providers,
             preferences,
+            eligible_pool.allowed_provider_ids,
         )
         if len(results) != 20:
             raise PipelineExecutionError(
@@ -336,10 +376,12 @@ class PipelineWorker:
             "component_version": engine.manifest["component_version"],
             "model_version": engine.manifest["model_version"],
             "artifact_provider_count": engine.status()["provider_count"],
-            "verified_firebase_provider_count": len(firebase_providers),
+            "verified_firebase_provider_count": len(eligible_pool.allowed_provider_ids),
             "additional_verified_provider_count": len(live_providers),
-            "candidate_pool_count": len(artifact_provider_ids) + len(live_providers),
-            "candidate_source": "artifact_plus_verified_live_providers",
+            "eligible_research_provider_count": eligible_pool.research_count,
+            "eligible_website_provider_count": eligible_pool.website_count,
+            "candidate_pool_count": len(eligible_pool.allowed_provider_ids),
+            "candidate_source": "firebase_indexed_pipeline_eligible_union",
             "preference_signal_count": len(preferences),
             "processing_time_ms": processing_time_ms,
             "started_at": started_at.isoformat(),
@@ -494,7 +536,15 @@ async def run_forever() -> None:
                 database = FirebaseDatabase.connect(settings)
                 await ensure_application_indexes(database)
                 worker = PipelineWorker(database, settings)
-                LOGGER.info("Pipeline worker %s started", settings.pipeline_worker_id)
+                warmup = await worker.warmup()
+                LOGGER.info(
+                    "Pipeline worker %s ready: eligible=%d research=%d website=%d warmup_ms=%.1f",
+                    settings.pipeline_worker_id,
+                    warmup["eligible_count"],
+                    warmup["research_count"],
+                    warmup["website_count"],
+                    warmup["processing_time_ms"],
+                )
                 while True:
                     try:
                         processed = await worker.run_once()

@@ -226,6 +226,8 @@ export interface Provider {
   credibility?: CredibilityInfo;
   uid?: string;
   verified?: boolean;
+  profileSource?: 'web_registration' | 'research_seed' | 'legacy_unknown';
+  schemaVersion?: number;
 }
 
 export interface AdminUser {
@@ -382,6 +384,8 @@ export async function registerProvider(
     workingHours: data.workingHours || DEFAULT_WORKING_HOURS,
     createdAt: now.toISOString(),
     createdTimestamp: now.getTime(),
+    profileSource: 'web_registration',
+    schemaVersion: 2,
     verified: false
   };
   delete (newProvider as any).customerImage;

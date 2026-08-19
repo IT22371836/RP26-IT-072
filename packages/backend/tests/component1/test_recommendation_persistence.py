@@ -20,6 +20,7 @@ from app.schemas.common import UserRole
 
 class ScoredEngine:
     manifest = {"component_version": "1.2.3", "model_version": "hybrid-v2"}
+    providers: list[dict[str, object]] = []
 
     def recommend(self, **_kwargs: object) -> list[ProviderRecommendation]:
         return [
@@ -45,7 +46,10 @@ class ScoredEngine:
 
 
 class Providers:
-    async def list_all(self) -> list[object]:
+    async def list_pipeline_eligible(
+        self, limit: int = 20_000, *, cache_seconds: float = 300.0
+    ) -> list[object]:
+        del limit, cache_seconds
         return []
 
 

@@ -59,6 +59,12 @@ def pipeline_execution_event(
             "additional_verified_provider_count": component1.get(
                 "additional_verified_provider_count"
             ),
+            "eligible_research_provider_count": component1.get(
+                "eligible_research_provider_count"
+            ),
+            "eligible_website_provider_count": component1.get(
+                "eligible_website_provider_count"
+            ),
             "candidate_source": component1.get("candidate_source"),
             "output_provider_count": len(component1.get("providers", [])),
             "processing_time_ms": component1.get("processing_time_ms"),

@@ -235,6 +235,38 @@ def test_fewer_than_five_candidates_returns_every_candidate(
     assert result["output_count"] == 3
 
 
+def test_live_provider_with_missing_optional_numeric_fields_uses_safe_defaults(
+    engine: Component4RankingEngine,
+) -> None:
+    provider_id = "XvJao9AZfOWyha8K4rBiyZyhDGI2"
+    result = engine.rank(
+        rank_request(
+            source="component2",
+            request_id="RLIVENULLS1",
+            component_version="firebase-filter-v1",
+            model_version="distance-hours-weather-v1",
+            provider_ids=[provider_id],
+        ),
+        [
+            {
+                "provider_id": provider_id,
+                "provider_name": "Verified Website Provider",
+                "category": "Electricians",
+                "district": "Colombo",
+                "city": "Nugegoda",
+                "rating": None,
+                "review_count": None,
+            }
+        ],
+    )
+
+    provider = result["providers"][0]
+    assert provider["provider_id"] == provider_id
+    assert provider["platform_rating"] == 0.0
+    assert provider["platform_review_count"] == 0
+    assert provider["score_source"] == "category_prior"
+
+
 def test_all_candidates_include_top5_and_outside_cutoff_reasons(
     engine: Component4RankingEngine,
 ) -> None:

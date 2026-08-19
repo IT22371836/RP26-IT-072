@@ -14,16 +14,21 @@
       }
     },
     "providers": {
-      ".indexOn": ["verified"],
+      ".indexOn": ["verified", "pipelineEligibility/eligible"],
       "$providerId": {
         ".read": "auth != null && auth.uid === $providerId",
-        ".write": "auth != null && auth.uid === $providerId",
+        ".write": "auth != null && auth.uid === $providerId && ((!data.exists() && newData.child('verified').val() === false && newData.child('profileSource').val() === 'web_registration' && newData.child('schemaVersion').val() === 2 && !newData.child('verification').exists() && !newData.child('pipelineEligibility').exists() && !newData.child('pipelineSeed').exists() && !newData.child('researchSeed').exists()) || (data.exists() && newData.child('verified').val() === data.child('verified').val() && newData.child('profileSource').val() === data.child('profileSource').val() && newData.child('schemaVersion').val() === data.child('schemaVersion').val() && newData.child('verification').val() === data.child('verification').val() && newData.child('pipelineEligibility').val() === data.child('pipelineEligibility').val() && newData.child('pipelineSeed').val() === data.child('pipelineSeed').val() && newData.child('researchSeed').val() === data.child('researchSeed').val()))",
         ".validate": "newData.child('reviews').val() === data.child('reviews').val() && newData.child('reviewStats').val() === data.child('reviewStats').val() && newData.child('platformRating').val() === data.child('platformRating').val() && newData.child('platformReviewCount').val() === data.child('platformReviewCount').val() && newData.child('rating').val() === data.child('rating').val() && newData.child('reviewCount').val() === data.child('reviewCount').val()",
         "id": { ".validate": "newData.val() === $providerId" },
         "uid": { ".validate": "newData.val() === $providerId" },
         "role": { ".validate": "newData.val() === 'provider'" },
-        "pipelineSeed": { ".write": false },
-        "researchSeed": { ".write": false }
+        "verified": { ".validate": "(!data.exists() && newData.val() === false) || (data.exists() && newData.val() === data.val())" },
+        "profileSource": { ".validate": "(!data.exists() && newData.val() === 'web_registration') || (data.exists() && newData.val() === data.val())" },
+        "schemaVersion": { ".validate": "(!data.exists() && newData.val() === 2) || (data.exists() && newData.val() === data.val())" },
+        "verification": { ".validate": "newData.val() === data.val()" },
+        "pipelineEligibility": { ".validate": "newData.val() === data.val()" },
+        "pipelineSeed": { ".validate": "newData.val() === data.val()" },
+        "researchSeed": { ".validate": "newData.val() === data.val()" }
       }
     },
     "research_customers": {

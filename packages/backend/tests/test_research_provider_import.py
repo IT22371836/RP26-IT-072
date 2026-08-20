@@ -14,8 +14,9 @@ def test_exact_shared_provider_population_and_canonical_identities() -> None:
         counts[provider["category"]] = counts.get(provider["category"], 0) + 1
         provider_id = provider["provider_id"]
         assert canonical_user_id(provider_id) == f"U{provider_id[1:]}"
-        assert research_email(provider_id) == (
-            f"provider.{provider_id.lower()}@research.weda.lk"
+        assert research_email(provider_id, provider["provider_name"]) == (
+            f"{''.join(character for character in provider['provider_name'].lower() if character.isalnum())}"
+            f"12.{provider_id.lower()}@gmail.com"
         )
     assert len(counts) == 14
     assert set(counts.values()) == {357}

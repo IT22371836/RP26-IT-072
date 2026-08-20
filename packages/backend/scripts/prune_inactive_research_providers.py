@@ -42,10 +42,6 @@ def email_key(email: str) -> str:
     return hashlib.sha256(email.strip().lower().encode("utf-8")).hexdigest()
 
 
-def research_email(provider_id: str) -> str:
-    return f"provider.{provider_id.lower()}@research.weda.lk"
-
-
 def research_user_id(provider_id: str) -> str:
     return "U" + provider_id[1:]
 
@@ -140,7 +136,7 @@ def validate_identity(
     auth_users: dict[str, Any],
 ) -> None:
     user_id = research_user_id(provider_id)
-    email = research_email(provider_id)
+    email = str(profile.get("email") or "").strip().lower()
     auth_user = auth_users.get(provider_id)
     user = users.get(user_id)
     if str(profile.get("id")) != provider_id or str(profile.get("uid")) != provider_id:
@@ -342,7 +338,7 @@ def main() -> int:
     updates: dict[str, Any] = {}
     for provider_id in sorted(deletion_ids):
         user_id = research_user_id(provider_id)
-        email = research_email(provider_id)
+        email = str(providers[provider_id].get("email") or "").strip().lower()
         updates[f"providers/{provider_id}"] = None
         updates[f"core/users/{user_id}"] = None
         updates[f"core/indexes/providers_by_user/{user_id}"] = None

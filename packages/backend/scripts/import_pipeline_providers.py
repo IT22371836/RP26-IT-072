@@ -8,7 +8,9 @@ import csv
 import hashlib
 import json
 import math
+import re
 import sys
+import unicodedata
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime
@@ -89,8 +91,15 @@ def canonical_user_id(provider_id: str) -> str:
     return "U" + provider_id[1:]
 
 
-def research_email(provider_id: str) -> str:
-    return f"provider.{provider_id.lower()}@research.weda.lk"
+def research_email(provider_id: str, provider_name: Any) -> str:
+    ascii_name = (
+        unicodedata.normalize("NFKD", str(provider_name or ""))
+        .encode("ascii", "ignore")
+        .decode("ascii")
+        .lower()
+    )
+    slug = re.sub(r"[^a-z0-9]+", "", ascii_name) or "provider"
+    return f"{slug}12.{provider_id.lower()}@gmail.com"
 
 
 def coordinates(provider: dict[str, Any]) -> tuple[float, float, str]:
@@ -134,7 +143,7 @@ def provider_documents(
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     provider_id = provider["provider_id"]
     user_id = canonical_user_id(provider_id)
-    email = research_email(provider_id)
+    email = research_email(provider_id, provider["provider_name"])
     latitude, longitude, coordinate_source = coordinates(provider)
     now = datetime.now(UTC)
     seed = {
@@ -278,7 +287,10 @@ def firebase_accounts(app: Any) -> tuple[dict[str, Any], dict[str, Any]]:
 async def mongo_collisions(database: Any, providers: list[dict[str, Any]]) -> dict[str, list[str]]:
     provider_ids = [item["provider_id"] for item in providers]
     user_ids = [canonical_user_id(item) for item in provider_ids]
-    emails = [research_email(item) for item in provider_ids]
+    emails = [
+        research_email(item["provider_id"], item["provider_name"])
+        for item in providers
+    ]
     users = await database.users.find(
         {"$or": [{"user_id": {"$in": user_ids}}, {"email": {"$in": emails}}]},
         {"user_id": 1, "email": 1},
@@ -320,7 +332,7 @@ async def build_auth_records(
         provider_id = provider["provider_id"]
         return auth.ImportUserRecord(
             uid=provider_id,
-            email=research_email(provider_id),
+            email=research_email(provider_id, provider["provider_name"]),
             display_name=provider["provider_name"],
             password_hash=bcrypt_module.hashpw(
                 password.encode(), bcrypt_module.gensalt(rounds=10)
@@ -387,7 +399,10 @@ async def execute(args: argparse.Namespace) -> int:
         database = client[settings.mongodb_database]
         await client.admin.command("ping")
         expected_ids = {item["provider_id"] for item in providers}
-        expected_emails = {research_email(item) for item in expected_ids}
+        expected_emails = {
+            research_email(item["provider_id"], item["provider_name"])
+            for item in providers
+        }
         resume_mongo = args.resume and "mongo" in completed
         resume_auth = args.resume and "firebase_auth" in completed
         resume_rtdb = args.resume and "rtdb" in completed

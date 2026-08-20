@@ -427,7 +427,13 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
           const c1 = run.component1?.providers.find(item => item.provider_id === provider.provider_id);
           const c2 = run.component2?.all_evaluated_providers.find(item => item.provider_id === provider.provider_id);
           return <article key={provider.provider_id} style={{ border: '1px solid #cbd5e1', borderRadius: 10, padding: 14 }}>
-            <strong>#{provider.rank} {provider.provider_name}</strong> · {provider.category} · {provider.city}
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8 }}>
+              <strong>#{provider.rank} {provider.provider_name}</strong>
+              <code style={{ padding: '2px 8px', borderRadius: 999, background: '#e2e8f0', color: '#0f172a', fontWeight: 700 }}>
+                Provider ID: {provider.provider_id}
+              </code>
+              <span>· {provider.category} · {provider.city}</span>
+            </div>
             <p>C1 hybrid: {c1?.hybrid_score?.toFixed(3) ?? 'n/a'} · C2 distance: {c2?.distance_km ?? 'n/a'} km · availability: {c2?.is_available ? 'available' : 'fallback/not available'} · weather: {c2?.weather_risk ?? run.component2?.output_results.weather_risk}</p>
             <p>C4 final: {provider.final_score?.toFixed(3)} · credibility: {provider.mean_credibility?.toFixed(3)} · evidence: {provider.evidence_status}</p>
             <button className="btn btn-primary" disabled={busy || !!run.selected_provider_id} onClick={() => selectProvider(provider.provider_id)}>{run.selected_provider_id === provider.provider_id ? 'Booking requested' : 'Select & request booking'}</button>

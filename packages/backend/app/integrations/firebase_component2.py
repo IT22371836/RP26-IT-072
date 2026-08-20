@@ -365,6 +365,42 @@ class FirebaseRtdbClient:
                 raise error.__cause__ from error
             raise FirebaseComponent2Error("Firebase booking update failed") from error
 
+    async def transition_customer_booking(
+        self,
+        firebase_uid: str,
+        booking_id: str,
+        expected_statuses: set[str],
+        updates: dict[str, Any],
+    ) -> None:
+        """Atomically apply a booking state transition from an allowed current state."""
+
+        reference = self._reference(
+            f"customers/{firebase_uid}/bookingHistory/{booking_id}"
+        )
+
+        def transaction(current: Any) -> Any:
+            if not isinstance(current, dict):
+                raise FirebaseRequestConflictError(
+                    f"Firebase booking {booking_id} does not exist"
+                )
+            if str(current.get("status")) not in expected_statuses:
+                raise FirebaseRequestConflictError(
+                    f"Firebase booking {booking_id} cannot transition from "
+                    f"{current.get('status')}"
+                )
+            updated = deepcopy(current)
+            updated.update(deepcopy(updates))
+            return updated
+
+        try:
+            await asyncio.to_thread(reference.transaction, transaction)
+        except FirebaseRequestConflictError:
+            raise
+        except Exception as error:
+            if isinstance(error.__cause__, FirebaseRequestConflictError):
+                raise error.__cause__ from error
+            raise FirebaseComponent2Error("Firebase booking transition failed") from error
+
     async def delete_customer_booking_if_matching(
         self,
         firebase_uid: str,

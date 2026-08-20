@@ -3,8 +3,11 @@ import json
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
+import pytest
+
 from app.core.config import Settings
 from app.integrations.firebase_component2 import (
+    FirebaseRequestConflictError,
     FirebaseRtdbClient,
     booking_history_preference_ids,
 )
@@ -186,6 +189,39 @@ def test_firebase_ping_uses_a_shallow_admin_root_read() -> None:
 
     assert asyncio.run(client.ping()) is True
     assert calls == [("/", False), ("get", True)]
+
+
+def test_booking_transition_is_atomic_and_rejects_a_stale_status() -> None:
+    booking = {"booking_id": "BOOKING1", "status": "booking_requested"}
+
+    class Reference:
+        def transaction(self, callback):
+            nonlocal booking
+            booking = callback(booking)
+
+    client = FirebaseRtdbClient(Settings(_env_file=None))
+    client._reference = lambda path: Reference()  # type: ignore[method-assign]
+
+    asyncio.run(
+        client.transition_customer_booking(
+            "customer-firebase",
+            "BOOKING1",
+            {"booking_requested"},
+            {"status": "booking_accepted", "accepted_at": "2026-08-20T10:00:00+00:00"},
+        )
+    )
+    assert booking["status"] == "booking_accepted"
+
+    with pytest.raises(FirebaseRequestConflictError):
+        asyncio.run(
+            client.transition_customer_booking(
+                "customer-firebase",
+                "BOOKING1",
+                {"booking_requested"},
+                {"status": "booking_rejected"},
+            )
+        )
+    assert booking["status"] == "booking_accepted"
 
 
 def test_provider_review_is_idempotent_and_refreshes_platform_statistics() -> None:

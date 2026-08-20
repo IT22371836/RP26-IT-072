@@ -50,8 +50,8 @@ class FakeComponent4:
 
 
 class FakeProviders:
-    async def find_by_id(self, _provider_id: str) -> None:
-        return None
+    async def find_by_id(self, _provider_id: str) -> dict[str, Any]:
+        return FakeComponent1.providers[0]
 
 
 class FakeInteractions:
@@ -82,6 +82,33 @@ class FakeResearchReviews:
                 "source": "research_dataset",
                 "credibility_score": 0.86,
             }
+        ]
+
+
+class FakeFirebaseResearchInteractions(FakeInteractions):
+    async def list_research_reviews_for_provider(
+        self,
+        _provider_id: str,
+        limit: int = 50,
+    ) -> list[dict[str, Any]]:
+        assert limit == 50
+        return [
+            {
+                "rating": 4,
+                "review_text": "Research evidence loaded from Firebase.",
+                "reviewed_at": datetime(2026, 6, 1, tzinfo=UTC),
+                "verified_booking": True,
+                "usable_for_ranking": True,
+                "credibility_score": 0.86,
+            },
+            {
+                "rating": 1,
+                "review_text": "Flagged synthetic review.",
+                "reviewed_at": datetime(2026, 6, 2, tzinfo=UTC),
+                "verified_booking": False,
+                "usable_for_ranking": False,
+                "credibility_score": 0.1,
+            },
         ]
 
 
@@ -128,5 +155,28 @@ def test_customer_can_fetch_a_provider_trust_profile() -> None:
         assert response.json()["aspect_performance"]["quality"] == 0.9
         assert len(response.json()["customer_reviews"]) >= 1
         assert response.json()["customer_reviews"][0]["source"] == "platform"
+
+    asyncio.run(run_test())
+
+
+def test_customer_can_fetch_platform_and_credible_firebase_research_reviews() -> None:
+    async def run_test() -> None:
+        app.dependency_overrides[get_provider_repository] = FakeProviders
+        app.dependency_overrides[get_interaction_repository] = FakeFirebaseResearchInteractions
+        try:
+            transport = ASGITransport(app=app)
+            async with AsyncClient(transport=transport, base_url="http://testserver") as client:
+                response = await client.get("/api/v1/providers/P00001/reviews")
+        finally:
+            app.dependency_overrides.clear()
+
+        assert response.status_code == 200
+        reviews = response.json()
+        assert [review["source"] for review in reviews] == [
+            "platform",
+            "research_dataset",
+        ]
+        assert reviews[1]["credibility_score"] == 0.86
+        assert all("research_customer_id" not in review for review in reviews)
 
     asyncio.run(run_test())

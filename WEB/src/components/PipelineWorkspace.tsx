@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Activity, AlertTriangle, CheckCircle, Clock, Cpu, Filter, RefreshCw, Search, ShieldCheck, Star } from 'lucide-react';
+import { Activity, AlertTriangle, CheckCircle, Clock, Cpu, Filter, RefreshCw, Search, ShieldCheck, Star, UserRound, X } from 'lucide-react';
 import { backendApi } from '../config/api';
-import type { Component2EvaluatedProviderDto, InteractionDto, PipelineCreateDto, PipelineProviderDto, PipelineRunDto } from '../config/api';
+import type { Component2EvaluatedProviderDto, InteractionDto, PipelineCreateDto, PipelineProviderDto, PipelineRunDto, ProviderPublicDto, ProviderReviewDto } from '../config/api';
 import { requireFirebaseApiToken } from '../config/firebaseApiToken';
 import type { Customer } from '../config/firebase';
 import { SERVICE_CATEGORIES } from '../data/categories';
@@ -309,6 +309,13 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [review, setReview] = useState<Record<string, { rating: number; text: string }>>({});
+  const [providerProfile, setProviderProfile] = useState<ProviderPublicDto | null>(null);
+  const [providerReviews, setProviderReviews] = useState<ProviderReviewDto[]>([]);
+  const [profileLoadingId, setProfileLoadingId] = useState('');
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [profileReviewError, setProfileReviewError] = useState('');
+  const [selectingProviderId, setSelectingProviderId] = useState('');
+  const [selectionMessage, setSelectionMessage] = useState('');
   const cities = useMemo(
     () => SRI_LANKA_DISTRICTS.find(item => item.name === form.district)?.cities || [],
     [form.district]
@@ -323,6 +330,11 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
       backendApi.listPipelines(token), backendApi.listCustomerInteractions(token)
     ]);
     setHistory(runs); setInteractions(events);
+  };
+
+  const reloadInteractions = async () => {
+    const token = await requireFirebaseApiToken();
+    setInteractions(await backendApi.listCustomerInteractions(token));
   };
 
   useEffect(() => {
@@ -350,6 +362,13 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
     return () => { stopped = true; window.clearTimeout(timer); };
   }, [activeRunId, activeRunStatus, activeRunStorageKey]);
 
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      void reloadInteractions().catch(() => undefined);
+    }, 5000);
+    return () => window.clearInterval(timer);
+  }, []);
+
   const start = async (event: React.FormEvent) => {
     event.preventDefault(); setError('');
     if (!confirmed || !currentUser.location) { setError('Confirm your saved service location before continuing.'); return; }
@@ -364,13 +383,20 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
   };
 
   const selectProvider = async (providerId: string) => {
-    if (!run) return; setBusy(true); setError('');
+    if (!run) return; setBusy(true); setSelectingProviderId(providerId); setError(''); setSelectionMessage('');
     try {
       const token = await requireFirebaseApiToken();
       await backendApi.selectPipelineProvider(token, run.run_id, providerId);
       setRun(await backendApi.getPipeline(token, run.run_id));
       await reloadHistory();
-    } catch (err: any) { setError(err.message); } finally { setBusy(false); }
+      setSelectionMessage('Booking request sent to the selected provider. Waiting for acceptance or rejection.');
+    } catch (err: any) {
+      setError(err.message);
+      setSelectionMessage(`Booking request failed: ${err.message}`);
+    } finally {
+      setBusy(false);
+      setSelectingProviderId('');
+    }
   };
 
   const retry = async () => {
@@ -391,9 +417,52 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
     }
   };
 
+  const viewProviderProfile = async (providerId: string) => {
+    setError('');
+    setProfileLoadingId(providerId);
+    setProviderReviews([]);
+    setProfileReviewError('');
+    try {
+      const token = await requireFirebaseApiToken();
+      setReviewsLoading(true);
+      const reviewsPromise = backendApi.getProviderReviews(token, providerId)
+        .then(reviews => ({ reviews, error: '' }))
+        .catch((reviewError: any) => ({ reviews: [] as ProviderReviewDto[], error: reviewError.message }));
+      setProviderProfile(await backendApi.getPublicProviderProfile(token, providerId));
+      const reviewResult = await reviewsPromise;
+      setProviderReviews(reviewResult.reviews);
+      setProfileReviewError(reviewResult.error);
+      setReviewsLoading(false);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setReviewsLoading(false);
+      setProfileLoadingId('');
+    }
+  };
+
+  const closeProviderProfile = () => {
+    setProviderProfile(null);
+    setProviderReviews([]);
+    setProfileReviewError('');
+    setReviewsLoading(false);
+  };
+
   const completed = interactions.filter(item => item.interaction_type === 'booking_completed');
   const ratedKeys = new Set(interactions.filter(item => item.interaction_type === 'rated').map(item => `${item.request_id}:${item.provider_id}`));
-  const bookings = interactions.filter(item => ['booking_requested', 'booking_completed', 'booking_cancelled'].includes(item.interaction_type));
+  const bookingTypes = new Set(['booking_requested', 'booking_accepted', 'booking_rejected', 'booking_completed', 'booking_cancelled']);
+  const latestBookingByKey = new Map<string, InteractionDto>();
+  interactions.filter(item => bookingTypes.has(item.interaction_type)).forEach(item => {
+    const key = `${item.request_id}:${item.provider_id}`;
+    const current = latestBookingByKey.get(key);
+    if (!current || new Date(item.timestamp).getTime() > new Date(current.timestamp).getTime()) {
+      latestBookingByKey.set(key, item);
+    }
+  });
+  const bookings = interactions
+    .filter(item => item.interaction_type === 'booking_requested')
+    .map(request => latestBookingByKey.get(`${request.request_id}:${request.provider_id}`) ?? request)
+    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
   return <section className="glass-panel" style={{ padding: 24, marginBottom: 32, borderLeft: '6px solid #0ea5e9' }}>
     <h2 style={{ marginTop: 0 }}><Search size={21} /> Request a service: Component 1 → 2 → 4</h2>
@@ -423,6 +492,8 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
       <PipelineExecutionAudit run={run} />
       {run.component4 && <div>
         <h3>Final Top-5</h3>
+        {selectionMessage && <div style={{ marginBottom: 12, padding: 10, borderRadius: 8, background: selectionMessage.startsWith('Booking request failed') ? '#fee2e2' : '#dcfce7', color: selectionMessage.startsWith('Booking request failed') ? '#991b1b' : '#166534' }}>{selectionMessage}</div>}
+        {run.selected_provider_id && !selectionMessage && <div style={{ marginBottom: 12, padding: 10, borderRadius: 8, background: '#dcfce7', color: '#166534' }}>A booking request has already been sent to provider {run.selected_provider_id} for this service request.</div>}
         <div style={{ display: 'grid', gap: 12 }}>{run.component4.providers.map(provider => {
           const c1 = run.component1?.providers.find(item => item.provider_id === provider.provider_id);
           const c2 = run.component2?.all_evaluated_providers.find(item => item.provider_id === provider.provider_id);
@@ -436,17 +507,46 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
             </div>
             <p>C1 hybrid: {c1?.hybrid_score?.toFixed(3) ?? 'n/a'} · C2 distance: {c2?.distance_km ?? 'n/a'} km · availability: {c2?.is_available ? 'available' : 'fallback/not available'} · weather: {c2?.weather_risk ?? run.component2?.output_results.weather_risk}</p>
             <p>C4 final: {provider.final_score?.toFixed(3)} · credibility: {provider.mean_credibility?.toFixed(3)} · evidence: {provider.evidence_status}</p>
-            <button className="btn btn-primary" disabled={busy || !!run.selected_provider_id} onClick={() => selectProvider(provider.provider_id)}>{run.selected_provider_id === provider.provider_id ? 'Booking requested' : 'Select & request booking'}</button>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              <button className="btn btn-outline" disabled={profileLoadingId === provider.provider_id} onClick={() => viewProviderProfile(provider.provider_id)}>
+                <UserRound size={16} /> {profileLoadingId === provider.provider_id ? 'Loading profile…' : 'View provider profile'}
+              </button>
+              <button
+                className="btn btn-primary"
+                disabled={busy || !!run.selected_provider_id}
+                title={run.selected_provider_id && run.selected_provider_id !== provider.provider_id ? `Provider ${run.selected_provider_id} was already selected for this request` : undefined}
+                onClick={() => selectProvider(provider.provider_id)}
+              >
+                {selectingProviderId === provider.provider_id
+                  ? 'Sending booking request…'
+                  : run.selected_provider_id === provider.provider_id
+                    ? 'Booking requested — awaiting response'
+                    : run.selected_provider_id
+                      ? 'Another provider already selected'
+                      : 'Select & request booking'}
+              </button>
+            </div>
           </article>;
         })}</div>
       </div>}
     </div>}
 
     <details style={{ marginTop: 24 }} open><summary><strong>Bookings and ratings</strong></summary>
-      {bookings.length === 0 ? <p>No pipeline bookings yet.</p> : bookings.map(item => <div key={item.interaction_id} style={{ padding: 8, borderBottom: '1px solid #e2e8f0' }}>{item.provider_name || item.provider_id}: {item.interaction_type.replaceAll('_', ' ')}</div>)}
+      {bookings.length === 0 ? <p>No pipeline bookings yet.</p> : bookings.map(item => <div key={`${item.request_id}:${item.provider_id}`} style={{ padding: 10, borderBottom: '1px solid #e2e8f0' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8 }}>
+          <strong>{item.provider_name || item.provider_id}</strong>
+          <code style={{ padding: '2px 8px', borderRadius: 999, background: '#e2e8f0', color: '#0f172a', fontWeight: 700 }}>Provider ID: {item.provider_id}</code>
+          <span>· {item.interaction_type === 'booking_requested' ? 'waiting for provider response' : item.interaction_type.replaceAll('_', ' ')}</span>
+        </div>
+        <small style={{ display: 'block', color: '#64748b', marginTop: 3 }}>Request {item.request_id} · updated {new Date(item.timestamp).toLocaleString()}</small>
+      </div>)}
       {completed.filter(item => !ratedKeys.has(`${item.request_id}:${item.provider_id}`)).map(item => {
         const value = review[item.interaction_id] || { rating: 5, text: '' };
-        return <div key={item.interaction_id} style={{ padding: 10 }}><Star size={16} /> Rate {item.provider_name}
+        return <div key={item.interaction_id} style={{ padding: 10 }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+            <Star size={16} /> <strong>Rate {item.provider_name || item.provider_id}</strong>
+            <code style={{ padding: '2px 8px', borderRadius: 999, background: '#e2e8f0', color: '#0f172a', fontWeight: 700 }}>Provider ID: {item.provider_id}</code>
+          </div>
           <select value={value.rating} onChange={e => setReview({ ...review, [item.interaction_id]: { ...value, rating: Number(e.target.value) } })}>{[5,4,3,2,1].map(n => <option key={n} value={n}>{n}</option>)}</select>
           <input placeholder="Review" value={value.text} onChange={e => setReview({ ...review, [item.interaction_id]: { ...value, text: e.target.value } })} />
           <button onClick={async () => { await backendApi.rateBooking(await requireFirebaseApiToken(), item.interaction_id, value.rating, value.text); await reloadHistory(); }}>Submit rating</button>
@@ -454,5 +554,64 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
       })}
     </details>
     <details style={{ marginTop: 16 }}><summary><strong>Request history ({history.length})</strong></summary>{history.map(item => <button key={item.run_id} onClick={() => setRun(item)} style={{ display: 'block', margin: 6 }}>{new Date(item.created_at).toLocaleString()} · {item.request.category} · {item.status}</button>)}</details>
+    {profileLoadingId && !providerProfile && <div
+      role="status"
+      style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(15,23,42,.72)', display: 'grid', placeItems: 'center', padding: 20 }}
+    >
+      <div className="glass-panel" style={{ padding: 28, textAlign: 'center' }}>
+        <RefreshCw size={28} />
+        <h3>Loading provider profile…</h3>
+        <p>Reading the verified profile and customer reviews from Firebase.</p>
+      </div>
+    </div>}
+    {providerProfile && <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={`${providerProfile.provider_name} provider profile`}
+      onClick={closeProviderProfile}
+      style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(15,23,42,.72)', display: 'grid', placeItems: 'center', padding: 20 }}
+    >
+      <article onClick={event => event.stopPropagation()} className="glass-panel" style={{ width: 'min(680px, 96vw)', maxHeight: '88vh', overflowY: 'auto', padding: 24, position: 'relative' }}>
+        <button aria-label="Close provider profile" className="btn btn-outline" onClick={closeProviderProfile} style={{ position: 'absolute', top: 14, right: 14, padding: 8 }}><X size={18} /></button>
+        <div style={{ display: 'flex', gap: 16, alignItems: 'center', paddingRight: 52 }}>
+          {providerProfile.provider_image && /^(https?:\/\/|data:image\/)/i.test(providerProfile.provider_image)
+            ? <img src={providerProfile.provider_image} alt="" style={{ width: 76, height: 76, objectFit: 'cover', borderRadius: '50%' }} />
+            : <div style={{ width: 76, height: 76, borderRadius: '50%', background: '#dcfce7', display: 'grid', placeItems: 'center' }}><UserRound size={34} /></div>}
+          <div>
+            <h3 style={{ margin: 0 }}>{providerProfile.provider_name}</h3>
+            <code>Provider ID: {providerProfile.provider_id}</code>
+            <p style={{ margin: '5px 0' }}>{providerProfile.category} · {providerProfile.city}, {providerProfile.district}</p>
+            <strong>{providerProfile.verified ? '✓ Verified provider' : 'Verification pending'}</strong>
+          </div>
+        </div>
+        <p style={{ marginTop: 18 }}>{providerProfile.description}</p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 10 }}>
+          <div><strong>Experience</strong><br />{providerProfile.experience_years} years</div>
+          <div><strong>Rating</strong><br />{providerProfile.rating.toFixed(1)} / 5 ({providerProfile.review_count} reviews)</div>
+          <div><strong>Booking success</strong><br />{(providerProfile.booking_success_rate * 100).toFixed(0)}%</div>
+          <div><strong>Preferred language</strong><br />{providerProfile.preferred_language}</div>
+        </div>
+        <div style={{ marginTop: 16 }}><strong>Skills</strong><p>{providerProfile.skills.length ? providerProfile.skills.join(' · ') : 'No skills listed'}</p></div>
+        <div style={{ marginTop: 18 }}>
+          <h4 style={{ marginBottom: 8 }}>Customer ratings and reviews ({providerReviews.length})</h4>
+          {reviewsLoading && <p><RefreshCw size={15} /> Loading reviews…</p>}
+          {profileReviewError && <p style={{ color: '#991b1b' }}>Reviews could not be loaded: {profileReviewError}</p>}
+          {!reviewsLoading && !profileReviewError && providerReviews.length === 0 ? <p>No customer reviews are available yet.</p> : providerReviews.map((review, index) => <article key={`${review.source}:${review.reviewed_at}:${index}`} style={{ padding: '12px 0', borderTop: '1px solid #cbd5e1' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8 }}>
+              <strong aria-label={`${review.rating} out of 5 stars`}>{'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}</strong>
+              <span>{review.rating}/5</span>
+              <small>{new Date(review.reviewed_at).toLocaleDateString()}</small>
+            </div>
+            <p style={{ margin: '7px 0' }}>{review.review_text || 'Rating submitted without a written review.'}</p>
+            <small style={{ color: '#64748b' }}>
+              {review.source === 'platform'
+                ? 'Verified platform booking review'
+                : `Component 4 research review${review.credibility_score === null ? '' : ` · credibility ${(review.credibility_score * 100).toFixed(0)}%`}`}
+              {review.verified_booking ? ' · verified booking' : ''}
+            </small>
+          </article>)}
+        </div>
+      </article>
+    </div>}
   </section>;
 };

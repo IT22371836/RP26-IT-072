@@ -1,5 +1,5 @@
 // ProviderDashboard Component
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Briefcase, MapPin, Mail, Phone, Edit3, Save, CheckCircle, Loader2, X, Wrench, Award, Plus, Check, Clock, FileText, ShieldCheck, Lock, Star } from 'lucide-react';
 import { DEFAULT_WORKING_HOURS, hasUploadedDocuments, getProviderCredibility } from '../config/firebase';
 import type { Provider, WorkingHours } from '../config/firebase';
@@ -19,6 +19,9 @@ import { DocumentUploadModal } from './DocumentUploadModal';
 import { WeatherWidget } from './WeatherWidget';
 import { ProviderCategoryDemandWidget } from './ProviderCategoryDemandWidget';
 import { ProviderBookings } from './ProviderBookings';
+import { backendApi } from '../config/api';
+import type { ProviderReviewDto } from '../config/api';
+import { requireFirebaseApiToken } from '../config/firebaseApiToken';
 
 interface ProviderDashboardProps {
   currentUser: Provider;
@@ -51,6 +54,32 @@ export const ProviderDashboard: React.FC<ProviderDashboardProps> = ({
   const [editWorkingHours, setEditWorkingHours] = useState<WorkingHours>(
     currentUser.workingHours || DEFAULT_WORKING_HOURS
   );
+  const [profileReviews, setProfileReviews] = useState<ProviderReviewDto[]>([]);
+  const [reviewLoadError, setReviewLoadError] = useState('');
+
+  useEffect(() => {
+    if (!currentUser.id) return;
+    const providerId = currentUser.id;
+    let stopped = false;
+    const loadReviews = async () => {
+      try {
+        const token = await requireFirebaseApiToken();
+        const reviews = await backendApi.getProviderReviews(token, providerId);
+        if (!stopped) {
+          setProfileReviews(reviews);
+          setReviewLoadError('');
+        }
+      } catch (error: any) {
+        if (!stopped) setReviewLoadError(error.message);
+      }
+    };
+    void loadReviews();
+    const timer = window.setInterval(() => void loadReviews(), 10000);
+    return () => {
+      stopped = true;
+      window.clearInterval(timer);
+    };
+  }, [currentUser.id]);
 
   // Dedicated Working Hours Modal State
   const [isEditingHours, setIsEditingHours] = useState(false);
@@ -218,6 +247,24 @@ export const ProviderDashboard: React.FC<ProviderDashboardProps> = ({
     <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
 
       <ProviderBookings />
+
+      <section className="glass-panel" style={{ padding: 22, marginBottom: 28, borderLeft: '6px solid #f59e0b' }}>
+        <h2 style={{ marginTop: 0 }}><Star size={20} /> Ratings and customer reviews</h2>
+        {reviewLoadError && <p style={{ color: '#991b1b' }}>{reviewLoadError}</p>}
+        {profileReviews.length === 0 && !reviewLoadError ? <p>No customer reviews are available yet.</p> : profileReviews.map((review, index) => <article key={`${review.source}:${review.reviewed_at}:${index}`} style={{ padding: '12px 0', borderTop: '1px solid #cbd5e1' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8 }}>
+            <strong aria-label={`${review.rating} out of 5 stars`}>{'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}</strong>
+            <span>{review.rating}/5</span>
+            <small>{new Date(review.reviewed_at).toLocaleDateString()}</small>
+          </div>
+          <p style={{ margin: '7px 0' }}>{review.review_text || 'Rating submitted without a written review.'}</p>
+          <small style={{ color: '#64748b' }}>
+            {review.source === 'platform'
+              ? 'Verified platform booking review'
+              : `Component 4 research review${review.credibility_score === null ? '' : ` · credibility ${(review.credibility_score * 100).toFixed(0)}%`}`}
+          </small>
+        </article>)}
+      </section>
 
       {/* Provider Session Banner */}
       <div className="glass-panel" style={{ padding: '30px', marginBottom: '32px', borderLeft: '6px solid var(--accent-provider)' }}>

@@ -162,6 +162,9 @@ class ProviderPublic(ProviderCreate):
     review_count: int = Field(ge=0)
     booking_success_rate: float = Field(ge=0, le=1)
     interaction_count: int = Field(ge=0)
+    provider_image: str | None = None
+    preferred_language: str = "English"
+    working_hours: ProviderWorkingHours | None = None
     verified: bool = False
     created_at: datetime
     updated_at: datetime

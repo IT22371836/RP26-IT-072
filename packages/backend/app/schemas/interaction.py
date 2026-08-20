@@ -1,5 +1,6 @@
 from datetime import datetime
 from enum import StrEnum
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -9,6 +10,8 @@ class InteractionType(StrEnum):
     CLICK = "click"
     SELECTED = "selected"
     BOOKING_REQUESTED = "booking_requested"
+    BOOKING_ACCEPTED = "booking_accepted"
+    BOOKING_REJECTED = "booking_rejected"
     BOOKING_COMPLETED = "booking_completed"
     BOOKING_CANCELLED = "booking_cancelled"
     RATED = "rated"
@@ -38,6 +41,9 @@ class InteractionPublic(InteractionCreate):
     interaction_id: str
     user_id: str
     timestamp: datetime
+    booking_interaction_id: str | None = None
+    pipeline_run_id: str | None = None
+    request_details: dict[str, Any] | None = None
 
 
 class RatingCreate(BaseModel):

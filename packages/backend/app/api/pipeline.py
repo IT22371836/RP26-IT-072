@@ -270,6 +270,7 @@ async def select_pipeline_provider(
         "rating": None,
         "review_text": None,
         "timestamp": now,
+        "request_details": existing.get("request"),
     }
     firebase_booking = {
         "booking_id": booking_id,
@@ -282,12 +283,15 @@ async def select_pipeline_provider(
         "status": "booking_requested",
         "requested_at": now.isoformat(),
         "updated_at": now.isoformat(),
+        "accepted_at": None,
+        "rejected_at": None,
         "completed_at": None,
         "cancelled_at": None,
         "rating": None,
         "review_text": None,
         "rated_at": None,
         "source": "pipeline",
+        "request_details": existing.get("request"),
     }
     try:
         firebase_created = await firebase.create_customer_booking(

@@ -9,7 +9,11 @@ from app.api.dependencies import (
     get_user_repository,
     require_firebase_role,
 )
-from app.integrations.firebase_component2 import FirebaseComponent2Error, FirebaseRtdbClient
+from app.integrations.firebase_component2 import (
+    FirebaseComponent2Error,
+    FirebaseRequestConflictError,
+    FirebaseRtdbClient,
+)
 from app.repositories.interactions import InteractionRepository
 from app.repositories.providers import ProviderRepository
 from app.repositories.users import UserRepository
@@ -46,6 +50,8 @@ def next_interaction(
         "timestamp": utc_now(),
         "booking_interaction_id": source.get("booking_interaction_id")
         or source.get("interaction_id"),
+        "pipeline_run_id": source.get("pipeline_run_id"),
+        "request_details": source.get("request_details"),
     }
 
 
@@ -84,6 +90,8 @@ async def ensure_firebase_booking(
             "status": "booking_requested",
             "requested_at": requested_text,
             "updated_at": requested_text,
+            "accepted_at": None,
+            "rejected_at": None,
             "completed_at": None,
             "cancelled_at": None,
             "rating": None,
@@ -108,6 +116,7 @@ async def reject_duplicate_transition(
 
 async def reject_closed_booking(repository: InteractionRepository, source: dict) -> None:
     for interaction_type in (
+        InteractionType.BOOKING_REJECTED,
         InteractionType.BOOKING_COMPLETED,
         InteractionType.BOOKING_CANCELLED,
     ):
@@ -118,6 +127,56 @@ async def reject_closed_booking(repository: InteractionRepository, source: dict)
                 status_code=status.HTTP_409_CONFLICT,
                 detail="Booking has already been closed",
             )
+
+
+async def reject_responded_booking(repository: InteractionRepository, source: dict) -> None:
+    for interaction_type in (
+        InteractionType.BOOKING_ACCEPTED,
+        InteractionType.BOOKING_REJECTED,
+    ):
+        if await repository.has_event(
+            source["user_id"], source["request_id"], source["provider_id"], interaction_type
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Booking has already been accepted or rejected",
+            )
+
+
+async def require_accepted_booking(repository: InteractionRepository, source: dict) -> None:
+    if not await repository.has_event(
+        source["user_id"],
+        source["request_id"],
+        source["provider_id"],
+        InteractionType.BOOKING_ACCEPTED,
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Accept the booking before completing or cancelling it",
+        )
+
+
+async def transition_firebase_booking(
+    firebase: FirebaseRtdbClient,
+    firebase_uid: str,
+    booking_id: str,
+    expected_statuses: set[str],
+    updates: dict,
+) -> None:
+    try:
+        await firebase.transition_customer_booking(
+            firebase_uid, booking_id, expected_statuses, updates
+        )
+    except FirebaseRequestConflictError as error:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Booking status changed; refresh and try again",
+        ) from error
+    except FirebaseComponent2Error as error:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Firebase booking history is unavailable",
+        ) from error
 
 
 async def refresh_provider_statistics(
@@ -195,6 +254,98 @@ async def list_provider_interactions(
     return [InteractionPublic.model_validate(record) for record in records]
 
 
+@router.post("/{interaction_id}/accept", response_model=InteractionPublic)
+async def accept_booking(
+    interaction_id: str,
+    current_user: Annotated[UserPublic, Depends(provider_user)],
+    repository: Annotated[InteractionRepository, Depends(get_interaction_repository)],
+    providers: Annotated[ProviderRepository, Depends(get_provider_repository)],
+    users: Annotated[UserRepository, Depends(get_user_repository)],
+    firebase: Annotated[FirebaseRtdbClient, Depends(get_firebase_rtdb_client)],
+) -> InteractionPublic:
+    provider = await providers.find_by_user_id(current_user.user_id)
+    source = await repository.find_by_id(interaction_id)
+    if (
+        provider is None
+        or source is None
+        or source["provider_id"] != provider["provider_id"]
+        or source["interaction_type"] != InteractionType.BOOKING_REQUESTED.value
+    ):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Booking not found")
+    await reject_closed_booking(repository, source)
+    await reject_responded_booking(repository, source)
+    firebase_uid = await firebase_uid_for_user(users, source["user_id"])
+    try:
+        await ensure_firebase_booking(firebase, firebase_uid, source["interaction_id"], source)
+    except FirebaseComponent2Error as error:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Firebase booking history is unavailable",
+        ) from error
+    document = next_interaction(source, InteractionType.BOOKING_ACCEPTED)
+    responded_at = document["timestamp"].isoformat()
+    await transition_firebase_booking(
+        firebase,
+        firebase_uid,
+        source["interaction_id"],
+        {InteractionType.BOOKING_REQUESTED.value},
+        {
+            "status": InteractionType.BOOKING_ACCEPTED.value,
+            "accepted_at": responded_at,
+            "rejected_at": None,
+            "updated_at": responded_at,
+        },
+    )
+    await repository.create(document)
+    return InteractionPublic.model_validate(document)
+
+
+@router.post("/{interaction_id}/reject", response_model=InteractionPublic)
+async def reject_booking(
+    interaction_id: str,
+    current_user: Annotated[UserPublic, Depends(provider_user)],
+    repository: Annotated[InteractionRepository, Depends(get_interaction_repository)],
+    providers: Annotated[ProviderRepository, Depends(get_provider_repository)],
+    users: Annotated[UserRepository, Depends(get_user_repository)],
+    firebase: Annotated[FirebaseRtdbClient, Depends(get_firebase_rtdb_client)],
+) -> InteractionPublic:
+    provider = await providers.find_by_user_id(current_user.user_id)
+    source = await repository.find_by_id(interaction_id)
+    if (
+        provider is None
+        or source is None
+        or source["provider_id"] != provider["provider_id"]
+        or source["interaction_type"] != InteractionType.BOOKING_REQUESTED.value
+    ):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Booking not found")
+    await reject_closed_booking(repository, source)
+    await reject_responded_booking(repository, source)
+    firebase_uid = await firebase_uid_for_user(users, source["user_id"])
+    try:
+        await ensure_firebase_booking(firebase, firebase_uid, source["interaction_id"], source)
+    except FirebaseComponent2Error as error:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Firebase booking history is unavailable",
+        ) from error
+    document = next_interaction(source, InteractionType.BOOKING_REJECTED)
+    responded_at = document["timestamp"].isoformat()
+    await transition_firebase_booking(
+        firebase,
+        firebase_uid,
+        source["interaction_id"],
+        {InteractionType.BOOKING_REQUESTED.value},
+        {
+            "status": InteractionType.BOOKING_REJECTED.value,
+            "accepted_at": None,
+            "rejected_at": responded_at,
+            "updated_at": responded_at,
+        },
+    )
+    await repository.create(document)
+    return InteractionPublic.model_validate(document)
+
+
 @router.post("/{interaction_id}/complete", response_model=InteractionPublic)
 async def complete_booking(
     interaction_id: str,
@@ -214,24 +365,27 @@ async def complete_booking(
     ):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Booking not found")
     await reject_closed_booking(repository, source)
+    await require_accepted_booking(repository, source)
     firebase_uid = await firebase_uid_for_user(users, source["user_id"])
     try:
         await ensure_firebase_booking(firebase, firebase_uid, source["interaction_id"], source)
-        now = utc_now()
-        await firebase.update_customer_booking(
-            firebase_uid,
-            source["interaction_id"],
-            {
-                "status": "booking_completed",
-                "completed_at": now.isoformat(),
-                "updated_at": now.isoformat(),
-            },
-        )
     except FirebaseComponent2Error as error:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Firebase booking history is unavailable",
         ) from error
+    now = utc_now()
+    await transition_firebase_booking(
+        firebase,
+        firebase_uid,
+        source["interaction_id"],
+        {InteractionType.BOOKING_ACCEPTED.value},
+        {
+            "status": InteractionType.BOOKING_COMPLETED.value,
+            "completed_at": now.isoformat(),
+            "updated_at": now.isoformat(),
+        },
+    )
     document = next_interaction(source, InteractionType.BOOKING_COMPLETED)
     await repository.create(document)
     await refresh_provider_statistics(repository, providers, source["provider_id"])
@@ -257,24 +411,27 @@ async def cancel_booking(
     ):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Booking not found")
     await reject_closed_booking(repository, source)
+    await require_accepted_booking(repository, source)
     firebase_uid = await firebase_uid_for_user(users, source["user_id"])
     try:
         await ensure_firebase_booking(firebase, firebase_uid, source["interaction_id"], source)
-        now = utc_now()
-        await firebase.update_customer_booking(
-            firebase_uid,
-            source["interaction_id"],
-            {
-                "status": "booking_cancelled",
-                "cancelled_at": now.isoformat(),
-                "updated_at": now.isoformat(),
-            },
-        )
     except FirebaseComponent2Error as error:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Firebase booking history is unavailable",
         ) from error
+    now = utc_now()
+    await transition_firebase_booking(
+        firebase,
+        firebase_uid,
+        source["interaction_id"],
+        {InteractionType.BOOKING_ACCEPTED.value},
+        {
+            "status": InteractionType.BOOKING_CANCELLED.value,
+            "cancelled_at": now.isoformat(),
+            "updated_at": now.isoformat(),
+        },
+    )
     document = next_interaction(source, InteractionType.BOOKING_CANCELLED)
     await repository.create(document)
     await refresh_provider_statistics(repository, providers, source["provider_id"])

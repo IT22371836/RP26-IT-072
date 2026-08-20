@@ -38,6 +38,8 @@ class InteractionRepository:
     async def list_for_provider(self, provider_id: str, limit: int = 100) -> list[dict[str, Any]]:
         allowed = {
             InteractionType.BOOKING_REQUESTED.value,
+            InteractionType.BOOKING_ACCEPTED.value,
+            InteractionType.BOOKING_REJECTED.value,
             InteractionType.BOOKING_COMPLETED.value,
             InteractionType.BOOKING_CANCELLED.value,
             InteractionType.RATED.value,
@@ -57,6 +59,19 @@ class InteractionRepository:
     async def list_reviews_for_provider(
         self, provider_id: str, limit: int = 50
     ) -> list[dict[str, Any]]:
+        direct = await self.store.get(f"providers/{provider_id}/reviews")
+        if isinstance(direct, dict) and direct:
+            normalized = {
+                key: {
+                    "rating": item.get("rating"),
+                    "review_text": item.get("review_text"),
+                    "timestamp": item.get("reviewed_at") or item.get("timestamp"),
+                }
+                for key, item in direct.items()
+                if isinstance(item, dict)
+                and isinstance(item.get("rating"), (int, float))
+            }
+            return sorted_records(normalized, field="timestamp", limit=limit)
         values = await self._all()
         selected = {
             key: {field: item.get(field) for field in ("rating", "review_text", "timestamp")}
@@ -65,6 +80,12 @@ class InteractionRepository:
             and item.get("interaction_type") == InteractionType.RATED.value
         }
         return sorted_records(selected, field="timestamp", limit=limit)
+
+    async def list_research_reviews_for_provider(
+        self, provider_id: str, limit: int = 50
+    ) -> list[dict[str, Any]]:
+        value = await self.store.get(f"research_provider_reviews/{provider_id}/reviews")
+        return sorted_records(value, field="reviewed_at", limit=limit)
 
     async def find_by_id(self, interaction_id: str) -> dict[str, Any] | None:
         value = await self.store.get(f"{self.PATH}/{interaction_id}")

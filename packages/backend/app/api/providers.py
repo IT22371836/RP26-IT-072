@@ -13,7 +13,10 @@ from app.components.component1.service import (
     HybridRecommendationEngine,
     get_recommendation_engine,
 )
-from app.components.component4.provider_trust import ProviderTrustProfileService
+from app.components.component4.provider_trust import (
+    ProviderTrustProfileService,
+    provider_review_feed,
+)
 from app.components.component4.service import (
     ArtifactsUnavailableError,
     ArtifactValidationError,
@@ -29,6 +32,7 @@ from app.schemas.auth import UserPublic
 from app.schemas.common import UserRole, new_public_id, utc_now
 from app.schemas.provider import (
     ProviderCreate,
+    ProviderCustomerReview,
     ProviderDocumentCategory,
     ProviderDocumentCreate,
     ProviderDocumentItem,
@@ -447,6 +451,27 @@ async def get_provider_trust_profile(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Component 4 review evidence is unavailable",
         ) from error
+
+
+@router.get("/{provider_id}/reviews", response_model=list[ProviderCustomerReview])
+async def get_provider_reviews(
+    provider_id: str,
+    providers: Annotated[ProviderRepository, Depends(get_provider_repository)],
+    interactions: Annotated[
+        InteractionRepository,
+        Depends(get_interaction_repository),
+    ],
+) -> list[ProviderCustomerReview]:
+    if await providers.find_by_id(provider_id) is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Provider not found")
+    try:
+        reviews = await provider_review_feed(interactions, provider_id, limit=20)
+    except OSError as error:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Component 4 review evidence is unavailable",
+        ) from error
+    return [ProviderCustomerReview.model_validate(review) for review in reviews]
 
 
 @router.get("/{provider_id}", response_model=ProviderPublic)

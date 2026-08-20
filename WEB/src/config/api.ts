@@ -152,6 +152,37 @@ export interface PipelineProviderDto {
   ranking_decision?: 'selected' | 'outside_top5';
 }
 
+export interface ProviderPublicDto {
+  provider_id: string;
+  user_id: string;
+  provider_name: string;
+  category: string;
+  district: string;
+  city: string;
+  experience_years: number;
+  skills: string[];
+  description: string;
+  rating: number;
+  review_count: number;
+  booking_success_rate: number;
+  interaction_count: number;
+  provider_image: string | null;
+  preferred_language: string;
+  working_hours: ProviderWorkingHoursDto | null;
+  verified: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProviderReviewDto {
+  rating: number;
+  review_text: string | null;
+  reviewed_at: string;
+  verified_booking: boolean;
+  source: 'platform' | 'research_dataset';
+  credibility_score: number | null;
+}
+
 export interface Component2EvaluatedProviderDto {
   provider_id: string;
   provider_name?: string;
@@ -260,6 +291,17 @@ export interface InteractionDto {
   rating: number | null;
   review_text: string | null;
   timestamp: string;
+  booking_interaction_id?: string | null;
+  pipeline_run_id?: string | null;
+  request_details?: {
+    request_text?: string;
+    district?: string;
+    city?: string;
+    urgency?: string;
+    service_date?: string;
+    service_time?: { start_time?: string; end_time?: string };
+    location_type?: string;
+  } | null;
 }
 
 export class ApiError extends Error {
@@ -361,6 +403,14 @@ export const backendApi = {
 
   getProviderProfile(token: string): Promise<ProviderPrivateDto> {
     return request<ProviderPrivateDto>('/providers/me', {}, token);
+  },
+
+  getPublicProviderProfile(token: string, providerId: string): Promise<ProviderPublicDto> {
+    return request<ProviderPublicDto>(`/providers/${encodeURIComponent(providerId)}`, {}, token);
+  },
+
+  getProviderReviews(token: string, providerId: string): Promise<ProviderReviewDto[]> {
+    return request<ProviderReviewDto[]>(`/providers/${encodeURIComponent(providerId)}/reviews`, {}, token);
   },
 
   updateProviderProfile(
@@ -497,6 +547,14 @@ export const backendApi = {
 
   listProviderInteractions(token: string): Promise<InteractionDto[]> {
     return request<InteractionDto[]>('/interactions/provider/me?limit=500', {}, token);
+  },
+
+  acceptBooking(token: string, interactionId: string): Promise<InteractionDto> {
+    return request<InteractionDto>(`/interactions/${encodeURIComponent(interactionId)}/accept`, { method: 'POST' }, token);
+  },
+
+  rejectBooking(token: string, interactionId: string): Promise<InteractionDto> {
+    return request<InteractionDto>(`/interactions/${encodeURIComponent(interactionId)}/reject`, { method: 'POST' }, token);
   },
 
   completeBooking(token: string, interactionId: string): Promise<InteractionDto> {

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import csv
 from collections import defaultdict
 from datetime import UTC, datetime
@@ -120,6 +121,61 @@ def get_research_review_index() -> ResearchReviewIndex:
     return index
 
 
+async def provider_review_feed(
+    interactions: InteractionRepository,
+    provider_id: str,
+    research_reviews: ResearchReviewIndex | None = None,
+    limit: int = 10,
+) -> list[dict[str, Any]]:
+    research_loader = getattr(interactions, "list_research_reviews_for_provider", None)
+    platform_records, stored_research_reviews = await asyncio.gather(
+        interactions.list_reviews_for_provider(provider_id, limit=50),
+        (
+            research_loader(provider_id, limit=50)
+            if research_loader is not None
+            else _empty_reviews()
+        ),
+    )
+    platform_reviews = [
+        {
+            "rating": int(review["rating"]),
+            "review_text": review.get("review_text"),
+            "reviewed_at": _utc_datetime(review["timestamp"]),
+            "verified_booking": True,
+            "source": "platform",
+            "credibility_score": None,
+        }
+        for review in platform_records
+    ]
+    if stored_research_reviews:
+        research_feed = [
+            {
+                "rating": int(review["rating"]),
+                "review_text": review.get("review_text"),
+                "reviewed_at": _utc_datetime(review["reviewed_at"]),
+                "verified_booking": bool(review.get("verified_booking")),
+                "source": "research_dataset",
+                "credibility_score": float(review["credibility_score"]),
+            }
+            for review in stored_research_reviews
+            if review.get("usable_for_ranking") is True
+            and isinstance(review.get("rating"), int)
+            and isinstance(review.get("credibility_score"), (int, float))
+        ]
+    else:
+        index = research_reviews or get_research_review_index()
+        research_feed = index.for_provider(provider_id, limit=20)
+    return sorted(
+        [*platform_reviews, *research_feed],
+        key=lambda review: review["reviewed_at"],
+        reverse=True,
+    )[:limit]
+
+
+async def _empty_reviews() -> list[dict[str, Any]]:
+    return []
+
+
 class ProviderTrustProfileService:
     def __init__(
         self,
@@ -150,26 +206,11 @@ class ProviderTrustProfileService:
             raise UnknownProviderError([provider_id])
 
         trust = self.component4.provider_trust_snapshot(provider_id, live_provider)
-        platform_reviews = [
-            {
-                "rating": int(review["rating"]),
-                "review_text": review.get("review_text"),
-                "reviewed_at": _utc_datetime(review["timestamp"]),
-                "verified_booking": True,
-                "source": "platform",
-                "credibility_score": None,
-            }
-            for review in await self.interactions.list_reviews_for_provider(
-                provider_id,
-                limit=50,
-            )
-        ]
-        research_reviews = self.research_reviews.for_provider(provider_id, limit=20)
-        reviews = sorted(
-            [*platform_reviews, *research_reviews],
-            key=lambda review: review["reviewed_at"],
-            reverse=True,
-        )[:10]
+        reviews = await provider_review_feed(
+            self.interactions,
+            provider_id,
+            self.research_reviews,
+        )
         raw_skills = provider.get("skills", [])
         skills = (
             [skill.strip() for skill in raw_skills.split(",") if skill.strip()]

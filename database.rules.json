@@ -50,6 +50,9 @@
       ".write": false
     },
     "component1": {
+      "interactions": {
+        ".indexOn": ["user_id", "provider_id", "interaction_type", "request_id"]
+      },
       ".read": false,
       ".write": false
     },

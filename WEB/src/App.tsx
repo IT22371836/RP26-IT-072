@@ -15,6 +15,7 @@ export function AppContent() {
   const [activeTab, setActiveTab] = useState<'customer' | 'provider' | 'login' | 'dashboard'>('login');
   const [currentUser, setCurrentUser] = useState<any | null>(null);
   const [loginNotice, setLoginNotice] = useState('');
+  const [authResolved, setAuthResolved] = useState(false);
 
   // Firebase Auth is the only session authority. localStorage holds profile UI data only.
   useEffect(() => {
@@ -27,6 +28,7 @@ export function AppContent() {
         setCurrentUser(null);
         setActiveTab('login');
       }
+      setAuthResolved(true);
     });
 
     return () => unsubscribe();
@@ -64,6 +66,14 @@ export function AppContent() {
       setActiveTab('login');
     }
   };
+
+  if (!authResolved) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center' }}>
+        <p style={{ color: 'var(--text-muted)' }}>Restoring your session…</p>
+      </div>
+    );
+  }
 
   return (
     <div style={{ minHeight: '100vh', paddingBottom: '60px' }}>

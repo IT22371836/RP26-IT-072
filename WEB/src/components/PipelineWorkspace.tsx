@@ -1,14 +1,21 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Activity, AlertTriangle, CheckCircle, Clock, Cpu, Filter, RefreshCw, Search, ShieldCheck, Star, UserRound, X } from 'lucide-react';
 import { backendApi } from '../config/api';
 import type { Component2EvaluatedProviderDto, InteractionDto, PipelineCreateDto, PipelineProviderDto, PipelineRunDto, ProviderPublicDto, ProviderReviewDto } from '../config/api';
 import { requireFirebaseApiToken } from '../config/firebaseApiToken';
-import type { Customer } from '../config/firebase';
+import { subscribeCurrentCustomerBookings } from '../config/firebase';
+import type { Customer, CustomerBookingStatus } from '../config/firebase';
 import { SERVICE_CATEGORIES } from '../data/categories';
 import { SRI_LANKA_DISTRICTS } from '../data/sriLankaData';
 
 const ACTIVE = new Set(['initializing', 'created', 'component1_running', 'component1_completed', 'component2_running', 'component2_completed', 'component4_running', 'retry_pending']);
+// Firebase onValue is the primary customer update path. This slower API poll is
+// only reconciliation for a temporarily disconnected realtime listener.
+const BOOKING_REFRESH_MS = 15000;
 const STORAGE_KEY = 'weda_active_pipeline_run';
+const HISTORY_CACHE_KEY = 'weda_pipeline_history_cache';
+const INTERACTIONS_CACHE_KEY = 'weda_interactions_cache';
+const PROVIDER_PROFILE_CACHE_KEY = 'weda_provider_profile_cache';
 
 function isoDate(offset = 0): string {
   const value = new Date();
@@ -306,9 +313,11 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
   const [run, setRun] = useState<PipelineRunDto | null>(null);
   const [history, setHistory] = useState<PipelineRunDto[]>([]);
   const [interactions, setInteractions] = useState<InteractionDto[]>([]);
+  const [liveBookingStatuses, setLiveBookingStatuses] = useState<Record<string, CustomerBookingStatus>>({});
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [review, setReview] = useState<Record<string, { rating: number; text: string }>>({});
+  const [ratingFeedback, setRatingFeedback] = useState<Record<string, string>>({});
   const [providerProfile, setProviderProfile] = useState<ProviderPublicDto | null>(null);
   const [providerReviews, setProviderReviews] = useState<ProviderReviewDto[]>([]);
   const [profileLoadingId, setProfileLoadingId] = useState('');
@@ -323,28 +332,65 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
   const activeRunId = run?.run_id;
   const activeRunStatus = run?.status;
   const activeRunStorageKey = `${STORAGE_KEY}:${currentUser.id}`;
+  const historyCacheKey = `${HISTORY_CACHE_KEY}:${currentUser.id}`;
+  const interactionsCacheKey = `${INTERACTIONS_CACHE_KEY}:${currentUser.id}`;
 
-  const reloadHistory = async () => {
+  const reloadHistory = useCallback(async () => {
     const token = await requireFirebaseApiToken();
-    const [runs, events] = await Promise.all([
-      backendApi.listPipelines(token), backendApi.listCustomerInteractions(token)
-    ]);
-    setHistory(runs); setInteractions(events);
-  };
+    // Update each section as soon as its own request completes. Pipeline history
+    // can be slower than booking interactions and must not hold their UI back.
+    const runsRequest = backendApi.listPipelines(token).then(runs => {
+      setHistory(runs);
+      sessionStorage.setItem(historyCacheKey, JSON.stringify(runs));
+    });
+    const eventsRequest = backendApi.listCustomerInteractions(token).then(events => {
+      setInteractions(events);
+      sessionStorage.setItem(interactionsCacheKey, JSON.stringify(events));
+    });
+    await Promise.all([runsRequest, eventsRequest]);
+  }, [historyCacheKey, interactionsCacheKey]);
 
-  const reloadInteractions = async () => {
+  const reloadInteractions = useCallback(async () => {
     const token = await requireFirebaseApiToken();
-    setInteractions(await backendApi.listCustomerInteractions(token));
-  };
+    const events = await backendApi.listCustomerInteractions(token);
+    setInteractions(events);
+    sessionStorage.setItem(interactionsCacheKey, JSON.stringify(events));
+  }, [interactionsCacheKey]);
 
   useEffect(() => {
+    try {
+      const cachedHistory = sessionStorage.getItem(historyCacheKey);
+      const cachedInteractions = sessionStorage.getItem(interactionsCacheKey);
+      if (cachedHistory) setHistory(JSON.parse(cachedHistory));
+      if (cachedInteractions) setInteractions(JSON.parse(cachedInteractions));
+    } catch {
+      sessionStorage.removeItem(historyCacheKey);
+      sessionStorage.removeItem(interactionsCacheKey);
+    }
     reloadHistory().catch(err => setError(err.message));
     const runId = localStorage.getItem(activeRunStorageKey);
     if (runId) requireFirebaseApiToken()
       .then(token => backendApi.getPipeline(token, runId))
       .then(setRun)
       .catch(() => localStorage.removeItem(activeRunStorageKey));
-  }, [activeRunStorageKey]);
+  }, [activeRunStorageKey, historyCacheKey, interactionsCacheKey, reloadHistory]);
+
+  useEffect(() => {
+    let stopped = false;
+    let unsubscribe: (() => void) | undefined;
+    subscribeCurrentCustomerBookings(bookings => {
+      if (!stopped) setLiveBookingStatuses(bookings);
+    }).then(stop => {
+      if (stopped) stop();
+      else unsubscribe = stop;
+    }).catch(err => {
+      if (!stopped) setError(err.message);
+    });
+    return () => {
+      stopped = true;
+      unsubscribe?.();
+    };
+  }, [currentUser.id]);
 
   useEffect(() => {
     if (!activeRunId || !activeRunStatus || !ACTIVE.has(activeRunStatus)) return;
@@ -360,14 +406,26 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
     };
     const timer = window.setTimeout(poll, 2000);
     return () => { stopped = true; window.clearTimeout(timer); };
-  }, [activeRunId, activeRunStatus, activeRunStorageKey]);
+  }, [activeRunId, activeRunStatus, activeRunStorageKey, reloadHistory]);
 
   useEffect(() => {
-    const timer = window.setInterval(() => {
-      void reloadInteractions().catch(() => undefined);
-    }, 5000);
-    return () => window.clearInterval(timer);
-  }, []);
+    let stopped = false;
+    let timer: number | undefined;
+    const refresh = async () => {
+      try {
+        await reloadInteractions();
+      } catch {
+        // Keep the last known status and retry; transient Firebase/API failures
+        // should not erase a booking that is already displayed.
+      }
+      if (!stopped) timer = window.setTimeout(refresh, BOOKING_REFRESH_MS);
+    };
+    timer = window.setTimeout(refresh, BOOKING_REFRESH_MS);
+    return () => {
+      stopped = true;
+      if (timer !== undefined) window.clearTimeout(timer);
+    };
+  }, [reloadInteractions]);
 
   const start = async (event: React.FormEvent) => {
     event.preventDefault(); setError('');
@@ -422,16 +480,33 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
     setProfileLoadingId(providerId);
     setProviderReviews([]);
     setProfileReviewError('');
+    const profileCacheKey = `${PROVIDER_PROFILE_CACHE_KEY}:${providerId}`;
+    try {
+      const cached = sessionStorage.getItem(profileCacheKey);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        setProviderProfile(parsed.profile);
+        setProviderReviews(parsed.reviews || []);
+      }
+    } catch {
+      sessionStorage.removeItem(profileCacheKey);
+    }
     try {
       const token = await requireFirebaseApiToken();
       setReviewsLoading(true);
       const reviewsPromise = backendApi.getProviderReviews(token, providerId)
         .then(reviews => ({ reviews, error: '' }))
         .catch((reviewError: any) => ({ reviews: [] as ProviderReviewDto[], error: reviewError.message }));
-      setProviderProfile(await backendApi.getPublicProviderProfile(token, providerId));
-      const reviewResult = await reviewsPromise;
+      const [profile, reviewResult] = await Promise.all([
+        backendApi.getPublicProviderProfile(token, providerId),
+        reviewsPromise
+      ]);
+      setProviderProfile(profile);
       setProviderReviews(reviewResult.reviews);
       setProfileReviewError(reviewResult.error);
+      if (!reviewResult.error) {
+        sessionStorage.setItem(profileCacheKey, JSON.stringify({ profile, reviews: reviewResult.reviews }));
+      }
       setReviewsLoading(false);
     } catch (err: any) {
       setError(err.message);
@@ -448,8 +523,57 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
     setReviewsLoading(false);
   };
 
+  const submitRating = async (
+    item: InteractionDto,
+    value: { rating: number; text: string }
+  ) => {
+    const bookingKey = `${item.request_id}:${item.provider_id}`;
+    const optimisticId = `optimistic-rating:${item.interaction_id}`;
+    const optimisticRating: InteractionDto = {
+      ...item,
+      interaction_id: optimisticId,
+      interaction_type: 'rated',
+      rating: value.rating,
+      review_text: value.text.trim() || null,
+      booking_interaction_id: item.booking_interaction_id || item.interaction_id,
+      timestamp: new Date().toISOString()
+    };
+
+    setInteractions(current => [optimisticRating, ...current]);
+    setRatingFeedback(current => ({ ...current, [bookingKey]: 'Rating submitted successfully.' }));
+
+    try {
+      const confirmed = await backendApi.rateBooking(
+        await requireFirebaseApiToken(),
+        item.interaction_id,
+        value.rating,
+        value.text
+      );
+      setInteractions(current => [
+        confirmed,
+        ...current.filter(event =>
+          event.interaction_id !== optimisticId
+          && event.interaction_id !== confirmed.interaction_id
+        )
+      ]);
+      void reloadHistory().catch(() => undefined);
+    } catch (err: any) {
+      setInteractions(current => current.filter(event => event.interaction_id !== optimisticId));
+      setRatingFeedback(current => ({ ...current, [bookingKey]: '' }));
+      setError(`Rating submission failed: ${err.message}`);
+    }
+  };
+
   const completed = interactions.filter(item => item.interaction_type === 'booking_completed');
   const ratedKeys = new Set(interactions.filter(item => item.interaction_type === 'rated').map(item => `${item.request_id}:${item.provider_id}`));
+  const ratingByBookingKey = new Map<string, InteractionDto>();
+  interactions.filter(item => item.interaction_type === 'rated').forEach(item => {
+    const key = `${item.request_id}:${item.provider_id}`;
+    const current = ratingByBookingKey.get(key);
+    if (!current || new Date(item.timestamp).getTime() > new Date(current.timestamp).getTime()) {
+      ratingByBookingKey.set(key, item);
+    }
+  });
   const bookingTypes = new Set(['booking_requested', 'booking_accepted', 'booking_rejected', 'booking_completed', 'booking_cancelled']);
   const latestBookingByKey = new Map<string, InteractionDto>();
   interactions.filter(item => bookingTypes.has(item.interaction_type)).forEach(item => {
@@ -459,13 +583,46 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
       latestBookingByKey.set(key, item);
     }
   });
-  const bookings = interactions
+  const interactionBookings = interactions
     .filter(item => item.interaction_type === 'booking_requested')
-    .map(request => latestBookingByKey.get(`${request.request_id}:${request.provider_id}`) ?? request)
+    .map(request => {
+      const latest = latestBookingByKey.get(`${request.request_id}:${request.provider_id}`) ?? request;
+      const live = liveBookingStatuses[request.interaction_id]
+        ?? Object.values(liveBookingStatuses).find(item =>
+          item.request_id === request.request_id && item.provider_id === request.provider_id
+        );
+      if (!live || live.status === latest.interaction_type) return latest;
+      return {
+        ...latest,
+        interaction_type: live.status,
+        timestamp: live.updated_at || latest.timestamp
+      };
+    });
+  const interactionBookingIds = new Set(
+    interactions
+      .filter(item => item.interaction_type === 'booking_requested')
+      .map(item => item.interaction_id)
+  );
+  const liveOnlyBookings: InteractionDto[] = Object.values(liveBookingStatuses)
+    .filter(item => !interactionBookingIds.has(item.booking_id))
+    .map(item => ({
+      interaction_id: item.booking_id,
+      request_id: item.request_id,
+      user_id: currentUser.id || '',
+      provider_id: item.provider_id,
+      provider_name: item.provider_name || null,
+      category: item.category || 'Service booking',
+      interaction_type: item.status,
+      rating: null,
+      review_text: null,
+      timestamp: item.updated_at || item.requested_at || new Date(0).toISOString(),
+      booking_interaction_id: item.booking_id
+    }));
+  const bookings = [...interactionBookings, ...liveOnlyBookings]
     .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
   return <section className="glass-panel" style={{ padding: 24, marginBottom: 32, borderLeft: '6px solid #0ea5e9' }}>
-    <h2 style={{ marginTop: 0 }}><Search size={21} /> Request a service: Component 1 → 2 → 4</h2>
+    <h2 style={{ marginTop: 0 }}><Search size={21} /> Request a service</h2>
     {error && <div style={{ padding: 12, background: '#fee2e2', color: '#991b1b', borderRadius: 8, marginBottom: 14 }}>{error}</div>}
     <form onSubmit={start} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(190px,1fr))', gap: 12 }}>
       <textarea required minLength={10} placeholder="Describe the maintenance problem" value={form.request_text} onChange={e => setForm({ ...form, request_text: e.target.value })} style={{ gridColumn: '1/-1', minHeight: 80 }} />
@@ -532,24 +689,51 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
     </div>}
 
     <details style={{ marginTop: 24 }} open><summary><strong>Bookings and ratings</strong></summary>
-      {bookings.length === 0 ? <p>No pipeline bookings yet.</p> : bookings.map(item => <div key={`${item.request_id}:${item.provider_id}`} style={{ padding: 10, borderBottom: '1px solid #e2e8f0' }}>
+      {bookings.length === 0 ? <p>No pipeline bookings yet.</p> : bookings.map(item => {
+        const submittedRating = ratingByBookingKey.get(`${item.request_id}:${item.provider_id}`);
+        return <div key={`${item.request_id}:${item.provider_id}`} style={{ padding: 12, borderBottom: '1px solid #e2e8f0' }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8 }}>
           <strong>{item.provider_name || item.provider_id}</strong>
           <code style={{ padding: '2px 8px', borderRadius: 999, background: '#e2e8f0', color: '#0f172a', fontWeight: 700 }}>Provider ID: {item.provider_id}</code>
           <span>· {item.interaction_type === 'booking_requested' ? 'waiting for provider response' : item.interaction_type.replaceAll('_', ' ')}</span>
         </div>
         <small style={{ display: 'block', color: '#64748b', marginTop: 3 }}>Request {item.request_id} · updated {new Date(item.timestamp).toLocaleString()}</small>
-      </div>)}
+        {submittedRating && <div style={{ marginTop: 10, padding: '10px 12px', borderRadius: 8, background: 'rgba(245,158,11,.10)', border: '1px solid rgba(245,158,11,.25)' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8 }}>
+            <strong style={{ color: '#b45309' }} aria-label={`${submittedRating.rating} out of 5 stars`}>
+              {'★'.repeat(submittedRating.rating || 0)}{'☆'.repeat(5 - (submittedRating.rating || 0))}
+            </strong>
+            <strong>{submittedRating.rating}/5</strong>
+            <small style={{ color: 'var(--text-muted)' }}>Reviewed {new Date(submittedRating.timestamp).toLocaleString()}</small>
+          </div>
+          <p style={{ margin: '6px 0 0' }}>{submittedRating.review_text || 'Rating submitted without a written review.'}</p>
+        </div>}
+        {ratingFeedback[`${item.request_id}:${item.provider_id}`] && <p role="status" style={{ margin: '8px 0 0', color: '#166534', fontWeight: 700 }}>
+          <CheckCircle size={15} /> {ratingFeedback[`${item.request_id}:${item.provider_id}`]}
+        </p>}
+      </div>})}
       {completed.filter(item => !ratedKeys.has(`${item.request_id}:${item.provider_id}`)).map(item => {
         const value = review[item.interaction_id] || { rating: 5, text: '' };
-        return <div key={item.interaction_id} style={{ padding: 10 }}>
+        return <div key={item.interaction_id} style={{ padding: 16, marginTop: 10, border: '1px solid var(--input-border)', borderRadius: 10, background: 'var(--bg-card)' }}>
           <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8, marginBottom: 8 }}>
             <Star size={16} /> <strong>Rate {item.provider_name || item.provider_id}</strong>
             <code style={{ padding: '2px 8px', borderRadius: 999, background: '#e2e8f0', color: '#0f172a', fontWeight: 700 }}>Provider ID: {item.provider_id}</code>
           </div>
-          <select value={value.rating} onChange={e => setReview({ ...review, [item.interaction_id]: { ...value, rating: Number(e.target.value) } })}>{[5,4,3,2,1].map(n => <option key={n} value={n}>{n}</option>)}</select>
-          <input placeholder="Review" value={value.text} onChange={e => setReview({ ...review, [item.interaction_id]: { ...value, text: e.target.value } })} />
-          <button onClick={async () => { await backendApi.rateBooking(await requireFirebaseApiToken(), item.interaction_id, value.rating, value.text); await reloadHistory(); }}>Submit rating</button>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12, alignItems: 'end', marginTop: 14 }}>
+            <label className="form-group" style={{ marginBottom: 0 }}>
+              <span className="form-label">Rating</span>
+              <select className="form-control" value={value.rating} onChange={e => setReview({ ...review, [item.interaction_id]: { ...value, rating: Number(e.target.value) } })}>
+                {[5,4,3,2,1].map(n => <option key={n} value={n}>{n} star{n === 1 ? '' : 's'}</option>)}
+              </select>
+            </label>
+            <label className="form-group" style={{ marginBottom: 0 }}>
+              <span className="form-label">Your review</span>
+              <input className="form-control" placeholder="Write a short review" value={value.text} onChange={e => setReview({ ...review, [item.interaction_id]: { ...value, text: e.target.value } })} />
+            </label>
+            <button className="btn btn-primary" style={{ minHeight: 46 }} onClick={() => void submitRating(item, value)}>
+              <Star size={16} /> Submit rating
+            </button>
+          </div>
         </div>;
       })}
     </details>
@@ -571,28 +755,33 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
       onClick={closeProviderProfile}
       style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(15,23,42,.72)', display: 'grid', placeItems: 'center', padding: 20 }}
     >
-      <article onClick={event => event.stopPropagation()} className="glass-panel" style={{ width: 'min(680px, 96vw)', maxHeight: '88vh', overflowY: 'auto', padding: 24, position: 'relative' }}>
+      <article onClick={event => event.stopPropagation()} className="glass-panel" style={{ width: 'min(760px, 96vw)', maxHeight: '90vh', overflowY: 'auto', padding: 0, position: 'relative' }}>
         <button aria-label="Close provider profile" className="btn btn-outline" onClick={closeProviderProfile} style={{ position: 'absolute', top: 14, right: 14, padding: 8 }}><X size={18} /></button>
-        <div style={{ display: 'flex', gap: 16, alignItems: 'center', paddingRight: 52 }}>
-          {providerProfile.provider_image && /^(https?:\/\/|data:image\/)/i.test(providerProfile.provider_image)
-            ? <img src={providerProfile.provider_image} alt="" style={{ width: 76, height: 76, objectFit: 'cover', borderRadius: '50%' }} />
-            : <div style={{ width: 76, height: 76, borderRadius: '50%', background: '#dcfce7', display: 'grid', placeItems: 'center' }}><UserRound size={34} /></div>}
-          <div>
-            <h3 style={{ margin: 0 }}>{providerProfile.provider_name}</h3>
-            <code>Provider ID: {providerProfile.provider_id}</code>
-            <p style={{ margin: '5px 0' }}>{providerProfile.category} · {providerProfile.city}, {providerProfile.district}</p>
-            <strong>{providerProfile.verified ? '✓ Verified provider' : 'Verification pending'}</strong>
+        <header style={{ display: 'flex', gap: 16, alignItems: 'center', padding: '24px 70px 20px 24px', background: 'rgba(34,197,94,.08)', borderBottom: '1px solid var(--input-border)' }}>
+          <div style={{ width: 76, height: 76, flexShrink: 0, borderRadius: '50%', background: '#dcfce7', display: 'grid', placeItems: 'center', overflow: 'hidden', border: '3px solid rgba(34,197,94,.35)' }}>
+            <UserRound size={34} color="#166534" style={{ gridArea: '1 / 1' }} />
+            {providerProfile.provider_image && /^(https?:\/\/|data:image\/)/i.test(providerProfile.provider_image) && <img src={providerProfile.provider_image} alt={`${providerProfile.provider_name} profile`} onError={event => { event.currentTarget.style.display = 'none'; }} style={{ width: '100%', height: '100%', objectFit: 'cover', gridArea: '1 / 1' }} />}
           </div>
+          <div>
+            <h2 style={{ margin: '0 0 5px' }}>{providerProfile.provider_name}</h2>
+            <code style={{ fontSize: '.82rem' }}>Provider ID: {providerProfile.provider_id}</code>
+            <p style={{ margin: '7px 0' }}>{providerProfile.category} · {providerProfile.city}, {providerProfile.district}</p>
+            <span style={{ display: 'inline-block', padding: '4px 10px', borderRadius: 999, background: providerProfile.verified ? '#dcfce7' : '#fef3c7', color: providerProfile.verified ? '#166534' : '#92400e', fontWeight: 700, fontSize: '.82rem' }}>{providerProfile.verified ? '✓ Verified provider' : 'Verification pending'}</span>
+          </div>
+        </header>
+        <div style={{ padding: 24 }}>
+        <p style={{ margin: '0 0 18px', lineHeight: 1.65 }}>{providerProfile.description || 'No provider description is available.'}</p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(140px,1fr))', gap: 10 }}>
+          {[
+            ['Experience', `${providerProfile.experience_years} years`],
+            ['Rating', `${providerProfile.rating.toFixed(1)} / 5`],
+            ['Reviews', `${providerProfile.review_count}`],
+            ['Booking success', `${(providerProfile.booking_success_rate * 100).toFixed(0)}%`]
+          ].map(([label, value]) => <div key={label} style={{ padding: 13, border: '1px solid var(--input-border)', borderRadius: 9, background: 'var(--input-bg)' }}><small style={{ color: 'var(--text-muted)' }}>{label}</small><br/><strong>{value}</strong></div>)}
         </div>
-        <p style={{ marginTop: 18 }}>{providerProfile.description}</p>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 10 }}>
-          <div><strong>Experience</strong><br />{providerProfile.experience_years} years</div>
-          <div><strong>Rating</strong><br />{providerProfile.rating.toFixed(1)} / 5 ({providerProfile.review_count} reviews)</div>
-          <div><strong>Booking success</strong><br />{(providerProfile.booking_success_rate * 100).toFixed(0)}%</div>
-          <div><strong>Preferred language</strong><br />{providerProfile.preferred_language}</div>
-        </div>
-        <div style={{ marginTop: 16 }}><strong>Skills</strong><p>{providerProfile.skills.length ? providerProfile.skills.join(' · ') : 'No skills listed'}</p></div>
-        <div style={{ marginTop: 18 }}>
+        <div style={{ marginTop: 18 }}><strong>Preferred language</strong><p style={{ margin: '5px 0' }}>{providerProfile.preferred_language || 'Not specified'}</p></div>
+        <div style={{ marginTop: 18 }}><strong>Skills</strong><div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginTop: 8 }}>{providerProfile.skills.length ? providerProfile.skills.map(skill => <span key={skill} style={{ padding: '5px 10px', borderRadius: 999, background: 'rgba(14,165,233,.12)', border: '1px solid rgba(14,165,233,.25)' }}>{skill}</span>) : <span>No skills listed</span>}</div></div>
+        <div style={{ marginTop: 22, paddingTop: 18, borderTop: '1px solid var(--input-border)' }}>
           <h4 style={{ marginBottom: 8 }}>Customer ratings and reviews ({providerReviews.length})</h4>
           {reviewsLoading && <p><RefreshCw size={15} /> Loading reviews…</p>}
           {profileReviewError && <p style={{ color: '#991b1b' }}>Reviews could not be loaded: {profileReviewError}</p>}
@@ -610,6 +799,7 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
               {review.verified_booking ? ' · verified booking' : ''}
             </small>
           </article>)}
+        </div>
         </div>
       </article>
     </div>}

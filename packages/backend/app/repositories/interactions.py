@@ -27,8 +27,20 @@ class InteractionRepository:
         value = await self.store.get(self.PATH) or {}
         return {key: item for key, item in value.items() if isinstance(item, dict)}
 
+    async def _by_child(self, child: str, value: str) -> dict[str, dict[str, Any]]:
+        try:
+            records = await self.store.query_equal(self.PATH, child, value)
+            return {key: item for key, item in records.items() if isinstance(item, dict)}
+        except Exception:
+            # Compatibility until the matching RTDB .indexOn rules are deployed.
+            return {
+                key: item
+                for key, item in (await self._all()).items()
+                if item.get(child) == value
+            }
+
     async def list_for_user(self, user_id: str, limit: int = 100) -> list[dict[str, Any]]:
-        values = await self._all()
+        values = await self._by_child("user_id", user_id)
         return sorted_records(
             {key: item for key, item in values.items() if item.get("user_id") == user_id},
             field="timestamp",
@@ -44,7 +56,7 @@ class InteractionRepository:
             InteractionType.BOOKING_CANCELLED.value,
             InteractionType.RATED.value,
         }
-        values = await self._all()
+        values = await self._by_child("provider_id", provider_id)
         return sorted_records(
             {
                 key: item
@@ -99,7 +111,7 @@ class InteractionRepository:
             and item.get("request_id") == request_id
             and item.get("provider_id") == provider_id
             and item.get("interaction_type") == interaction_type.value
-            for item in (await self._all()).values()
+            for item in (await self._by_child("provider_id", provider_id)).values()
         )
 
     async def count(self) -> int:
@@ -107,7 +119,8 @@ class InteractionRepository:
 
     async def provider_statistics(self, provider_id: str) -> dict[str, int | float]:
         records = [
-            item for item in (await self._all()).values() if item.get("provider_id") == provider_id
+            item
+            for item in (await self._by_child("provider_id", provider_id)).values()
         ]
         completed = sum(
             item.get("interaction_type") == InteractionType.BOOKING_COMPLETED.value

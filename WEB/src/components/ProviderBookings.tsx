@@ -1,10 +1,11 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { CheckCircle, Clock, RefreshCw, XCircle } from 'lucide-react';
 import { backendApi } from '../config/api';
 import type { InteractionDto } from '../config/api';
 import { requireFirebaseApiToken } from '../config/firebaseApiToken';
 
 type BookingAction = 'accept' | 'reject' | 'complete' | 'cancel';
+const BOOKING_REFRESH_MS = 3000;
 
 const bookingEventTypes = new Set([
   'booking_requested', 'booking_accepted', 'booking_rejected',
@@ -25,11 +26,19 @@ export const ProviderBookings: React.FC = () => {
   const [events, setEvents] = useState<InteractionDto[]>([]);
   const [error, setError] = useState('');
   const [busyBooking, setBusyBooking] = useState('');
+  const actionInFlight = useRef(false);
+  const stateVersion = useRef(0);
 
   const load = useCallback(async () => {
+    if (actionInFlight.current) return;
+    const requestedVersion = stateVersion.current;
     try {
       const token = await requireFirebaseApiToken();
-      setEvents(await backendApi.listProviderInteractions(token));
+      const nextEvents = await backendApi.listProviderInteractions(token);
+      // An action may have started while this read was in flight. Never let
+      // that older snapshot overwrite the action's immediate/confirmed state.
+      if (actionInFlight.current || requestedVersion !== stateVersion.current) return;
+      setEvents(nextEvents);
       setError('');
     } catch (err: any) {
       setError(err.message);
@@ -37,9 +46,17 @@ export const ProviderBookings: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    void load();
-    const timer = window.setInterval(() => void load(), 5000);
-    return () => window.clearInterval(timer);
+    let stopped = false;
+    let timer: number | undefined;
+    const refresh = async () => {
+      await load();
+      if (!stopped) timer = window.setTimeout(refresh, BOOKING_REFRESH_MS);
+    };
+    void refresh();
+    return () => {
+      stopped = true;
+      if (timer !== undefined) window.clearTimeout(timer);
+    };
   }, [load]);
 
   const bookings = useMemo(() => {
@@ -60,23 +77,56 @@ export const ProviderBookings: React.FC = () => {
   const transition = async (booking: InteractionDto, action: BookingAction) => {
     setError('');
     setBusyBooking(booking.interaction_id);
+    actionInFlight.current = true;
+    stateVersion.current += 1;
+    const interactionTypeByAction: Record<BookingAction, string> = {
+      accept: 'booking_accepted',
+      reject: 'booking_rejected',
+      complete: 'booking_completed',
+      cancel: 'booking_cancelled'
+    };
+    const optimisticId = `optimistic:${booking.interaction_id}:${action}`;
+    const optimisticEvent: InteractionDto = {
+      ...booking,
+      interaction_id: optimisticId,
+      interaction_type: interactionTypeByAction[action],
+      booking_interaction_id: booking.interaction_id,
+      timestamp: new Date().toISOString()
+    };
+
+    // Give immediate feedback while the authoritative Firebase transition is
+    // still in flight. Buttons stay disabled until the server confirms it.
+    setEvents(current => [optimisticEvent, ...current]);
     try {
       const token = await requireFirebaseApiToken();
-      if (action === 'accept') await backendApi.acceptBooking(token, booking.interaction_id);
-      if (action === 'reject') await backendApi.rejectBooking(token, booking.interaction_id);
-      if (action === 'complete') await backendApi.completeBooking(token, booking.interaction_id);
-      if (action === 'cancel') await backendApi.cancelBooking(token, booking.interaction_id);
-      await load();
+      let updated: InteractionDto;
+      if (action === 'accept') updated = await backendApi.acceptBooking(token, booking.interaction_id);
+      else if (action === 'reject') updated = await backendApi.rejectBooking(token, booking.interaction_id);
+      else if (action === 'complete') updated = await backendApi.completeBooking(token, booking.interaction_id);
+      else updated = await backendApi.cancelBooking(token, booking.interaction_id);
+
+      // The transition response is authoritative, so show it immediately. The
+      // background refresh remains as reconciliation for changes from other tabs.
+      setEvents(current => [
+        updated,
+        ...current.filter(item =>
+          item.interaction_id !== updated.interaction_id
+          && item.interaction_id !== optimisticId
+        )
+      ]);
     } catch (err: any) {
+      setEvents(current => current.filter(item => item.interaction_id !== optimisticId));
       setError(err.message);
     } finally {
+      actionInFlight.current = false;
+      stateVersion.current += 1;
       setBusyBooking('');
     }
   };
 
   return <section className="glass-panel" style={{ padding: 22, marginBottom: 28, borderLeft: '6px solid #22c55e' }}>
     <h2 style={{ marginTop: 0 }}><Clock size={20} /> Incoming pipeline bookings</h2>
-    <p style={{ marginTop: -6, color: '#64748b' }}>New requests refresh automatically every five seconds.</p>
+    <p style={{ marginTop: -6, color: '#64748b' }}>New requests refresh automatically.</p>
     {error && <p style={{ color: '#991b1b' }}>{error}</p>}
     {bookings.length === 0 ? <p>No incoming bookings.</p> : bookings.map(({ request, latest }) => {
       const pending = latest.interaction_type === 'booking_requested';

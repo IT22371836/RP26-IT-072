@@ -6,7 +6,8 @@ import {
   set, 
   get, 
   child,
-  update
+  update,
+  onValue
 } from "firebase/database";
 import { 
   getStorage, 
@@ -17,7 +18,8 @@ import {
 import {
   getAuth,
   initializeAuth,
-  inMemoryPersistence,
+  browserSessionPersistence,
+  setPersistence,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
@@ -59,13 +61,12 @@ const firebaseConfig = getStoredFirebaseConfig();
 export const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 export const db = getDatabase(app);
 export const storage = getStorage(app);
-// Firebase remains the only authentication authority, but sessions are kept in
-// memory so restarting/reloading the research WEB app always requires an
-// explicit login. This avoids restoring an old browser-local account and
-// navigating from the login screen before the user chooses to sign in.
+// Firebase remains the only authentication authority. Session persistence
+// survives refreshes in the current tab without sharing the signed-in account
+// with a separate tab opened for another customer/provider session.
 export const auth = (() => {
   try {
-    return initializeAuth(app, { persistence: inMemoryPersistence });
+    return initializeAuth(app, { persistence: browserSessionPersistence });
   } catch (error: any) {
     // Vite hot replacement can evaluate this module after Auth was initialized.
     if (error?.code === 'auth/already-initialized') return getAuth(app);
@@ -76,6 +77,50 @@ export const auth = (() => {
 let tokenRequest: Promise<string> | null = null;
 let tokenRequestUid: string | null = null;
 let tokenRequestForcesRefresh = false;
+
+export interface CustomerBookingStatus {
+  booking_id: string;
+  request_id: string;
+  provider_id: string;
+  provider_name?: string | null;
+  category?: string;
+  status: string;
+  requested_at?: string;
+  updated_at?: string;
+}
+
+// Listen only to the signed-in customer's protected booking history. Firebase
+// pushes provider transitions to this listener immediately, avoiding UI polling
+// delays while preserving the FastAPI API as the write authority.
+export async function subscribeCurrentCustomerBookings(
+  callback: (bookings: Record<string, CustomerBookingStatus>) => void
+): Promise<() => void> {
+  await auth.authStateReady();
+  const uid = auth.currentUser?.uid;
+  if (!uid) throw new Error('A current Firebase session is required.');
+
+  return onValue(ref(db, `customers/${uid}/bookingHistory`), snapshot => {
+    const value = snapshot.val();
+    const bookings: Record<string, CustomerBookingStatus> = {};
+    if (value && typeof value === 'object') {
+      Object.entries(value).forEach(([bookingId, item]) => {
+        if (!item || typeof item !== 'object') return;
+        const record = item as Partial<CustomerBookingStatus>;
+        bookings[bookingId] = {
+          booking_id: record.booking_id || bookingId,
+          request_id: record.request_id || '',
+          provider_id: record.provider_id || '',
+          provider_name: record.provider_name || null,
+          category: record.category || 'Service booking',
+          status: record.status || 'booking_requested',
+          requested_at: record.requested_at,
+          updated_at: record.updated_at
+        };
+      });
+    }
+    callback(bookings);
+  });
+}
 
 // Helper function to upload images to Firebase Storage under folder/entityId/
 export async function uploadImageToStorage(
@@ -745,6 +790,10 @@ export async function loginUser(
   // Try Firebase Auth sign-in for customer/provider accounts.
   if (cleanQuery.includes('@')) {
     try {
+      // Set this explicitly before every sign-in as well as at Auth
+      // initialization. This also corrects an Auth instance retained by Vite
+      // hot replacement from an older in-memory configuration.
+      await setPersistence(auth, browserSessionPersistence);
       const userCred = await signInWithEmailAndPassword(auth, cleanQuery, password);
       const uid = userCred.user.uid;
       const profile = await fetchAuthenticatedProfile(uid, userCred.user.email);

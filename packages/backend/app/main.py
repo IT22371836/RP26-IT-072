@@ -1,3 +1,4 @@
+import asyncio
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
@@ -5,6 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.router import api_router
+from app.components.component4.provider_trust import get_research_review_index
 from app.core.config import get_settings
 from app.core.firebase_database import FirebaseDatabase
 from app.repositories.indexes import ensure_application_indexes
@@ -15,6 +17,9 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     settings = get_settings()
     database = FirebaseDatabase.connect(settings)
     await ensure_application_indexes(database)
+    # Load the research review index before serving traffic so the first
+    # provider-profile click does not pay the CSV parsing/indexing cost.
+    await asyncio.to_thread(get_research_review_index)
     try:
         yield
     finally:

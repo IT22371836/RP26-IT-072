@@ -9,14 +9,14 @@ import { SERVICE_CATEGORIES } from '../data/categories';
 import { SRI_LANKA_DISTRICTS } from '../data/sriLankaData';
 
 const ACTIVE = new Set(['initializing', 'created', 'component1_running', 'component1_completed', 'component2_running', 'component2_completed', 'component4_running', 'retry_pending']);
-// Firebase onValue is the primary customer update path. This slower API poll is
-// only reconciliation for a temporarily disconnected realtime listener.
+// Use API polling as a backup for live updates.
 const BOOKING_REFRESH_MS = 15000;
 const STORAGE_KEY = 'weda_active_pipeline_run';
 const HISTORY_CACHE_KEY = 'weda_pipeline_history_cache';
 const INTERACTIONS_CACHE_KEY = 'weda_interactions_cache';
 const PROVIDER_PROFILE_CACHE_KEY = 'weda_provider_profile_cache';
 
+// Get a date for the service form.
 function isoDate(offset = 0): string {
   const value = new Date();
   value.setDate(value.getDate() + offset);
@@ -25,6 +25,7 @@ function isoDate(offset = 0): string {
 
 type AuditState = 'waiting' | 'running' | 'completed' | 'failed';
 
+// Find the current state of a pipeline stage.
 function auditState(run: PipelineRunDto, stage: 'component1' | 'component2' | 'component4'): AuditState {
   if (run[stage]) return 'completed';
   if (run.status === `${stage}_running`) return 'running';
@@ -41,6 +42,7 @@ function formatDuration(value?: number): string {
   return value >= 1000 ? `${(value / 1000).toFixed(2)} s` : `${value.toFixed(1)} ms`;
 }
 
+// Keep scores easy to read.
 function formatScore(value?: number, digits = 3): string {
   return typeof value === 'number' && Number.isFinite(value) ? value.toFixed(digits) : 'n/a';
 }
@@ -49,6 +51,7 @@ const tableCellStyle: React.CSSProperties = {
   borderBottom: '1px solid #cbd5e1', padding: '8px 9px', textAlign: 'left', verticalAlign: 'top'
 };
 
+// Find which Component 1 score had the most impact.
 function strongestC1Signal(provider: PipelineProviderDto): string {
   const scores = [
     ['TF-IDF', provider.tfidf_score],
@@ -62,6 +65,7 @@ function strongestC1Signal(provider: PipelineProviderDto): string {
   return available.length ? available.reduce((best, item) => item[1] > best[1] ? item : best)[0] : 'unknown';
 }
 
+// Explain why Component 1 selected a provider.
 function c1SelectionReason(provider: PipelineProviderDto): string {
   if (provider.selection_reason) return provider.selection_reason;
   return `Selected at hybrid rank #${provider.rank} with score ${formatScore(provider.hybrid_score, 4)}. `
@@ -69,6 +73,7 @@ function c1SelectionReason(provider: PipelineProviderDto): string {
     + 'The exact match tier was not persisted for this older run.';
 }
 
+// Explain the Component 2 result.
 function c2DecisionReason(provider: Component2EvaluatedProviderDto, selectedRank?: number): string {
   if (provider.decision_reason) return provider.decision_reason;
   if (selectedRank !== undefined) {
@@ -79,6 +84,7 @@ function c2DecisionReason(provider: Component2EvaluatedProviderDto, selectedRank
   return provider.working_hours_status || 'Rejected because the provider did not pass the availability requirements.';
 }
 
+// Explain the Component 4 rank.
 function c4RankingReason(provider: PipelineProviderDto): string {
   if (provider.ranking_reason) return provider.ranking_reason;
   return `Ranked #${provider.rank} by final CATF trust score ${formatScore(provider.final_score, 4)}; `
@@ -93,6 +99,7 @@ function AuditTable({ children, minWidth = 900 }: { children: React.ReactNode; m
   </div>;
 }
 
+// Show the Component 1 ranking details.
 function Component1ProviderEvidence({ run }: { run: PipelineRunDto }) {
   const providers = run.component1?.providers ?? [];
   if (!providers.length) return <p>Component 1 provider records are not available yet.</p>;
@@ -114,6 +121,7 @@ function Component1ProviderEvidence({ run }: { run: PipelineRunDto }) {
   </details>;
 }
 
+// Show the Component 2 filtering details.
 function Component2ProviderEvidence({ run }: { run: PipelineRunDto }) {
   const evaluated = run.component2?.all_evaluated_providers ?? [];
   const selectedIds = (run.component2?.output_results.provider_ids ?? []) as string[];
@@ -153,6 +161,7 @@ function Component2ProviderEvidence({ run }: { run: PipelineRunDto }) {
   </details>;
 }
 
+// Show the Component 4 ranking details.
 function Component4ProviderEvidence({ run }: { run: PipelineRunDto }) {
   const providers = run.component4?.providers ?? [];
   const selectedIds = new Set(providers.map(provider => provider.provider_id));
@@ -207,6 +216,7 @@ function Component4ProviderEvidence({ run }: { run: PipelineRunDto }) {
   </details>;
 }
 
+// Show the full pipeline progress and evidence.
 function PipelineExecutionAudit({ run }: { run: PipelineRunDto }) {
   const c1State = auditState(run, 'component1');
   const c2State = auditState(run, 'component2');
@@ -302,6 +312,7 @@ function PipelineExecutionAudit({ run }: { run: PipelineRunDto }) {
 }
 
 export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ currentUser }) => {
+  // Use the customer's location as the default.
   const initialDistrict = currentUser.district || 'Colombo';
   const district = SRI_LANKA_DISTRICTS.find(item => item.name === initialDistrict) || SRI_LANKA_DISTRICTS[0];
   const [form, setForm] = useState<PipelineCreateDto>({
@@ -309,6 +320,7 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
     city: currentUser.city || district.cities[0], urgency: 'normal', service_date: isoDate(1),
     service_time: { start_time: '09:00', end_time: '11:00' }, location_type: 'indoor'
   });
+  // Store the page data and UI state.
   const [confirmed, setConfirmed] = useState(false);
   const [run, setRun] = useState<PipelineRunDto | null>(null);
   const [history, setHistory] = useState<PipelineRunDto[]>([]);
@@ -325,6 +337,7 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
   const [profileReviewError, setProfileReviewError] = useState('');
   const [selectingProviderId, setSelectingProviderId] = useState('');
   const [selectionMessage, setSelectionMessage] = useState('');
+  // Update cities when the district changes.
   const cities = useMemo(
     () => SRI_LANKA_DISTRICTS.find(item => item.name === form.district)?.cities || [],
     [form.district]
@@ -334,11 +347,11 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
   const activeRunStorageKey = `${STORAGE_KEY}:${currentUser.id}`;
   const historyCacheKey = `${HISTORY_CACHE_KEY}:${currentUser.id}`;
   const interactionsCacheKey = `${INTERACTIONS_CACHE_KEY}:${currentUser.id}`;
-
+ 
+  // Load request history and customer activity.
   const reloadHistory = useCallback(async () => {
     const token = await requireFirebaseApiToken();
-    // Update each section as soon as its own request completes. Pipeline history
-    // can be slower than booking interactions and must not hold their UI back.
+    // Show each result when it is ready.
     const runsRequest = backendApi.listPipelines(token).then(runs => {
       setHistory(runs);
       sessionStorage.setItem(historyCacheKey, JSON.stringify(runs));
@@ -350,6 +363,7 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
     await Promise.all([runsRequest, eventsRequest]);
   }, [historyCacheKey, interactionsCacheKey]);
 
+  // Refresh booking activity.
   const reloadInteractions = useCallback(async () => {
     const token = await requireFirebaseApiToken();
     const events = await backendApi.listCustomerInteractions(token);
@@ -357,6 +371,7 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
     sessionStorage.setItem(interactionsCacheKey, JSON.stringify(events));
   }, [interactionsCacheKey]);
 
+  // Show cached data before loading fresh data.
   useEffect(() => {
     try {
       const cachedHistory = sessionStorage.getItem(historyCacheKey);
@@ -375,6 +390,7 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
       .catch(() => localStorage.removeItem(activeRunStorageKey));
   }, [activeRunStorageKey, historyCacheKey, interactionsCacheKey, reloadHistory]);
 
+  // Listen for live booking updates.
   useEffect(() => {
     let stopped = false;
     let unsubscribe: (() => void) | undefined;
@@ -392,6 +408,7 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
     };
   }, [currentUser.id]);
 
+  // Check the active pipeline until it finishes.
   useEffect(() => {
     if (!activeRunId || !activeRunStatus || !ACTIVE.has(activeRunStatus)) return;
     let stopped = false; let polls = 0;
@@ -408,6 +425,7 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
     return () => { stopped = true; window.clearTimeout(timer); };
   }, [activeRunId, activeRunStatus, activeRunStorageKey, reloadHistory]);
 
+  // Refresh bookings if a live update is missed.
   useEffect(() => {
     let stopped = false;
     let timer: number | undefined;
@@ -415,8 +433,7 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
       try {
         await reloadInteractions();
       } catch {
-        // Keep the last known status and retry; transient Firebase/API failures
-        // should not erase a booking that is already displayed.
+        // Keep the current data and try again later.
       }
       if (!stopped) timer = window.setTimeout(refresh, BOOKING_REFRESH_MS);
     };
@@ -427,6 +444,7 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
     };
   }, [reloadInteractions]);
 
+  // Start a new provider search.
   const start = async (event: React.FormEvent) => {
     event.preventDefault(); setError('');
     if (!confirmed || !currentUser.location) { setError('Confirm your saved service location before continuing.'); return; }
@@ -440,6 +458,7 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
     } catch (err: any) { setError(err.message); } finally { setBusy(false); }
   };
 
+  // Send a booking request to the chosen provider.
   const selectProvider = async (providerId: string) => {
     if (!run) return; setBusy(true); setSelectingProviderId(providerId); setError(''); setSelectionMessage('');
     try {
@@ -457,6 +476,7 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
     }
   };
 
+  // Retry a failed pipeline run.
   const retry = async () => {
     if (!run) return;
     setBusy(true); setError('');
@@ -475,6 +495,7 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
     }
   };
 
+  // Load the provider profile and reviews.
   const viewProviderProfile = async (providerId: string) => {
     setError('');
     setProfileLoadingId(providerId);
@@ -516,6 +537,7 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
     }
   };
 
+  // Clear the open provider profile.
   const closeProviderProfile = () => {
     setProviderProfile(null);
     setProviderReviews([]);
@@ -523,6 +545,7 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
     setReviewsLoading(false);
   };
 
+  // Show the rating first, then save it.
   const submitRating = async (
     item: InteractionDto,
     value: { rating: number; text: string }
@@ -564,8 +587,10 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
     }
   };
 
+  // Find completed bookings that can be rated.
   const completed = interactions.filter(item => item.interaction_type === 'booking_completed');
   const ratedKeys = new Set(interactions.filter(item => item.interaction_type === 'rated').map(item => `${item.request_id}:${item.provider_id}`));
+  // Keep the latest rating for each booking.
   const ratingByBookingKey = new Map<string, InteractionDto>();
   interactions.filter(item => item.interaction_type === 'rated').forEach(item => {
     const key = `${item.request_id}:${item.provider_id}`;
@@ -574,6 +599,7 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
       ratingByBookingKey.set(key, item);
     }
   });
+  // Keep the latest status for each booking.
   const bookingTypes = new Set(['booking_requested', 'booking_accepted', 'booking_rejected', 'booking_completed', 'booking_cancelled']);
   const latestBookingByKey = new Map<string, InteractionDto>();
   interactions.filter(item => bookingTypes.has(item.interaction_type)).forEach(item => {
@@ -583,6 +609,7 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
       latestBookingByKey.set(key, item);
     }
   });
+  // Merge saved interactions with live Firebase updates.
   const interactionBookings = interactions
     .filter(item => item.interaction_type === 'booking_requested')
     .map(request => {
@@ -618,12 +645,14 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
       timestamp: item.updated_at || item.requested_at || new Date(0).toISOString(),
       booking_interaction_id: item.booking_id
     }));
+  // Show the newest bookings first.
   const bookings = [...interactionBookings, ...liveOnlyBookings]
     .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
   return <section className="glass-panel" style={{ padding: 24, marginBottom: 32, borderLeft: '6px solid #0ea5e9' }}>
     <h2 style={{ marginTop: 0 }}><Search size={21} /> Request a service</h2>
     {error && <div style={{ padding: 12, background: '#fee2e2', color: '#991b1b', borderRadius: 8, marginBottom: 14 }}>{error}</div>}
+    {/* Collect the service request details. */}
     <form onSubmit={start} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(190px,1fr))', gap: 12 }}>
       <textarea required minLength={10} placeholder="Describe the maintenance problem" value={form.request_text} onChange={e => setForm({ ...form, request_text: e.target.value })} style={{ gridColumn: '1/-1', minHeight: 80 }} />
       <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}>{SERVICE_CATEGORIES.map(item => <option key={item}>{item}</option>)}</select>
@@ -638,6 +667,7 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
       <button className="btn btn-primary" disabled={busy || !confirmed} style={{ gridColumn: '1/-1' }}>{busy ? 'Starting…' : 'Run provider pipeline'}</button>
     </form>
 
+    {/* Show progress for the current request. */}
     {run && <div style={{ marginTop: 24 }}>
       <h3>Pipeline progress <small>{run.run_id}</small></h3>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>{[
@@ -647,6 +677,7 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
       {run.status === 'failed' && <div style={{ color: '#991b1b' }}><strong>{run.error?.code}</strong>: {run.error?.message} {run.error?.retryable && <button onClick={retry}>Retry</button>}</div>}
       {run.fallback?.used && <div style={{ margin: '14px 0', padding: 14, background: '#fef3c7', color: '#92400e', borderRadius: 8 }}><AlertTriangle size={18} /> Availability filtering returned no providers. These results are a disclosed relevance/trust fallback from Component 1; availability is not confirmed.</div>}
       <PipelineExecutionAudit run={run} />
+      {/* Show the final provider results. */}
       {run.component4 && <div>
         <h3>Final Top-5</h3>
         {selectionMessage && <div style={{ marginBottom: 12, padding: 10, borderRadius: 8, background: selectionMessage.startsWith('Booking request failed') ? '#fee2e2' : '#dcfce7', color: selectionMessage.startsWith('Booking request failed') ? '#991b1b' : '#166534' }}>{selectionMessage}</div>}
@@ -688,10 +719,12 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
       </div>}
     </div>}
 
+    {/* Show bookings and submitted ratings. */}
     <details style={{ marginTop: 24 }} open><summary><strong>Bookings and ratings</strong></summary>
       {bookings.length === 0 ? <p>No pipeline bookings yet.</p> : bookings.map(item => {
         const submittedRating = ratingByBookingKey.get(`${item.request_id}:${item.provider_id}`);
         return <div key={`${item.request_id}:${item.provider_id}`} style={{ padding: 12, borderBottom: '1px solid #e2e8f0' }}>
+        {/* Show the provider and booking status. */}
         <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8 }}>
           <strong>{item.provider_name || item.provider_id}</strong>
           <code style={{ padding: '2px 8px', borderRadius: 999, background: '#e2e8f0', color: '#0f172a', fontWeight: 700 }}>Provider ID: {item.provider_id}</code>
@@ -737,6 +770,7 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
         </div>;
       })}
     </details>
+    {/* Show earlier service requests. */}
     <details style={{ marginTop: 16 }}><summary><strong>Request history ({history.length})</strong></summary>{history.map(item => <button key={item.run_id} onClick={() => setRun(item)} style={{ display: 'block', margin: 6 }}>{new Date(item.created_at).toLocaleString()} · {item.request.category} · {item.status}</button>)}</details>
     {profileLoadingId && !providerProfile && <div
       role="status"

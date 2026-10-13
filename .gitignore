@@ -80,6 +80,9 @@ build/
 # Legacy archive is never part of new implementation changes
 /old/
 
+# Local source snapshot used only for Component 2 and 3 integration
+/New RP/
+
 # IDE
 .vscode/
 .idea/

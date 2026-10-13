@@ -26,6 +26,14 @@ component1 = [
   "scipy>=1.14,<2.0",
   "sentence-transformers>=3.4,<6.0",
 ]
+component3 = [
+  "category-encoders==2.6.4",
+  "joblib>=1.4,<2.0",
+  "numpy>=2.0,<3.0",
+  "pandas>=2.2,<4.0",
+  "scikit-learn>=1.6,<2.0",
+  "xgboost>=3.0,<4.0",
+]
 dev = [
   "bcrypt>=4.2,<5.0",
   "httpx>=0.28,<1.0",

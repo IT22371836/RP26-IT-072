@@ -24,6 +24,9 @@ class Settings(BaseSettings):
     component1_artifact_dir: Path = (
         BACKEND_DIR / "app" / "components" / "component1" / "artifacts"
     )
+    component3_artifact_dir: Path = (
+        REPOSITORY_DIR / "ml" / "components" / "component3" / "artifacts" / "demand-v1"
+    )
     component4_artifact_dir: Path = (
         REPOSITORY_DIR / "ml" / "components" / "component4" / "artifacts" / "catf-v1"
     )
@@ -77,6 +80,7 @@ class Settings(BaseSettings):
 
     @field_validator(
         "component1_artifact_dir",
+        "component3_artifact_dir",
         "component4_artifact_dir",
         "component4_category_priors_path",
         "firebase_credentials_path",

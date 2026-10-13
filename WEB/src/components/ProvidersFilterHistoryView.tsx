@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import type { 
   FilterRequestItem, 
   Customer, 
@@ -19,6 +19,7 @@ import {
   Cpu, 
   CloudSun 
 } from 'lucide-react';
+import { Pagination } from './Pagination';
 
 interface ProvidersFilterHistoryViewProps {
   filterRequests: FilterRequestItem[];
@@ -41,6 +42,8 @@ export const ProvidersFilterHistoryView: React.FC<ProvidersFilterHistoryViewProp
   const [riskFilter, setRiskFilter] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [expandedRequestId, setExpandedRequestId] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   // Helper mapping customer user_id to customer full name
   const customerMap = useMemo(() => {
@@ -60,6 +63,10 @@ export const ProvidersFilterHistoryView: React.FC<ProvidersFilterHistoryViewProp
     });
     return map;
   }, [providers]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [startDate, endDate, riskFilter, searchQuery]);
 
   // Quick Date Range Preset Handlers
   const handleSetPreset = (preset: 'ALL' | 'TODAY' | '7DAYS' | '30DAYS') => {
@@ -132,8 +139,8 @@ export const ProvidersFilterHistoryView: React.FC<ProvidersFilterHistoryViewProp
 
         // Check evaluated provider names
         const hasMatchingProvider = output?.evaluated_providers?.some(ep => 
-          ep.provider_name.toLowerCase().includes(query) ||
-          ep.provider_id.toLowerCase().includes(query) ||
+          (ep.provider_name || '').toLowerCase().includes(query) ||
+          (ep.provider_id || '').toLowerCase().includes(query) ||
           (ep.recommendation || '').toLowerCase().includes(query)
         );
 
@@ -152,6 +159,19 @@ export const ProvidersFilterHistoryView: React.FC<ProvidersFilterHistoryViewProp
       return true;
     });
   }, [filterRequests, startDate, endDate, riskFilter, searchQuery, customerMap]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredRequests.length / itemsPerPage));
+  const safePage = Math.min(currentPage, totalPages);
+  const firstItemIndex = (safePage - 1) * itemsPerPage;
+  const paginatedRequests = filteredRequests.slice(firstItemIndex, firstItemIndex + itemsPerPage);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(Math.min(Math.max(page, 1), totalPages));
+    document.getElementById('providers-filter-history-section')?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start'
+    });
+  };
 
   // Overall Statistics Metrics
   const totalCount = filterRequests.length;
@@ -236,7 +256,7 @@ export const ProvidersFilterHistoryView: React.FC<ProvidersFilterHistoryViewProp
       </div>
 
       {/* Filter Toolbar: Date Range Picker, Presets, Risk Level & Search */}
-      <div className="glass-panel" style={{ padding: '22px', background: '#ffffff', border: '1px solid #276221' }}>
+      <div id="providers-filter-history-section" className="glass-panel" style={{ padding: '22px', background: '#ffffff', border: '1px solid #276221' }}>
         
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '18px' }}>
           
@@ -383,7 +403,16 @@ export const ProvidersFilterHistoryView: React.FC<ProvidersFilterHistoryViewProp
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-          {filteredRequests.map((item) => {
+          <Pagination
+            currentPage={safePage}
+            totalPages={totalPages}
+            totalItems={filteredRequests.length}
+            itemsPerPage={itemsPerPage}
+            onPageChange={handlePageChange}
+            itemName="audit entries"
+          />
+
+          {paginatedRequests.map((item) => {
             const reqId = item.request_id || item.id || 'Unknown_ID';
             const output = item.output_results;
             const evalProviders = output?.evaluated_providers || [];
@@ -549,6 +578,15 @@ export const ProvidersFilterHistoryView: React.FC<ProvidersFilterHistoryViewProp
               </div>
             );
           })}
+
+          <Pagination
+            currentPage={safePage}
+            totalPages={totalPages}
+            totalItems={filteredRequests.length}
+            itemsPerPage={itemsPerPage}
+            onPageChange={handlePageChange}
+            itemName="audit entries"
+          />
         </div>
       )}
 

@@ -652,7 +652,7 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
   return <section className="glass-panel" style={{ padding: 24, marginBottom: 32, borderLeft: '6px solid #0ea5e9' }}>
     <h2 style={{ marginTop: 0 }}><Search size={21} /> Request a service</h2>
     {error && <div style={{ padding: 12, background: '#fee2e2', color: '#991b1b', borderRadius: 8, marginBottom: 14 }}>{error}</div>}
-    {/* Collect the service request details. */}
+    {/*collect the service request details and start the provider pipeline*/}
     <form onSubmit={start} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(190px,1fr))', gap: 12 }}>
       <textarea required minLength={10} placeholder="Describe the maintenance problem" value={form.request_text} onChange={e => setForm({ ...form, request_text: e.target.value })} style={{ gridColumn: '1/-1', minHeight: 80 }} />
       <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}>{SERVICE_CATEGORIES.map(item => <option key={item}>{item}</option>)}</select>
@@ -667,7 +667,6 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
       <button className="btn btn-primary" disabled={busy || !confirmed} style={{ gridColumn: '1/-1' }}>{busy ? 'Starting…' : 'Run provider pipeline'}</button>
     </form>
 
-    {/* Show progress for the current request. */}
     {run && <div style={{ marginTop: 24 }}>
       <h3>Pipeline progress <small>{run.run_id}</small></h3>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>{[
@@ -677,7 +676,6 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
       {run.status === 'failed' && <div style={{ color: '#991b1b' }}><strong>{run.error?.code}</strong>: {run.error?.message} {run.error?.retryable && <button onClick={retry}>Retry</button>}</div>}
       {run.fallback?.used && <div style={{ margin: '14px 0', padding: 14, background: '#fef3c7', color: '#92400e', borderRadius: 8 }}><AlertTriangle size={18} /> Availability filtering returned no providers. These results are a disclosed relevance/trust fallback from Component 1; availability is not confirmed.</div>}
       <PipelineExecutionAudit run={run} />
-      {/* Show the final provider results. */}
       {run.component4 && <div>
         <h3>Final Top-5</h3>
         {selectionMessage && <div style={{ marginBottom: 12, padding: 10, borderRadius: 8, background: selectionMessage.startsWith('Booking request failed') ? '#fee2e2' : '#dcfce7', color: selectionMessage.startsWith('Booking request failed') ? '#991b1b' : '#166534' }}>{selectionMessage}</div>}
@@ -770,7 +768,6 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
         </div>;
       })}
     </details>
-    {/* Show earlier service requests. */}
     <details style={{ marginTop: 16 }}><summary><strong>Request history ({history.length})</strong></summary>{history.map(item => <button key={item.run_id} onClick={() => setRun(item)} style={{ display: 'block', margin: 6 }}>{new Date(item.created_at).toLocaleString()} · {item.request.category} · {item.status}</button>)}</details>
     {profileLoadingId && !providerProfile && <div
       role="status"

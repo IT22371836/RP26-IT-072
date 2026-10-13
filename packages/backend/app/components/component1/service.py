@@ -197,7 +197,7 @@ class HybridRecommendationEngine:
         for provider_id, count in Counter(preferences).items():
             if (index := self._provider_index.get(provider_id)) is not None:
                 scores[index] *= 1.2**count
-        return np.clip(np.nan_to_num(scores, nan=0.5), 0, 1)
+        return np.clip(np.nan_to_num(scores, nan=0.5), 0, 1) # To prevent invalid values & score explosion
 
     @classmethod
     def _category_key(cls, value: str) -> str:

@@ -568,5 +568,5 @@ def booking_history_preference_ids(
             weight += 4
         if isinstance(item.get("rating"), int):
             weight += 4
-        preferences.extend([provider_id] * min(weight, 13))
+        preferences.extend([provider_id] * min(weight, 13)) # Return as the weights preference list
     return preferences

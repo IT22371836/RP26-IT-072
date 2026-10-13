@@ -194,6 +194,7 @@ h6 {
   box-shadow: 0 4px 14px var(--primary-glow);
 }
 
+/*rating button*/
 .btn-primary:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(39, 98, 33, 0.45);

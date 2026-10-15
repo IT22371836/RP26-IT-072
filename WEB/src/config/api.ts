@@ -316,6 +316,36 @@ export class ApiError extends Error {
   }
 }
 
+const getResponseCache = new Map<string, { value: unknown; expiresAt: number }>();
+const pendingGetRequests = new Map<string, Promise<unknown>>();
+
+function cachedGet<T>(path: string, token: string, ttlMs: number): Promise<T> {
+  for (const [cachedKey, entry] of getResponseCache) {
+    if (entry.expiresAt <= Date.now()) getResponseCache.delete(cachedKey);
+  }
+  const key = `${token}:${path}`;
+  const cached = getResponseCache.get(key);
+  if (cached && cached.expiresAt > Date.now()) return Promise.resolve(cached.value as T);
+
+  const pending = pendingGetRequests.get(key);
+  if (pending) return pending as Promise<T>;
+
+  const operation = request<T>(path, {}, token)
+    .then(value => {
+      getResponseCache.set(key, { value, expiresAt: Date.now() + ttlMs });
+      return value;
+    })
+    .finally(() => pendingGetRequests.delete(key));
+  pendingGetRequests.set(key, operation);
+  return operation;
+}
+
+function invalidateCachedGets(pathFragment: string): void {
+  for (const key of getResponseCache.keys()) {
+    if (key.includes(pathFragment)) getResponseCache.delete(key);
+  }
+}
+
 async function request<T>(
   path: string,
   init: RequestInit = {},
@@ -354,6 +384,9 @@ async function request<T>(
       : body;
     const message = typeof detail === 'string' ? detail : `API request failed (${response.status})`;
     throw new ApiError(message, response.status, body);
+  }
+  if ((init.method || 'GET').toUpperCase() !== 'GET') {
+    getResponseCache.clear();
   }
   return body as T;
 }
@@ -406,11 +439,19 @@ export const backendApi = {
   },
 
   getPublicProviderProfile(token: string, providerId: string): Promise<ProviderPublicDto> {
-    return request<ProviderPublicDto>(`/providers/${encodeURIComponent(providerId)}`, {}, token);
+    return cachedGet<ProviderPublicDto>(
+      `/providers/${encodeURIComponent(providerId)}`,
+      token,
+      30_000
+    );
   },
 
   getProviderReviews(token: string, providerId: string): Promise<ProviderReviewDto[]> {
-    return request<ProviderReviewDto[]>(`/providers/${encodeURIComponent(providerId)}/reviews`, {}, token);
+    return cachedGet<ProviderReviewDto[]>(
+      `/providers/${encodeURIComponent(providerId)}/reviews`,
+      token,
+      10_000
+    );
   },
 
   updateProviderProfile(
@@ -520,11 +561,15 @@ export const backendApi = {
   },
 
   getPipeline(token: string, runId: string): Promise<PipelineRunDto> {
-    return request<PipelineRunDto>(`/pipeline/runs/${encodeURIComponent(runId)}`, {}, token);
+    return cachedGet<PipelineRunDto>(
+      `/pipeline/runs/${encodeURIComponent(runId)}`,
+      token,
+      1_000
+    );
   },
 
   listPipelines(token: string): Promise<PipelineRunDto[]> {
-    return request<PipelineRunDto[]>('/pipeline/runs?limit=50', {}, token);
+    return cachedGet<PipelineRunDto[]>('/pipeline/runs?limit=50', token, 2_000);
   },
 
   retryPipeline(token: string, runId: string): Promise<PipelineRunDto> {
@@ -542,11 +587,11 @@ export const backendApi = {
   },
 
   listCustomerInteractions(token: string): Promise<InteractionDto[]> {
-    return request<InteractionDto[]>('/interactions/me?limit=500', {}, token);
+    return cachedGet<InteractionDto[]>('/interactions/me?limit=500', token, 2_000);
   },
 
   listProviderInteractions(token: string): Promise<InteractionDto[]> {
-    return request<InteractionDto[]>('/interactions/provider/me?limit=500', {}, token);
+    return cachedGet<InteractionDto[]>('/interactions/provider/me?limit=500', token, 2_000);
   },
 
   acceptBooking(token: string, interactionId: string): Promise<InteractionDto> {
@@ -565,10 +610,13 @@ export const backendApi = {
     return request<InteractionDto>(`/interactions/${encodeURIComponent(interactionId)}/cancel`, { method: 'POST' }, token);
   },
 
-  rateBooking(token: string, interactionId: string, rating: number, reviewText: string): Promise<InteractionDto> {
-    return request<InteractionDto>(`/interactions/${encodeURIComponent(interactionId)}/rate`, {
+  async rateBooking(token: string, interactionId: string, rating: number, reviewText: string): Promise<InteractionDto> {
+    const result = await request<InteractionDto>(`/interactions/${encodeURIComponent(interactionId)}/rate`, {
       method: 'POST',
       body: JSON.stringify({ rating, review_text: reviewText || null })
     }, token);
+    invalidateCachedGets('/reviews');
+    invalidateCachedGets('/interactions/');
+    return result;
   }
 };

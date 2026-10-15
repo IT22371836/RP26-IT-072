@@ -1,4 +1,5 @@
 import importlib.util
+from collections import Counter
 from pathlib import Path
 from types import ModuleType
 
@@ -46,3 +47,48 @@ def test_exporter_rejects_provider_dataset_with_missing_columns(tmp_path: Path) 
 
     with pytest.raises(ValueError, match="Provider dataset is missing columns"):
         exporter.load_and_prepare(provider_path, interaction_path)
+
+
+def test_balanced_sample_has_exact_limit_and_covers_every_category() -> None:
+    providers = pd.DataFrame(
+        [
+            {
+                "provider_id": f"P{category:02d}{index:03d}",
+                "category": f"Category {category:02d}",
+                "district": f"District {index % 5}",
+                "city": f"City {index % 10}",
+            }
+            for category in range(14)
+            for index in range(50)
+        ]
+    )
+
+    selected = exporter.balanced_provider_sample(providers, 500)
+    counts = Counter(selected["category"])
+
+    assert len(selected) == 500
+    assert len(counts) == 14
+    assert set(counts.values()) == {35, 36}
+    assert selected["provider_id"].is_unique
+
+
+def test_balanced_sample_is_deterministic_and_honors_eligible_ids() -> None:
+    providers = pd.DataFrame(
+        [
+            {
+                "provider_id": f"P{category:02d}{index:03d}",
+                "category": f"Category {category:02d}",
+                "district": "Colombo",
+                "city": f"City {index % 3}",
+            }
+            for category in range(2)
+            for index in range(10)
+        ]
+    )
+    eligible = set(providers["provider_id"]) - {"P00000", "P01000"}
+
+    first = exporter.balanced_provider_sample(providers, 10, eligible)
+    second = exporter.balanced_provider_sample(providers, 10, eligible)
+
+    assert first["provider_id"].tolist() == second["provider_id"].tolist()
+    assert set(first["provider_id"]).issubset(eligible)

@@ -77,6 +77,8 @@ export const auth = (() => {
 let tokenRequest: Promise<string> | null = null;
 let tokenRequestUid: string | null = null;
 let tokenRequestForcesRefresh = false;
+const authenticatedProfileCache = new Map<string, { value: any; expiresAt: number }>();
+const authenticatedProfileRequests = new Map<string, Promise<any | null>>();
 
 export interface CustomerBookingStatus {
   booking_id: string;
@@ -753,27 +755,57 @@ export async function fetchUserProfileByEmail(email: string): Promise<any | null
   return null;
 }
 
+async function fetchAuthenticatedProfileUncached(
+  uid: string,
+  _email?: string | null
+): Promise<any | null> {
+  // Read the possible role profiles together so provider/admin sign-in does not
+  // wait for failed customer lookups first.
+  const paths = [
+    { path: `customers/${uid}`, role: 'customer' },
+    { path: `providers/${uid}`, role: 'provider' },
+    { path: `admins/${uid}`, role: 'admin' }
+  ] as const;
+  const snapshots = await Promise.allSettled(
+    paths.map(item => get(child(ref(db), item.path)))
+  );
+
+  for (let index = 0; index < paths.length; index += 1) {
+    const result = snapshots[index];
+    if (result.status === 'fulfilled' && result.value.exists()) {
+      const role = paths[index].role;
+      return { id: uid, uid, role, ...result.value.val() };
+    }
+  }
+
+  // Runtime rules only permit a signed-in user to read their UID-keyed profile.
+  // Avoid downloading whole customer/provider collections as a login fallback.
+  return null;
+}
+
 async function fetchAuthenticatedProfile(
   uid: string,
   email?: string | null
 ): Promise<any | null> {
-  const customerSnapshot = await get(child(ref(db), `customers/${uid}`));
-  if (customerSnapshot.exists()) {
-    return { id: uid, role: 'customer', ...customerSnapshot.val() };
-  }
+  const cached = authenticatedProfileCache.get(uid);
+  if (cached && cached.expiresAt > Date.now()) return cached.value;
 
-  const providerSnapshot = await get(child(ref(db), `providers/${uid}`));
-  if (providerSnapshot.exists()) {
-    return { id: uid, uid, role: 'provider', ...providerSnapshot.val() };
-  }
+  const pending = authenticatedProfileRequests.get(uid);
+  if (pending) return pending;
 
-  const adminSnapshot = await get(child(ref(db), `admins/${uid}`));
-  if (adminSnapshot.exists()) {
-    return { id: uid, uid, role: 'admin', ...adminSnapshot.val() };
-  }
-
-  // Compatibility for records imported before canonical UID keys were adopted.
-  return email ? fetchUserProfileByEmail(email) : null;
+  const request = fetchAuthenticatedProfileUncached(uid, email)
+    .then(profile => {
+      if (profile) {
+        authenticatedProfileCache.set(uid, {
+          value: profile,
+          expiresAt: Date.now() + 5_000
+        });
+      }
+      return profile;
+    })
+    .finally(() => authenticatedProfileRequests.delete(uid));
+  authenticatedProfileRequests.set(uid, request);
+  return request;
 }
 
 // Firebase login is only for customer/provider transition identities.
@@ -882,6 +914,8 @@ export async function logoutFirebaseUser() {
   // Clear the UI cache before Firebase broadcasts the signed-out state. Firebase
   // remains the session authority; this cache must never be able to restore a user.
   localStorage.removeItem(ACTIVE_SESSION_KEY);
+  authenticatedProfileCache.clear();
+  authenticatedProfileRequests.clear();
   try {
     await signOut(auth);
   } catch (e) {

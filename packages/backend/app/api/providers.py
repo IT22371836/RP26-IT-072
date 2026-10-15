@@ -462,15 +462,18 @@ async def get_provider_reviews(
         Depends(get_interaction_repository),
     ],
 ) -> list[ProviderCustomerReview]:
-    if await providers.find_by_id(provider_id) is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Provider not found")
     try:
-        reviews = await provider_review_feed(interactions, provider_id, limit=20)
+        provider, reviews = await asyncio.gather(
+            providers.find_by_id(provider_id),
+            provider_review_feed(interactions, provider_id, limit=20),
+        )
     except OSError as error:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Component 4 review evidence is unavailable",
         ) from error
+    if provider is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Provider not found")
     return [ProviderCustomerReview.model_validate(review) for review in reviews]
 
 

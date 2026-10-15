@@ -30,7 +30,15 @@ from app.services.provider_eligibility import (
 )
 
 ROOT = Path(__file__).resolve().parents[3]
-C1_PROVIDERS = ROOT / "packages/backend/app/components/component1/artifacts/providers.json"
+C1_PROVIDERS = (
+    ROOT
+    / "ml"
+    / "components"
+    / "component1"
+    / "data"
+    / "raw"
+    / "SL_Provider_Dataset_10000_Research_Grade.json"
+)
 C4_SCORES = ROOT / "ml/components/component4/artifacts/catf-v1/provider_catf_scores.csv"
 C4_PROVIDER_MAP = ROOT / "ml/components/component4/data/processed/provider_id_map.csv"
 SEED_VERSION = "pipeline-shared-providers-v3"

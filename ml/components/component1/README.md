@@ -4,7 +4,8 @@ Owner workspace for TF-IDF, multilingual Sentence Transformer, credibility-based
 
 Current supplied inputs:
 
-- 10,000 provider records
+- A deterministic 500-provider production subset covering all 14 categories
+- 10,000 provider records in the original research dataset
 - 100,000 user interaction records
 - 20,000 user request records
 - Google Colab training/evaluation notebook
@@ -12,7 +13,9 @@ Current supplied inputs:
 The research notebook exports evaluation CSV and PNG files. The production artifact
 exporter recreates the validated notebook pipeline and writes the fitted TF-IDF state,
 provider embeddings, credibility state, user preferences, provider lookup data, and a
-checksummed manifest for the backend inference service.
+checksummed manifest for the backend inference service. The exporter selects 500
+Component 1/Component 4-compatible providers using the same deterministic category and
+location balancing strategy as the Firebase research baseline (35–36 per category).
 
 From `packages/backend`, after installing `requirements-dev.txt`, run:
 
@@ -54,4 +57,4 @@ New provider profiles stored in MongoDB are scored at request time and merged wi
 research artifact pool. Their TF-IDF and semantic features use the same fitted models;
 providers without interaction history receive a neutral collaborative-filtering score
 until real bookings and ratings are recorded. This makes a newly completed provider
-profile eligible for the Top-20 without rebuilding the 10,000-provider baseline.
+profile eligible for the Top-20 without rebuilding the 500-provider research baseline.

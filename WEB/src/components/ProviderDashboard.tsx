@@ -74,7 +74,7 @@ export const ProviderDashboard: React.FC<ProviderDashboardProps> = ({
       }
     };
     void loadReviews();
-    const timer = window.setInterval(() => void loadReviews(), 10000);
+    const timer = window.setInterval(() => void loadReviews(), 30000);
     return () => {
       stopped = true;
       window.clearInterval(timer);

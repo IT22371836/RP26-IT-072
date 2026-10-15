@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import argparse
+import csv
 import hashlib
 import json
-from collections import defaultdict
+import shutil
+from collections import Counter, defaultdict
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -19,6 +21,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 
 WEIGHTS = {"tfidf": 0.30, "bert": 0.35, "cf": 0.35}
 SEMANTIC_MODEL = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+SELECTION_VERSION = "research-balanced-category-location-v1"
 
 
 def clean_text(value: Any) -> str:
@@ -44,8 +47,81 @@ def sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _selection_key(provider_id: str) -> str:
+    return hashlib.sha256(f"{SELECTION_VERSION}:{provider_id}".encode()).hexdigest()
+
+
+def balanced_provider_sample(
+    providers: pd.DataFrame,
+    limit: int,
+    eligible_provider_ids: set[str] | None = None,
+) -> pd.DataFrame:
+    """Select a deterministic category and location-balanced provider subset."""
+
+    if eligible_provider_ids is not None:
+        providers = providers[providers["provider_id"].astype(str).isin(eligible_provider_ids)]
+    if limit < 1 or limit > len(providers):
+        raise ValueError(f"Provider limit must be between 1 and {len(providers)}")
+
+    categories = sorted(str(value) for value in providers["category"].dropna().unique())
+    if not categories:
+        raise ValueError("Provider dataset contains no categories")
+    base, remainder = divmod(limit, len(categories))
+    selected_indices: list[int] = []
+    quotas: dict[str, int] = {}
+    for index, category in enumerate(categories):
+        category_rows = providers[providers["category"].astype(str) == category].copy()
+        quota = base + int(index < remainder)
+        if len(category_rows) < quota:
+            raise ValueError(f"Category {category} cannot supply its quota of {quota}")
+        quotas[category] = quota
+        category_rows["_selection_key"] = category_rows["provider_id"].map(
+            lambda value: _selection_key(str(value))
+        )
+        category_rows = category_rows.sort_values(
+            ["district", "city", "_selection_key"], kind="stable"
+        )
+        locations = {
+            key: group.sort_values("_selection_key", kind="stable").index.tolist()
+            for key, group in category_rows.groupby(["district", "city"], sort=True)
+        }
+        offsets = {key: 0 for key in locations}
+        category_selected: list[int] = []
+        while len(category_selected) < quota:
+            for key in sorted(locations):
+                offset = offsets[key]
+                if offset >= len(locations[key]):
+                    continue
+                category_selected.append(locations[key][offset])
+                offsets[key] += 1
+                if len(category_selected) == quota:
+                    break
+        selected_indices.extend(category_selected)
+
+    selected = providers.loc[selected_indices].copy()
+    counts = Counter(selected["category"].astype(str))
+    if len(selected) != limit or set(counts) != set(categories):
+        raise RuntimeError("Balanced provider selection did not satisfy its contract")
+    return selected.reset_index(drop=True)
+
+
+def load_provider_ids(path: Path | None) -> set[str] | None:
+    if path is None:
+        return None
+    with path.open(encoding="utf-8", newline="") as source:
+        return {
+            str(row["provider_id"]).strip()
+            for row in csv.DictReader(source)
+            if str(row.get("provider_id") or "").strip()
+        }
+
+
 def load_and_prepare(
-    provider_path: Path, interaction_path: Path
+    provider_path: Path,
+    interaction_path: Path,
+    *,
+    provider_limit: int | None = None,
+    eligible_provider_ids: set[str] | None = None,
 ) -> tuple[pd.DataFrame, dict]:
     providers = pd.read_json(provider_path)
     interactions = pd.read_csv(interaction_path)
@@ -75,6 +151,17 @@ def load_and_prepare(
         raise ValueError(f"Provider dataset is missing columns: {sorted(missing)}")
     if missing := interaction_columns - set(interactions.columns):
         raise ValueError(f"Interaction dataset is missing columns: {sorted(missing)}")
+
+    if provider_limit is not None:
+        providers = balanced_provider_sample(
+            providers,
+            provider_limit,
+            eligible_provider_ids,
+        )
+        selected_ids = set(providers["provider_id"].astype(str))
+        interactions = interactions[
+            interactions["provider_id"].astype(str).isin(selected_ids)
+        ].copy()
 
     providers["combined_text"] = (
         providers["category"].map(clean_text)
@@ -129,9 +216,17 @@ def export_artifacts(
     interaction_path: Path,
     output_dir: Path,
     model_name: str = SEMANTIC_MODEL,
+    provider_limit: int | None = None,
+    provider_map_path: Path | None = None,
+    model_source: str | Path | None = None,
 ) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
-    providers, preferences = load_and_prepare(provider_path, interaction_path)
+    providers, preferences = load_and_prepare(
+        provider_path,
+        interaction_path,
+        provider_limit=provider_limit,
+        eligible_provider_ids=load_provider_ids(provider_map_path),
+    )
 
     vectorizer = TfidfVectorizer(
         max_features=5000,
@@ -142,7 +237,7 @@ def export_artifacts(
     )
     tfidf_matrix = vectorizer.fit_transform(providers["combined_text"])
 
-    semantic_model = SentenceTransformer(model_name)
+    semantic_model = SentenceTransformer(str(model_source or model_name))
     embeddings = semantic_model.encode(
         providers["combined_text"].tolist(),
         batch_size=64,
@@ -178,7 +273,11 @@ def export_artifacts(
     (output_dir / "user_preferences.json").write_text(
         json.dumps(preferences, separators=(",", ":")), encoding="utf-8"
     )
-    semantic_model.save(str(output_dir / "semantic_model"))
+    semantic_output = output_dir / "semantic_model"
+    if model_source is not None and Path(model_source).is_dir():
+        shutil.copytree(Path(model_source), semantic_output, dirs_exist_ok=True)
+    else:
+        semantic_model.save(str(semantic_output))
 
     artifact_files = [
         "providers.json",
@@ -200,6 +299,12 @@ def export_artifacts(
         "created_at": datetime.now(UTC).isoformat(),
         "semantic_model": model_name,
         "provider_count": len(providers),
+        "provider_selection": {
+            "limit": provider_limit,
+            "strategy": SELECTION_VERSION if provider_limit is not None else "full_dataset",
+            "eligible_provider_map": provider_map_path.name if provider_map_path else None,
+            "category_counts": dict(sorted(Counter(providers["category"]).items())),
+        },
         "embedding_dimension": int(embeddings.shape[1]),
         "weights": WEIGHTS,
         "source_files": {
@@ -240,6 +345,25 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--output", type=Path, default=default_output)
     parser.add_argument("--model", default=SEMANTIC_MODEL)
+    parser.add_argument(
+        "--model-source",
+        type=Path,
+        help="Optional local Sentence Transformer directory for offline artifact export",
+    )
+    parser.add_argument("--provider-limit", type=int, default=500)
+    parser.add_argument(
+        "--provider-map",
+        type=Path,
+        default=(
+            repository_root
+            / "ml"
+            / "components"
+            / "component4"
+            / "data"
+            / "processed"
+            / "provider_id_map.csv"
+        ),
+    )
     return parser.parse_args()
 
 
@@ -250,4 +374,7 @@ if __name__ == "__main__":
         arguments.interactions,
         arguments.output,
         arguments.model,
+        arguments.provider_limit,
+        arguments.provider_map,
+        arguments.model_source,
     )

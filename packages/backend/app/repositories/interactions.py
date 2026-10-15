@@ -84,7 +84,7 @@ class InteractionRepository:
                 and isinstance(item.get("rating"), (int, float))
             }
             return sorted_records(normalized, field="timestamp", limit=limit)
-        values = await self._all()
+        values = await self._by_child("provider_id", provider_id)
         selected = {
             key: {field: item.get(field) for field in ("rating", "review_text", "timestamp")}
             for key, item in values.items()

@@ -240,7 +240,7 @@ function PipelineExecutionAudit({ run }: { run: PipelineRunDto }) {
         `Engine: ${run.component1?.engine ?? 'hybrid_tfidf_semantic_cf'}`,
         `Artifact/model loaded: ${run.component1?.model_loaded === true ? 'Yes' : c1State === 'completed' ? 'Yes' : 'Pending'}`,
         `Version: ${run.component1?.component_version ?? 'Pending'} / ${run.component1?.model_version ?? 'Pending'}`,
-        `Candidates: ${run.component1?.candidate_pool_count ?? run.component1?.artifact_provider_count ?? '10,000'} → ${c1Count || 'Top-20 pending'}`,
+        `Candidates: ${run.component1?.candidate_pool_count ?? run.component1?.artifact_provider_count ?? '500'} → ${c1Count || 'Top-20 pending'}`,
         `Pool: ${run.component1?.eligible_research_provider_count ?? 'Pending'} eligible research + ${run.component1?.eligible_website_provider_count ?? run.component1?.additional_verified_provider_count ?? 'Pending'} eligible website`,
         `Verified and pipeline-ready Firebase profiles: ${run.component1?.verified_firebase_provider_count ?? 'Pending'}`,
         `Preference signals: ${run.component1?.preference_signal_count ?? 'Pending'}`,

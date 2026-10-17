@@ -487,10 +487,12 @@ class PipelineWorker:
     ) -> dict[str, Any]:
         started_at = utc_now()
         started = perf_counter()
+        # Load the validated Component 4 ranking artifacts.
         engine = get_component4_engine(
             self.settings.component4_artifact_dir,
             self.settings.component4_category_priors_path,
         )
+        # Pass the Component 2 candidates to CATF for Top-5 ranking.
         payload = Component4RankRequest(
             source=source,
             request_id=request_id,
@@ -511,6 +513,7 @@ class PipelineWorker:
             if provider_id in selected:
                 live_index[provider_id] = {**live_index.get(provider_id, {}), **provider}
         live_providers = list(live_index.values())
+        # Rank, explain, and persist the integrated Component 4 result.
         response = await Component4RankingOrchestrator(engine, self.component4_runs).rank(
             payload,
             user_id=user_id,

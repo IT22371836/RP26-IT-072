@@ -607,6 +607,7 @@ class Component4RankingEngine:
         live_providers: list[dict[str, Any]],
     ) -> dict[str, Any]:
         require(self.ready, "Component 4 artifacts are not loaded")
+        # Index current provider data for candidate enrichment.
         live_index = {
             str(provider["provider_id"]): provider
             for provider in live_providers
@@ -625,6 +626,7 @@ class Component4RankingEngine:
                     else 0
                 )
                 if live is not None and live_review_count > 0:
+                    # Blend a small amount of current platform rating.
                     platform_rating = live_bounded_rating(live.get("rating"))
                     candidate["platform_rating"] = platform_rating
                     candidate["platform_review_count"] = live_review_count
@@ -644,6 +646,7 @@ class Component4RankingEngine:
         if unknown:
             raise UnknownProviderError(sorted(unknown))
 
+        # Apply deterministic CATF ranking and tie-breakers.
         ranked = sorted(
             candidates,
             key=lambda item: (
@@ -659,6 +662,7 @@ class Component4RankingEngine:
             if selected_count
             else 0.0
         )
+        # Explain both selected and rejected ranking decisions.
         evaluated_providers = []
         for rank, provider in enumerate(ranked, start=1):
             selected = rank <= selected_count

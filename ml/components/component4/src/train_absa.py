@@ -241,6 +241,7 @@ def build_model(
     vectorizer: layers.TextVectorization,
     config: TrainingConfig,
 ) -> keras.Model:
+    # Convert each review into trainable token embeddings.
     review_text = keras.Input(shape=(), dtype=tf.string, name="review_text")
     token_ids = vectorizer(review_text)
     embedding = layers.Embedding(
@@ -249,6 +250,7 @@ def build_model(
         mask_zero=True,
         name="token_embedding",
     )(token_ids)
+    # Learn review context in both reading directions.
     encoded = layers.Bidirectional(
         layers.LSTM(
             config.lstm_units,
@@ -258,6 +260,7 @@ def build_model(
         ),
         name="bidirectional_lstm",
     )(embedding)
+    # Focus on the most relevant words in each review.
     attended = layers.MultiHeadAttention(
         num_heads=config.attention_heads,
         key_dim=config.attention_key_dim,
@@ -269,6 +272,7 @@ def build_model(
     pooled = layers.GlobalAveragePooling1D(name="masked_global_average_pooling")(encoded)
     shared = layers.Dense(config.dense_units, activation="relu", name="shared_dense")(pooled)
     shared = layers.Dropout(config.shared_dropout, name="shared_dropout")(shared)
+    # Predict sentiment separately for all four aspects.
     outputs = {
         aspect: layers.Dense(3, activation="softmax", name=aspect)(shared)
         for aspect in ASPECTS

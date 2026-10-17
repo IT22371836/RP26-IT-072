@@ -269,8 +269,10 @@ def fit_pipeline(
     train: pd.DataFrame,
     config: CredibilityConfig,
 ) -> tuple[StandardScaler, IsolationForest, np.ndarray]:
+    # Standardize review-behaviour features before detection.
     scaler = StandardScaler()
     train_features = scaler.fit_transform(train[list(FEATURE_COLUMNS)])
+    # Learn unusual review patterns without using test data.
     model = IsolationForest(
         n_estimators=config.n_estimators,
         contamination=config.contamination,
@@ -302,6 +304,7 @@ def select_fake_threshold(
     normality_scores: np.ndarray,
 ) -> tuple[float, dict[str, Any], dict[str, np.ndarray]]:
     require(set(np.unique(actual_fake)) == {0, 1}, "threshold labels must contain 0 and 1")
+    # Select the fake-review threshold using validation F1.
     anomaly_scores = -np.asarray(normality_scores, dtype=np.float64)
     precision, recall, thresholds = precision_recall_curve(actual_fake, anomaly_scores)
     require(len(thresholds) > 0, "validation produced no threshold candidates")

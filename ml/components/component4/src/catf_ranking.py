@@ -94,9 +94,11 @@ class CATFRanker:
         unknown = sorted(set(candidates) - self._provider_ids)
         require(not unknown, f"unknown provider IDs: {unknown}")
 
+        # Restrict ranking to the supplied candidate providers.
         candidate_set = set(candidates)
         selected = self.scores[self.scores["provider_id"].isin(candidate_set)].copy()
         require(len(selected) == len(candidates), "candidate retrieval changed the input count")
+        # Rank by CATF score, evidence, and credibility.
         ranked = selected.sort_values(
             [
                 "final_catf_score",
@@ -119,6 +121,7 @@ class CATFRanker:
             "absa_model_version": self.manifest["absa_model_version"],
             "credibility_model_version": self.manifest["credibility_model_version"],
         }
+        # Create the same run ID for the same ranking request.
         run_digest = hashlib.sha256(
             json.dumps(canonical_run, sort_keys=True, separators=(",", ":")).encode("utf-8")
         ).hexdigest()[:16].upper()

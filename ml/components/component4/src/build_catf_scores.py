@@ -133,6 +133,7 @@ def predict_review_fusion(
 ) -> pd.DataFrame:
     texts = reviews["review_text"].astype(str).str.strip()
     require(texts.ne("").all(), "review text cannot be empty")
+    # Predict the four aspect sentiments with the trained BiLSTM.
     absa_predictions = absa.model.predict(
         tf.constant(texts.tolist(), dtype=tf.string),
         batch_size=batch_size,
@@ -141,6 +142,7 @@ def predict_review_fusion(
     require(isinstance(absa_predictions, dict), "ABSA prediction must be a mapping")
     require(set(absa_predictions) == set(ASPECTS), "ABSA output heads differ from CATF aspects")
 
+    # Detect suspicious reviews and assign credibility scores.
     credibility_predictions = credibility.predict(reviews)
     require(
         credibility_predictions["review_id"].tolist() == reviews["review_id"].tolist(),
@@ -178,8 +180,10 @@ def predict_review_fusion(
         fusion[f"{aspect}_positive_probability"] = probabilities[:, 0]
         fusion[f"{aspect}_neutral_probability"] = probabilities[:, 1]
         fusion[f"{aspect}_negative_probability"] = probabilities[:, 2]
+        # Convert class probabilities into sentiment and confidence.
         fusion[f"{aspect}_sentiment_score"] = probabilities[:, 0] - probabilities[:, 2]
         fusion[f"{aspect}_confidence"] = probabilities.max(axis=1)
+        # Give less influence to low-credibility reviews.
         fusion[f"{aspect}_review_weight"] = (
             fusion[f"{aspect}_confidence"].to_numpy(dtype=np.float64)
             * credibility_values
@@ -210,6 +214,7 @@ def aggregate_provider_evidence(
         "mapped review categories differ from Component 1 provider categories",
     )
 
+    # Combine review evidence at provider level.
     working = fusion[["provider_id", "credibility_score"]].copy()
     for aspect in ASPECTS:
         working[f"{aspect}_numerator"] = (
@@ -269,11 +274,13 @@ def aggregate_provider_evidence(
 
     epsilon = float(config["epsilon"])
     for aspect in ASPECTS:
+        # Calculate the credibility-weighted provider aspect score.
         output[f"{aspect}_score"] = output[f"{aspect}_numerator"] / (
             output[f"{aspect}_weight_sum"] + epsilon
         )
         output.drop(columns=f"{aspect}_numerator", inplace=True)
 
+    # Select aspect weights for each service category.
     category_weights = {
         category: weights_for_category(category, profiles)[0]
         for category in output["category"].unique()
@@ -282,18 +289,21 @@ def aggregate_provider_evidence(
         output[f"{aspect}_category_weight"] = output["category"].map(
             {category: weights[aspect] for category, weights in category_weights.items()}
         )
+    # Fuse the four weighted aspects into one base score.
     output["base_score"] = sum(
         output[f"{aspect}_score"] * output[f"{aspect}_category_weight"]
         for aspect in ASPECTS
     )
     output["normalized_base_score"] = ((output["base_score"] + 1.0) / 2.0).clip(0, 1)
     reliability_m = float(config["reliability_m"])
+    # Reduce confidence when credible review evidence is limited.
     output["reliability_factor"] = output["effective_review_count"] / (
         output["effective_review_count"] + reliability_m
     )
     output["category_prior"] = output["category"].map(
         lambda value: category_prior(str(value), priors)
     )
+    # Blend provider evidence with the category prior for the final score.
     output["final_catf_score"] = (
         output["reliability_factor"] * output["normalized_base_score"]
         + (1.0 - output["reliability_factor"]) * output["category_prior"]
@@ -485,6 +495,7 @@ def main() -> None:
         "category priors must cover every Component 1 category exactly",
     )
 
+    # Load both trained models and build the CATF fusion scores.
     absa = ABSAInference(ABSA_ARTIFACT_DIR)
     credibility = CredibilityInference(CREDIBILITY_ARTIFACT_DIR)
     fusion = predict_review_fusion(

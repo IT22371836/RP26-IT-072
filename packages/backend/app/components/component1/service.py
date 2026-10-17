@@ -189,11 +189,13 @@ class HybridRecommendationEngine:
     ) -> np.ndarray:
         if self.credibility_scores is None:
             raise ArtifactsUnavailableError("Component 1 artifacts are not loaded")
+        # Start CF with each provider's credibility score.
         scores = self.credibility_scores.astype(np.float32).copy()
         preferences = [
             *self.user_preferences.get(user_id, []),
             *(additional_preferences or []),
         ]
+        # Boost providers previously preferred by this customer.
         for provider_id, count in Counter(preferences).items():
             if (index := self._provider_index.get(provider_id)) is not None:
                 scores[index] *= 1.2**count
@@ -220,14 +222,17 @@ class HybridRecommendationEngine:
         if not self.ready or self.provider_embeddings is None:
             raise ArtifactsUnavailableError("Component 1 artifacts are not loaded")
 
+        # Measure keyword relevance with TF-IDF.
         query_vector = self.vectorizer.transform([query.lower().strip()])
         tfidf_raw = (self.tfidf_matrix @ query_vector.T).toarray().ravel()
+        # Measure semantic relevance with normalized embeddings.
         query_embedding = self.semantic_model.encode(
             [query.lower().strip()],
             convert_to_numpy=True,
             normalize_embeddings=True,
         )[0]
         bert_raw = self.provider_embeddings @ query_embedding
+        # Calculate the personalized credibility-aware CF signal.
         cf_raw = self._cf_scores(user_id, additional_preferences)
 
         providers = list(self.providers)
@@ -237,6 +242,7 @@ class HybridRecommendationEngine:
             for provider in (additional_providers or [])
             if provider.get("provider_id") not in known_provider_ids
         ]
+        # Score verified providers missing from the saved artifacts.
         if live_providers:
             preference_counts = Counter(additional_preferences or [])
             live_text = [
@@ -259,6 +265,7 @@ class HybridRecommendationEngine:
             live_bert = live_embeddings @ query_embedding
             live_cf_values: list[float] = []
             for provider in live_providers:
+                # Use a neutral score for cold-start providers.
                 if int(provider.get("interaction_count", 0)) == 0:
                     base_score = 0.5
                 else:
@@ -285,6 +292,7 @@ class HybridRecommendationEngine:
                 for provider in live_providers
             )
 
+        # Normalize and combine all three recommendation signals.
         tfidf = self.normalize(tfidf_raw)
         bert = self.normalize(bert_raw)
         cf = self.normalize(cf_raw)
@@ -298,6 +306,7 @@ class HybridRecommendationEngine:
         category_key = self._category_key(category) if category else None
         district_key = district.lower().strip() if district else None
         city_key = city.lower().strip() if city else None
+        # Keep only providers allowed by the pipeline contract.
         eligible = [
             index
             for index, provider in enumerate(providers)
@@ -340,6 +349,7 @@ class HybridRecommendationEngine:
             exact_scope = ", ".join(exact_dimensions[:-1]) + f" and {exact_dimensions[-1]}"
         else:
             exact_scope = exact_dimensions[0] if exact_dimensions else "requested filters"
+        # Relax location filters only when Top-20 needs more providers.
         for use_category, use_district, use_city, tier_name in (
             (True, True, True, f"exact {exact_scope} match"),
             (True, True, False, "category and district match"),
@@ -367,6 +377,7 @@ class HybridRecommendationEngine:
             if len(candidates) == top_k:
                 break
 
+        # Return scores and an explanation for each Top-20 provider.
         results = []
         for index in candidates[:top_k]:
             signal_scores = {

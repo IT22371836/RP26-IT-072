@@ -163,6 +163,7 @@ def load_and_prepare(
             interactions["provider_id"].astype(str).isin(selected_ids)
         ].copy()
 
+    # Join searchable provider fields into one text document.
     providers["combined_text"] = (
         providers["category"].map(clean_text)
         + " "
@@ -178,6 +179,7 @@ def load_and_prepare(
     interactions["booking_success_binary"] = (
         interactions["booking_status"] == "completed"
     ).astype(int)
+    # Summarize rating and booking history for each provider.
     metrics = (
         interactions.groupby("provider_id")
         .agg(
@@ -197,6 +199,7 @@ def load_and_prepare(
         columns=["derived_interaction_count", "derived_booking_success_rate"]
     )
 
+    # Build the credibility base used by modified CF.
     credibility = (
         (providers["avg_rating"].to_numpy(dtype=np.float32) / 5.0) * 0.50
         + providers["booking_success_rate"].to_numpy(dtype=np.float32) * 0.30
@@ -205,6 +208,7 @@ def load_and_prepare(
     )
     providers["credibility_score"] = normalize(credibility)
 
+    # Store each customer's provider interaction history.
     preferences: defaultdict[str, list[str]] = defaultdict(list)
     for row in interactions[["user_id", "provider_id"]].itertuples(index=False):
         preferences[str(row.user_id)].append(str(row.provider_id))
@@ -228,6 +232,7 @@ def export_artifacts(
         eligible_provider_ids=load_provider_ids(provider_map_path),
     )
 
+    # Fit TF-IDF for keyword relevance.
     vectorizer = TfidfVectorizer(
         max_features=5000,
         min_df=1,
@@ -237,6 +242,7 @@ def export_artifacts(
     )
     tfidf_matrix = vectorizer.fit_transform(providers["combined_text"])
 
+    # Encode provider meaning with the multilingual transformer.
     semantic_model = SentenceTransformer(str(model_source or model_name))
     embeddings = semantic_model.encode(
         providers["combined_text"].tolist(),
@@ -260,6 +266,7 @@ def export_artifacts(
         "booking_success_rate",
         "interaction_count",
     ]
+    # Save all fitted artifacts for backend inference.
     providers[provider_columns].to_json(
         output_dir / "providers.json", orient="records", force_ascii=False
     )

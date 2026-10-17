@@ -255,6 +255,7 @@ class PipelineWorker:
         user_id: str,
         request: dict[str, Any],
     ) -> dict[str, Any]:
+        # Load the validated Component 1 recommendation artifacts.
         engine = get_recommendation_engine(self.settings.component1_artifact_dir)
         if not engine.ready:
             raise PipelineExecutionError(
@@ -263,6 +264,7 @@ class PipelineWorker:
         started_at = utc_now()
         started = perf_counter()
         artifact_provider_ids = {str(provider["provider_id"]) for provider in engine.providers}
+        # Load only providers eligible for the full pipeline.
         provider_profiles = await self.providers.list_pipeline_eligible(
             limit=20_000,
             cache_seconds=self.settings.pipeline_provider_cache_seconds,
@@ -291,8 +293,10 @@ class PipelineWorker:
             booking_history = await self.firebase.get_customer_booking_history(firebase_uid)
         except FirebaseComponent2Error as error:
             raise PipelineExecutionError("firebase_failure", str(error), retryable=True) from error
+        # Combine booking and click history for modified CF.
         clicks = await self.interactions.click_preference_provider_ids(user_id)
         preferences = [*booking_history_preference_ids(booking_history), *clicks]
+        # Generate the hybrid TF-IDF, semantic, and CF Top-20.
         results = await asyncio.to_thread(
             engine.recommend,
             request["request_text"],
@@ -319,6 +323,7 @@ class PipelineWorker:
             for rank, result in enumerate(results, start=1)
         ]
         component_run_id = f"C1-{run_id}"
+        # Persist the Top-20 result and its model lineage.
         await self.component1_runs.persist_completed(
             {
                 "run_id": component_run_id,

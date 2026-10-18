@@ -757,8 +757,22 @@ export async function fetchUserProfileByEmail(email: string): Promise<any | null
 
 async function fetchAuthenticatedProfileUncached(
   uid: string,
-  _email?: string | null
+  _email?: string | null,
+  roleHint?: 'customer' | 'provider' | 'admin'
 ): Promise<any | null> {
+  // After Firebase Auth confirms the UID, use the last known role only to pick
+  // the first RTDB path. The RTDB read still authorizes and supplies the profile.
+  if (roleHint) {
+    try {
+      const hintedSnapshot = await get(child(ref(db), `${roleHint}s/${uid}`));
+      if (hintedSnapshot.exists()) {
+        return { id: uid, uid, role: roleHint, ...hintedSnapshot.val() };
+      }
+    } catch {
+      // Fall back to role discovery below for migrated or stale profiles.
+    }
+  }
+
   // Read the possible role profiles together so provider/admin sign-in does not
   // wait for failed customer lookups first.
   const paths = [
@@ -928,8 +942,28 @@ export async function logoutFirebaseUser() {
 export function subscribeAuthState(callback: (user: any | null) => void) {
   return onAuthStateChanged(auth, async (authUser) => {
     if (authUser) {
-      const profile = await fetchAuthenticatedProfile(authUser.uid, authUser.email);
+      let roleHint: 'customer' | 'provider' | 'admin' | undefined;
+      try {
+        const cached = JSON.parse(localStorage.getItem(ACTIVE_SESSION_KEY) || 'null');
+        const cachedUid = cached?.uid || cached?.id;
+        if (
+          cachedUid === authUser.uid
+          && ['customer', 'provider', 'admin'].includes(cached?.role)
+        ) {
+          roleHint = cached.role;
+        }
+      } catch {
+        localStorage.removeItem(ACTIVE_SESSION_KEY);
+      }
+
+      const profile = roleHint
+        ? await fetchAuthenticatedProfileUncached(authUser.uid, authUser.email, roleHint)
+        : await fetchAuthenticatedProfile(authUser.uid, authUser.email);
       if (profile && auth.currentUser?.uid === authUser.uid) {
+        authenticatedProfileCache.set(authUser.uid, {
+          value: profile,
+          expiresAt: Date.now() + 30_000
+        });
         callback(profile);
         return;
       }

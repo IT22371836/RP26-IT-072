@@ -42,10 +42,10 @@ class PipelineRunCreate(BaseModel):
     service_time: ServiceTime
     location_type: Literal["indoor", "outdoor", "indoor and outdoor"]
 
-    @field_validator("request_text", "category", "district", "city")
+    @field_validator("request_text", "category", "district", "city", mode="before")
     @classmethod
     def normalize_text(cls, value: str) -> str:
-        return " ".join(value.split())
+        return " ".join(str(value).split())
 
 
 class PipelineStartResponse(BaseModel):

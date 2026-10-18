@@ -460,12 +460,21 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
   // Start a new provider search.
   const start = async (event: React.FormEvent) => {
     event.preventDefault(); setError('');
+    const requestText = form.request_text.trim();
+    if (requestText.length < 10) {
+      setError('Request service is required and must contain at least 10 characters.');
+      return;
+    }
     if (!confirmed || !currentUser.location) { setError('Confirm your saved service location before continuing.'); return; }
     setBusy(true);
     try {
       const idempotencyKey = crypto.randomUUID();
       const token = await requireFirebaseApiToken();
-      const started = await backendApi.startPipeline(token, form, idempotencyKey);
+      const started = await backendApi.startPipeline(
+        token,
+        { ...form, request_text: requestText },
+        idempotencyKey
+      );
       localStorage.setItem(activeRunStorageKey, started.run_id);
       setRun(await backendApi.getPipeline(token, started.run_id));
     } catch (err: any) { setError(err.message); } finally { setBusy(false); }
@@ -673,7 +682,7 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
     {error && <div style={{ padding: 12, background: '#fee2e2', color: '#991b1b', borderRadius: 8, marginBottom: 14 }}>{error}</div>}
     {/*collect the service request details and start the provider pipeline*/}
     <form onSubmit={start} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(190px,1fr))', gap: 12 }}>
-      <textarea required minLength={10} placeholder="Describe the maintenance problem" value={form.request_text} onChange={e => setForm({ ...form, request_text: e.target.value })} style={{ gridColumn: '1/-1', minHeight: 80 }} />
+      <textarea required aria-required="true" minLength={10} placeholder="Request service (required) - describe the maintenance problem" value={form.request_text} onChange={e => setForm({ ...form, request_text: e.target.value })} style={{ gridColumn: '1/-1', minHeight: 80 }} />
       <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}>{SERVICE_CATEGORIES.map(item => <option key={item}>{item}</option>)}</select>
       <select value={form.district} onChange={e => { const next = SRI_LANKA_DISTRICTS.find(item => item.name === e.target.value)!; setForm({ ...form, district: next.name, city: next.cities[0] }); }}>{SRI_LANKA_DISTRICTS.map(item => <option key={item.name}>{item.name}</option>)}</select>
       <select value={form.city} onChange={e => setForm({ ...form, city: e.target.value })}>{cities.map(item => <option key={item}>{item}</option>)}</select>
@@ -683,7 +692,7 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
       <input type="time" min="08:01" max="18:00" required value={form.service_time.end_time} onChange={e => setForm({ ...form, service_time: { ...form.service_time, end_time: e.target.value } })} />
       <select value={form.location_type} onChange={e => setForm({ ...form, location_type: e.target.value as PipelineCreateDto['location_type'] })}><option value="indoor">Indoor</option><option value="outdoor">Outdoor</option><option value="indoor and outdoor">Indoor and outdoor</option></select>
       <label style={{ gridColumn: '1/-1' }}><input type="checkbox" checked={confirmed} onChange={e => setConfirmed(e.target.checked)} /> Confirm saved location ({currentUser.location?.latitude}, {currentUser.location?.longitude})</label>
-      <button className="btn btn-primary" disabled={busy || !confirmed} style={{ gridColumn: '1/-1' }}>{busy ? 'Starting…' : 'Run provider pipeline'}</button>
+      <button className="btn btn-primary" disabled={busy || !confirmed || form.request_text.trim().length < 10} style={{ gridColumn: '1/-1' }}>{busy ? 'Submitting…' : 'Submit'}</button>
     </form>
 
     {run && <div style={{ marginTop: 24 }}>

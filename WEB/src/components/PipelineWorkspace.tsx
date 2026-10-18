@@ -411,18 +411,31 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
   // Check the active pipeline until it finishes.
   useEffect(() => {
     if (!activeRunId || !activeRunStatus || !ACTIVE.has(activeRunStatus)) return;
-    let stopped = false; let polls = 0;
+    let stopped = false; let polls = 0; let timer: number | undefined;
+    const schedule = (delay: number) => {
+      if (!stopped) timer = window.setTimeout(poll, delay);
+    };
     const poll = async () => {
       try {
         const next = await backendApi.getPipeline(await requireFirebaseApiToken(), activeRunId);
         if (stopped) return;
         setRun(next); polls += 1;
-        if (ACTIVE.has(next.status)) window.setTimeout(poll, polls < 15 ? 2000 : 5000);
+        if (ACTIVE.has(next.status)) schedule(polls < 15 ? 2000 : 5000);
         else { localStorage.removeItem(activeRunStorageKey); reloadHistory().catch(() => undefined); }
-      } catch (err: any) { if (!stopped) setError(err.message); }
+      } catch (err: any) {
+        if (!stopped) {
+          setError(err.message);
+          // Firebase/network interruptions are transient. Keep polling instead
+          // of leaving the UI permanently stuck on its last known state.
+          schedule(5000);
+        }
+      }
     };
-    const timer = window.setTimeout(poll, 2000);
-    return () => { stopped = true; window.clearTimeout(timer); };
+    schedule(2000);
+    return () => {
+      stopped = true;
+      if (timer !== undefined) window.clearTimeout(timer);
+    };
   }, [activeRunId, activeRunStatus, activeRunStorageKey, reloadHistory]);
 
   // Refresh bookings if a live update is missed.
@@ -464,9 +477,15 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
     try {
       const token = await requireFirebaseApiToken();
       await backendApi.selectPipelineProvider(token, run.run_id, providerId);
-      setRun(await backendApi.getPipeline(token, run.run_id));
-      await reloadHistory();
       setSelectionMessage('Booking request sent to the selected provider. Waiting for acceptance or rejection.');
+      // The booking is already saved when selection succeeds. Refresh failures
+      // must not be reported as a failed booking or trigger a duplicate retry.
+      setRun(current => current ? { ...current, selected_provider_id: providerId } : current);
+      const [latestRun] = await Promise.allSettled([
+        backendApi.getPipeline(token, run.run_id),
+        reloadHistory()
+      ]);
+      if (latestRun.status === 'fulfilled') setRun(latestRun.value);
     } catch (err: any) {
       setError(err.message);
       setSelectionMessage(`Booking request failed: ${err.message}`);
@@ -825,7 +844,7 @@ export const PipelineWorkspace: React.FC<{ currentUser: Customer }> = ({ current
             <p style={{ margin: '7px 0' }}>{review.review_text || 'Rating submitted without a written review.'}</p>
             <small style={{ color: '#64748b' }}>
               {review.source === 'platform'
-                ? 'Verified platform booking review'
+                ? `Verified platform booking review${review.credibility_score === null ? '' : ` · Component 4 credibility ${(review.credibility_score * 100).toFixed(0)}%`}`
                 : `Component 4 research review${review.credibility_score === null ? '' : ` · credibility ${(review.credibility_score * 100).toFixed(0)}%`}`}
               {review.verified_booking ? ' · verified booking' : ''}
             </small>

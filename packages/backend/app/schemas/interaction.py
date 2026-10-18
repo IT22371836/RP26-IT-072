@@ -44,6 +44,9 @@ class InteractionPublic(InteractionCreate):
     booking_interaction_id: str | None = None
     pipeline_run_id: str | None = None
     request_details: dict[str, Any] | None = None
+    credibility_score: float | None = Field(default=None, ge=0, le=1)
+    predicted_is_fake_review: bool | None = None
+    credibility_model_version: str | None = None
 
 
 class RatingCreate(BaseModel):

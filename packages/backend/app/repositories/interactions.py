@@ -78,6 +78,9 @@ class InteractionRepository:
                     "rating": item.get("rating"),
                     "review_text": item.get("review_text"),
                     "timestamp": item.get("reviewed_at") or item.get("timestamp"),
+                    "credibility_score": item.get("credibility_score"),
+                    "predicted_is_fake_review": item.get("predicted_is_fake_review"),
+                    "credibility_model_version": item.get("credibility_model_version"),
                 }
                 for key, item in direct.items()
                 if isinstance(item, dict)
@@ -86,7 +89,17 @@ class InteractionRepository:
             return sorted_records(normalized, field="timestamp", limit=limit)
         values = await self._by_child("provider_id", provider_id)
         selected = {
-            key: {field: item.get(field) for field in ("rating", "review_text", "timestamp")}
+            key: {
+                field: item.get(field)
+                for field in (
+                    "rating",
+                    "review_text",
+                    "timestamp",
+                    "credibility_score",
+                    "predicted_is_fake_review",
+                    "credibility_model_version",
+                )
+            }
             for key, item in values.items()
             if item.get("provider_id") == provider_id
             and item.get("interaction_type") == InteractionType.RATED.value

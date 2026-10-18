@@ -260,7 +260,7 @@ export const ProviderDashboard: React.FC<ProviderDashboardProps> = ({
           <p style={{ margin: '7px 0' }}>{review.review_text || 'Rating submitted without a written review.'}</p>
           <small style={{ color: '#64748b' }}>
             {review.source === 'platform'
-              ? 'Verified platform booking review'
+              ? `Verified platform booking review${review.credibility_score === null ? '' : ` · Component 4 credibility ${(review.credibility_score * 100).toFixed(0)}%`}`
               : `Component 4 research review${review.credibility_score === null ? '' : ` · credibility ${(review.credibility_score * 100).toFixed(0)}%`}`}
           </small>
         </article>)}

@@ -14,6 +14,7 @@ from app.components.component4.service import (
     Component4RankingEngine,
     UnknownProviderError,
 )
+from app.components.component4.review_credibility import score_platform_review
 from app.repositories.interactions import InteractionRepository
 from app.schemas.provider import ProviderTrustProfile
 
@@ -136,17 +137,23 @@ async def provider_review_feed(
             else _empty_reviews()
         ),
     )
-    platform_reviews = [
-        {
+    platform_reviews = []
+    for review in platform_records:
+        credibility = review.get("credibility_score")
+        if not isinstance(credibility, (int, float)):
+            credibility = score_platform_review(
+                review.get("review_text"), int(review["rating"])
+            )["credibility_score"]
+        platform_reviews.append(
+            {
             "rating": int(review["rating"]),
             "review_text": review.get("review_text"),
             "reviewed_at": _utc_datetime(review["timestamp"]),
             "verified_booking": True,
             "source": "platform",
-            "credibility_score": None,
-        }
-        for review in platform_records
-    ]
+            "credibility_score": float(credibility),
+            }
+        )
     if stored_research_reviews:
         research_feed = [
             {

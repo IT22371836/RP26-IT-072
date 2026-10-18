@@ -14,6 +14,7 @@ from app.integrations.firebase_component2 import (
     FirebaseRequestConflictError,
     FirebaseRtdbClient,
 )
+from app.components.component4.review_credibility import score_platform_review
 from app.repositories.interactions import InteractionRepository
 from app.repositories.providers import ProviderRepository
 from app.repositories.users import UserRepository
@@ -474,6 +475,8 @@ async def rate_completed_booking(
         payload.rating,
         payload.review_text,
     )
+    credibility = score_platform_review(payload.review_text, payload.rating)
+    document.update(credibility)
     rated_at = document["timestamp"].isoformat()
     try:
         await ensure_firebase_booking(
@@ -506,6 +509,7 @@ async def rate_completed_booking(
                 "reviewed_at": rated_at,
                 "verified_booking": True,
                 "source": "platform_booking",
+                **credibility,
             },
         )
         await firebase.refresh_provider_review_statistics(source["provider_id"])

@@ -561,11 +561,9 @@ export const backendApi = {
   },
 
   getPipeline(token: string, runId: string): Promise<PipelineRunDto> {
-    return cachedGet<PipelineRunDto>(
-      `/pipeline/runs/${encodeURIComponent(runId)}`,
-      token,
-      1_000
-    );
+    // Pipeline state changes frequently. Always fetch the current record so a
+    // completed run cannot be hidden behind a cached waiting/running response.
+    return request<PipelineRunDto>(`/pipeline/runs/${encodeURIComponent(runId)}`, {}, token);
   },
 
   listPipelines(token: string): Promise<PipelineRunDto[]> {
